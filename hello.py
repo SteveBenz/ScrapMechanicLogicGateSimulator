@@ -21,12 +21,11 @@ class IntractableKind(Enum):
     Button = "button"
 
 class Interactable:
-    def __init__(self, kind, _screen, _font, x, y):
+    def __init__(self, kind: IntractableKind, _screen: pygame.Surface, _font: font.Font, pos):
         self.kind = kind
         self.isPowered = False
         self.connections = []
-        self.x = x
-        self.y = y
+        self.pos = pos
         self._font = _font
         self._screen = _screen
     
@@ -34,7 +33,7 @@ class Interactable:
         gateText = self._font.render('A', True, RED)
         gateRect = gateText.get_rect()
         draw.rect(gateText, BLUE, gateRect, 2)
-        self._screen.blit(gateText, (20,20))
+        self._screen.blit(gateText, self.pos)
 
 
 
@@ -51,31 +50,29 @@ def main():
     pygame.display.set_caption("minimal program")
 
     sysfont = font.SysFont(None, 24)
-    gateText = sysfont.render('A', True, RED)
-    gateRect = gateText.get_rect()
-    pygame.draw.rect(gateText, BLUE, gateRect, 1)
 
-     
     # create a surface on screen that has the size of 240 x 180
     screen = pygame.display.set_mode((240,180))
      
     # define a variable to control the main loop
     running = True
 
-    i1 = Interactable(IntractableKind.And, screen, sysfont, 50, 70)
+    interacables = []
      
     # main loop
     while running:
         # event handling, gets all event from the event queue
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                print ("yow")
+                interacables.append( Interactable(IntractableKind.And, screen, sysfont, event.pos) )
             # only do something if the event is of type QUIT
             if event.type == pygame.QUIT:
                 # change the value to False, to exit the main loop
                 running = False
-        
-        i1.draw()
+
+        for i in interacables:
+            i.draw()
+
         # display.flip()
         display.update()
      
