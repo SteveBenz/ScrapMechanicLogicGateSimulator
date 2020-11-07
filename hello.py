@@ -36,25 +36,23 @@ class Interactable:
         self.kind = kind
         self.isPowered = False
         self.connections = []
-        self.pos = pos
         self._assets = assets
         self._screen = screen
         self.selected = False
+        self.rect = self._assets.nor.get_rect() # gateRect is the size of the image...
+        self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
     
     def draw(self):
-        gateRect = self._assets.nor.get_rect() # gateRect is the size of the image...
-        gateRect.move_ip(self.pos) # now it's the rect moved to the spot we want it
-        draw.rect(self._screen, GRAY, gateRect)
+        draw.rect(self._screen, GRAY, self.rect)
         if (self.selected):
-            draw.rect(self._screen, GREEN, gateRect, 4)
+            draw.rect(self._screen, GREEN, self.rect, 4)
         else:
-            draw.rect(self._screen, BLUE, gateRect, 4)
-        self._screen.blit(self._assets.nor, self.pos)
+            draw.rect(self._screen, BLUE, self.rect, 4)
+        self._screen.blit(self._assets.nor, self.rect.topleft)
     
     # returns true if pos is inside the drawn area of this thing
     def containsPosition(self, pos):
-        gateRect = self._assets.nor.get_rect() # gateRect is the size of the image...
-        return pos[0] >= self.pos[0] and pos[0] < self.pos[0] + gateRect.right and pos[1] >= self.pos[1] and pos[1] < self.pos[1] + gateRect.bottom
+        return self.rect.collidepoint(pos)
 
 
 def findItem(interactables, pos):
