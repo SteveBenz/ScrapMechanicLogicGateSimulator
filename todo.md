@@ -1,9 +1,9 @@
 # Todo List
 
-[ ]  Make the window reasonably sized
+[x]  Make the window reasonably sized
 [ ]  Object is placed centered on the mouse, not Upper-Left
 [ ]  Fix it so that the highlight box doesn't overlap the thing
-[ ]  Select, not just place
+[x]  Select, not just place
 [ ]  Create a region that's used for control (and you can't place stuff in that region)
 [ ]  Change gate types
 [ ]  Delete gates
