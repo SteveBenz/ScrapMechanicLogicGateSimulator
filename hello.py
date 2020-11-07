@@ -92,22 +92,28 @@ def main():
             if event.type == constants.MOUSEBUTTONDOWN:
                 selectedNow = findItem(interactables, event.pos)
                 if selectedNow is None:
-                    interactables.append( Interactable(IntractableKind.And, screen, assets, event.pos) )
+                    if selected is not None:
+                        selected.selected = False
+                    selected = Interactable(IntractableKind.And, screen, assets, event.pos)
+                    selected.selected = True
+                    interactables.append( selected )
                 else:
                     if selected is not None:
                         selected.selected = False
                     selectedNow.selected = True
                     selected = selectedNow
-            # only do something if the event is of type QUIT
-            if event.type == constants.QUIT:
-                # change the value to False, to exit the main loop
+            elif event.type == constants.KEYDOWN:
+                if event.key == constants.K_DELETE and selected is not None:
+                    interactables.remove(selected)
+                    selected = None
+            elif event.type == constants.QUIT:
                 running = False
 
+        screen.fill(BLACK)
         for i in interactables:
             i.draw()
-
-        # display.flip()
-        display.update()
+        display.flip()
+        # display.update()
      
      
 # run the main function only if this module is executed as the main script
