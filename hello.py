@@ -6,9 +6,10 @@ import pygame.display as display
 import pygame.font as font
 import pygame.draw as draw
 import pygame.image as image
+import pygame.constants as constants
 import pygame as pygame
 from enum import Enum
- 
+
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -62,8 +63,7 @@ def main():
 
     sysfont = font.SysFont(None, 24)
 
-    # create a surface on screen that has the size of 240 x 180
-    screen = pygame.display.set_mode((240,180))
+    screen = pygame.display.set_mode((700,700), constants.RESIZABLE)
      
     # define a variable to control the main loop
     running = True
@@ -75,10 +75,10 @@ def main():
     while running:
         # event handling, gets all event from the event queue
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == constants.MOUSEBUTTONDOWN:
                 interacables.append( Interactable(IntractableKind.And, screen, assets, event.pos) )
             # only do something if the event is of type QUIT
-            if event.type == pygame.QUIT:
+            if event.type == constants.QUIT:
                 # change the value to False, to exit the main loop
                 running = False
 
