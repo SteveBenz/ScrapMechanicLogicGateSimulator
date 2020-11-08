@@ -9,6 +9,7 @@ import pygame.image as image
 import pygame.transform as transform
 import pygame.constants as constants
 import pygame.color as color
+import pygame.key as key
 import pygame as pygame
 import math
 from enum import Enum
@@ -190,7 +191,8 @@ def main():
                     if selectedNow is None:
                         if selected is not None:
                             selected.selected = False
-                        selected = Interactable(InteractableKind.And, screen, assets, event.pos)
+                        kind = InteractableKind.InputOff if key.get_mods() in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT) else InteractableKind.And
+                        selected = Interactable(kind, screen, assets, event.pos)
                         selected.selected = True
                         interactables.append( selected )
                     else:
@@ -203,7 +205,7 @@ def main():
                     target = findItem(interactables, event.pos)
                     # we're making a connection from the selected item *to* the target,
                     # so we're adding to target.inputs
-                    if target is not None and target is not selected:
+                    if target is not None and target is not selected and target.kind not in (InteractableKind.InputOff, InteractableKind.InputOn):
                         if selected in target.inputs:
                             # the connection is already there - undo it
                             target.inputs.remove(selected)
