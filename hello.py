@@ -54,6 +54,9 @@ class Interactable:
     def containsPosition(self, pos):
         return self.rect.collidepoint(pos)
 
+    def move(self, pos):
+        self.rect.move_ip(pos[0], pos[1])
+
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -84,24 +87,35 @@ def main():
 
     interactables = []
     selected = None
+    isMoving = False
+    posAtStart = (0,0)
      
     # main loop
     while running:
         # event handling, gets all event from the event queue
         for event in pygame.event.get():
             if event.type == constants.MOUSEBUTTONDOWN:
-                selectedNow = findItem(interactables, event.pos)
-                if selectedNow is None:
-                    if selected is not None:
-                        selected.selected = False
-                    selected = Interactable(IntractableKind.And, screen, assets, event.pos)
-                    selected.selected = True
-                    interactables.append( selected )
-                else:
-                    if selected is not None:
-                        selected.selected = False
-                    selectedNow.selected = True
-                    selected = selectedNow
+                if event.button == 1:
+                    selectedNow = findItem(interactables, event.pos)
+                    if selectedNow is None:
+                        if selected is not None:
+                            selected.selected = False
+                        selected = Interactable(IntractableKind.And, screen, assets, event.pos)
+                        selected.selected = True
+                        interactables.append( selected )
+                    else:
+                        if selected is not None:
+                            selected.selected = False
+                        selectedNow.selected = True
+                        selected = selectedNow
+                    posAtStart = event.pos
+            elif event.type == constants.MOUSEMOTION:
+                if event.buttons[0] == 1:
+                    # the >5 thing is to prevent random jiggles while clicking from instigating moves.
+                    if selected is not None and not isMoving and (abs(event.pos[0] - posAtStart[0]) > 5 or abs(event.pos[1] - posAtStart[1])):
+                        isMoving = True
+                    if isMoving:
+                        selected.move(event.rel)
             elif event.type == constants.KEYDOWN:
                 if event.key == constants.K_DELETE and selected is not None:
                     interactables.remove(selected)

@@ -7,6 +7,7 @@
 [ ]  Create a region that's used for control (and you can't place stuff in that region)
 [ ]  Change gate types
 [x]  Delete gates
+[x]  Move gates
 [ ]  Draw connections
 [ ]  Create an Input widget
 [ ]  Input widget can be on, off, turning on or turning off
