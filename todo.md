@@ -13,3 +13,4 @@
 [ ]  Input widget can be on, off, turning on or turning off
 [ ]  Gates show whether they're currently outputting true or false
 [ ]  Add Step and Reset buttons to control area
+[ ]  Load and Store

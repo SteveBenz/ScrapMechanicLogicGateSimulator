@@ -8,9 +8,11 @@ import pygame.draw as draw
 import pygame.image as image
 import pygame.transform as transform
 import pygame.constants as constants
+import pygame.color as color
 import pygame as pygame
 import math
 from enum import Enum
+from typing import TypeVar, Iterable, Tuple
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -18,12 +20,48 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 LIGHTBLUE = (128, 128, 255)
 GRAY = (200, 200, 200)
+YELLOW = (255,255,0)
 
-class IntractableKind(Enum):
+class InteractableKind:
     And = "and"
     Or = "or"
     Xor = "xor"
-    Button = "button"
+    Nand = "nand"
+    Nor = "nor"
+    XNor = "xnor"
+    InputOn = "input-on"
+    InputOff = "input-off"
+
+    nexts = {
+        And: Or,
+        Or: Xor,
+        Xor: And,
+        Nand: Nor,
+        Nor: XNor,
+        XNor: Nand,
+        InputOn: InputOff,
+        InputOff: InputOn
+    }
+    prevs = {
+        And: Xor,
+        Or: And,
+        Xor: Or,
+        Nand: XNor,
+        Nor: Nand,
+        XNor: Nor,
+        InputOn: InputOff,
+        InputOff: InputOn
+    }
+    nots = {
+        And: Nand,
+        Or: Nor,
+        Xor: XNor,
+        Nand: And,
+        Nor: Or,
+        XNor: Xor,
+        InputOn: InputOff,
+        InputOff: InputOn,
+    }
 
 class Assets:
     def __init__(self):
@@ -35,15 +73,37 @@ class Assets:
         self.xnor = image.load("assets/xnor-black.png")
         self.arrow = image.load("assets/arrow.png")
 
+        # Gray background with a black button
+        self.input_off = pygame.Surface((64,64))
+        draw.rect(self.input_off, GRAY, (0,0,64,64))
+        draw.circle(self.input_off, BLACK, (32,32), 24, 4)
+
+        # Gray background with a yellow button
+        self.input_on = pygame.Surface((64,64))
+        draw.rect(self.input_on, pygame.color.THECOLORS['gray'], (0,0,64,64))
+        draw.circle(self.input_on, BLACK, (32,32), 24, 4)
+        draw.circle(self.input_on, YELLOW, (32,32), 22)
+
+        self.kindToAssetMap = {
+            InteractableKind.And: self.and_,
+            InteractableKind.Or: self.or_,
+            InteractableKind.Xor: self.xor,
+            InteractableKind.Nand: self.nand,
+            InteractableKind.Nor: self.nor,
+            InteractableKind.XNor: self.xnor,
+            InteractableKind.InputOff: self.input_off,
+            InteractableKind.InputOn: self.input_on
+        }
+
 class Interactable:
-    def __init__(self, kind: IntractableKind, screen: pygame.Surface, assets: Assets, pos):
+    def __init__(self, kind: InteractableKind, screen: pygame.Surface, assets: Assets, pos):
         self.kind = kind
         self.isPowered = False
         self.inputs = []
         self._assets = assets
         self._screen = screen
         self.selected = False
-        self.rect = self._assets.nor.get_rect() # gateRect is the size of the image...
+        self.rect = self._assets.nor.get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
     
     def draw(self):
@@ -52,7 +112,8 @@ class Interactable:
             draw.rect(self._screen, GREEN, self.rect, 4)
         else:
             draw.rect(self._screen, BLUE, self.rect, 4)
-        self._screen.blit(self._assets.nor, self.rect.topleft)
+        
+        self._screen.blit(self._assets.kindToAssetMap[self.kind], self.rect.topleft)
     
     # returns true if pos is inside the drawn area of this thing
     def containsPosition(self, pos):
@@ -61,7 +122,8 @@ class Interactable:
     def move(self, pos):
         self.rect.move_ip(pos[0], pos[1])
 
-def drawLineWithArrows(assets: Assets, screen, pos1: tuple, pos2: tuple):
+
+def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float]):
         draw.line(screen, BLUE, pos1, pos2, 3)
         deltax = pos2[0] - pos1[0]
         deltay = pos2[1] - pos1[1]
@@ -102,7 +164,7 @@ def main():
     # load and set the logo
     logo = pygame.image.load("logo32x32.png")
     pygame.display.set_icon(logo)
-    pygame.display.set_caption("minimal program")
+    pygame.display.set_caption("Scrap Mechanic Logic Gate Simulator")
 
 
     sysfont = font.SysFont(None, 24)
@@ -128,7 +190,7 @@ def main():
                     if selectedNow is None:
                         if selected is not None:
                             selected.selected = False
-                        selected = Interactable(IntractableKind.And, screen, assets, event.pos)
+                        selected = Interactable(InteractableKind.And, screen, assets, event.pos)
                         selected.selected = True
                         interactables.append( selected )
                     else:
@@ -164,6 +226,14 @@ def main():
                         if selected in i.inputs:
                             i.inputs.remove(selected)
                     selected = None
+                elif event.key == constants.K_LEFT and selected is not None:
+                    selected.kind = InteractableKind.prevs[selected.kind]
+                elif event.key == constants.K_RIGHT and selected is not None:
+                    selected.kind = InteractableKind.nexts[selected.kind]
+                elif event.key == constants.K_UP and selected is not None:
+                    selected.kind = InteractableKind.nots[selected.kind]
+                elif event.key == constants.K_DOWN and selected is not None:
+                    selected.kind = InteractableKind.nots[selected.kind]
             elif event.type == constants.QUIT:
                 running = False
 
