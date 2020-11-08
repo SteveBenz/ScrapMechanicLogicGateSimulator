@@ -8,7 +8,7 @@
 [ ]  Change gate types
 [x]  Delete gates
 [x]  Move gates
-[ ]  Draw connections
+[x]  Draw connections
 [ ]  Create an Input widget
 [ ]  Input widget can be on, off, turning on or turning off
 [ ]  Gates show whether they're currently outputting true or false

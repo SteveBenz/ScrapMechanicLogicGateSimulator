@@ -6,14 +6,17 @@ import pygame.display as display
 import pygame.font as font
 import pygame.draw as draw
 import pygame.image as image
+import pygame.transform as transform
 import pygame.constants as constants
 import pygame as pygame
+import math
 from enum import Enum
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+LIGHTBLUE = (128, 128, 255)
 GRAY = (200, 200, 200)
 
 class IntractableKind(Enum):
@@ -30,12 +33,13 @@ class Assets:
         self.nand = image.load("assets/nand-black.png")
         self.nor = image.load("assets/nor-black.png")
         self.xnor = image.load("assets/xnor-black.png")
+        self.arrow = image.load("assets/arrow.png")
 
 class Interactable:
     def __init__(self, kind: IntractableKind, screen: pygame.Surface, assets: Assets, pos):
         self.kind = kind
         self.isPowered = False
-        self.connections = []
+        self.inputs = []
         self._assets = assets
         self._screen = screen
         self.selected = False
@@ -57,6 +61,30 @@ class Interactable:
     def move(self, pos):
         self.rect.move_ip(pos[0], pos[1])
 
+def drawLineWithArrows(assets: Assets, screen, pos1: tuple, pos2: tuple):
+        draw.line(screen, BLUE, pos1, pos2, 3)
+        deltax = pos2[0] - pos1[0]
+        deltay = pos2[1] - pos1[1]
+        if (deltax == 0 and deltay > 0):
+            angle = math.pi / 2
+        elif (deltax == 0 and deltay < 0):
+            angle = math.pi * 1.5
+        else:
+            angle = math.atan(deltay/deltax)
+
+        angle = angle*180/math.pi # convert from radians to degrees
+        angle = -angle # but we really want to rotate clockwise
+        if deltax < 0:
+            angle = angle + 180
+        angle -= 180 # stupid image is already rotated 180 degrees
+        
+        arrow = assets.arrow
+        arrow = transform.rotate(arrow, angle)
+        arrowRect = arrow.get_rect()
+        arrow = transform.scale(arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
+        arrowRect = arrow.get_rect()
+        arrowRect.move_ip((pos2[0] + pos1[0] - arrowRect.width)/2, (pos2[1] + pos1[1] - arrowRect.height)/2)
+        screen.blit(arrow, arrowRect)
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -109,6 +137,19 @@ def main():
                         selectedNow.selected = True
                         selected = selectedNow
                     posAtStart = event.pos
+                elif event.button == 3 and selected is not None:
+                    target = findItem(interactables, event.pos)
+                    # we're making a connection from the selected item *to* the target,
+                    # so we're adding to target.inputs
+                    if target is not None and target is not selected:
+                        if selected in target.inputs:
+                            # the connection is already there - undo it
+                            target.inputs.remove(selected)
+                        else:
+                            # If the connection already goes the other way, reverse it.
+                            if target in selected.inputs:
+                                selected.inputs.remove(target)
+                            target.inputs.append(selected)
             elif event.type == constants.MOUSEMOTION:
                 if event.buttons[0] == 1:
                     # the >5 thing is to prevent random jiggles while clicking from instigating moves.
@@ -119,13 +160,21 @@ def main():
             elif event.type == constants.KEYDOWN:
                 if event.key == constants.K_DELETE and selected is not None:
                     interactables.remove(selected)
+                    for i in interactables:
+                        if selected in i.inputs:
+                            i.inputs.remove(selected)
                     selected = None
             elif event.type == constants.QUIT:
                 running = False
 
         screen.fill(BLACK)
-        for i in interactables:
-            i.draw()
+
+        for box in interactables:
+            for input in box.inputs:
+                drawLineWithArrows(assets, screen, input.rect.center, box.rect.center)
+
+        for box in interactables:
+            box.draw()
         display.flip()
         # display.update()
      
