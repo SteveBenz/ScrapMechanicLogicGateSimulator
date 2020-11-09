@@ -14,9 +14,10 @@
 [x]  Add Step and Reset buttons to control area
 [ ]  Load and Store - no dialog, command line argument or default
 [ ]  Timers
-[ ]  Process ticks at 5/second or something
-[ ]  Show debugging/paused state
-[ ]  F5 should reset everything but timers
+[x]  Process ticks at 5/second or something
+[x]  Show debugging/paused state
+[x]  F5 should reset everything but timers
+[x]  F4 should stop and reset
 [ ]  Simple circle for input
 
 Cut

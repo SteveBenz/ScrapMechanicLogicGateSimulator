@@ -177,6 +177,15 @@ class Interactable:
                 i = i + 1
         return i
 
+    def reset(self):
+        if (self.kind == InteractableKind.InputOff):
+            self.currentState = False
+        elif (self.kind == InteractableKind.InputOn):
+            self.currentState = True
+        else:
+            self.currentState = False
+        self.prevState = False       
+
     def apply(self):
         self.prevState = self.currentState
         self.currentState = self.nextState
@@ -220,6 +229,10 @@ def singleStep(interactables: Iterable[InteractableKind]):
         i.apply()
     
 
+def reset(interactables: Iterable[InteractableKind]):
+    for i in interactables:
+        i.reset()
+    
 # define a main function
 def main():
      
@@ -312,6 +325,9 @@ def main():
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
                     tick += 1
+                elif event.key == constants.K_F4:
+                    running = False
+                    reset(interactables)
                 elif event.key == constants.K_F5:
                     # TODO: Reset
                     running = True
