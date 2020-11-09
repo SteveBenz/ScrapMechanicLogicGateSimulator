@@ -12,6 +12,7 @@ import pygame.color as color
 import pygame.key as key
 import pygame as pygame
 import math
+import time
 from enum import Enum
 from typing import TypeVar, Iterable, Tuple
 
@@ -245,6 +246,7 @@ def main():
     isMoving = False
     posAtStart = (0,0)
     tick = 0
+    lastTickTime = time.time()
      
     # main loop
     while not closing:
@@ -319,8 +321,11 @@ def main():
                 closing = True
 
         if running:
-            singleStep(interactables)
-            tick += 1
+            timenow = time.time()
+            if (timenow - lastTickTime > .25):
+                singleStep(interactables)
+                tick += 1
+                lastTickTime = timenow
 
         screen.fill(BLACK)
 
