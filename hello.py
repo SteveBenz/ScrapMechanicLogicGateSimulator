@@ -244,6 +244,7 @@ def main():
     selected = None
     isMoving = False
     posAtStart = (0,0)
+    tick = 0
      
     # main loop
     while not closing:
@@ -308,6 +309,7 @@ def main():
                     selected.recalculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
+                    tick += 1
                 elif event.key == constants.K_F5:
                     # TODO: Reset
                     running = True
@@ -318,8 +320,15 @@ def main():
 
         if running:
             singleStep(interactables)
+            tick += 1
 
         screen.fill(BLACK)
+
+        tickImage = sysfont.render(str(tick), True, RED)
+        tickRect = tickImage.get_rect()
+        screenRect = screen.get_rect()
+        tickRect.move_ip(screenRect.width - 10 - tickRect.width, 10)
+        screen.blit(tickImage, tickRect)
 
         for box in interactables:
             for input in box.inputs:
