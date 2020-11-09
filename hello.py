@@ -21,6 +21,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 LIGHTBLUE = (128, 128, 255)
 GRAY = (200, 200, 200)
+DARKGRAY = (100, 100, 100)
 YELLOW = (255,255,0)
 
 class InteractableKind:
@@ -99,7 +100,9 @@ class Assets:
 class Interactable:
     def __init__(self, kind: InteractableKind, screen: pygame.Surface, assets: Assets, pos):
         self.kind = kind
-        self.isPowered = False
+        self.currentState = False
+        self.nextState = False
+        self.prevState = False
         self.inputs = []
         self._assets = assets
         self._screen = screen
@@ -108,7 +111,7 @@ class Interactable:
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
     
     def draw(self):
-        draw.rect(self._screen, GRAY, self.rect)
+        draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
         if (self.selected):
             draw.rect(self._screen, GREEN, self.rect, 4)
         else:
@@ -123,9 +126,37 @@ class Interactable:
     def move(self, pos):
         self.rect.move_ip(pos[0], pos[1])
 
+    def calculate(self):
+        if (self.kind == InteractableKind.InputOff):
+            self.nextState = False
+        elif (self.kind == InteractableKind.InputOn):
+            self.nextState = True
+        elif (self.kind == InteractableKind.And):
+            self.nextState = len(self.inputs) > 0 and len(self.inputs) == self.numActivatedInputs()
+        elif (self.kind == InteractableKind.Or):
+            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() > 0
+        elif (self.kind == InteractableKind.Xor):
+            self.nextState = self.numActivatedInputs() % 2 == 1
+        elif (self.kind == InteractableKind.Nand):
+            self.nextState = len(self.inputs) > 0 and len(self.inputs) != self.numActivatedInputs()
+        elif (self.kind == InteractableKind.Nor):
+            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() == 0
+        elif (self.kind == InteractableKind.XNor):
+            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() % 2 == 0
 
-def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float]):
-        draw.line(screen, BLUE, pos1, pos2, 3)
+    def apply(self):
+        self.prevState = self.currentState
+        self.currentState = self.nextState
+
+    def numActivatedInputs(self) -> int:
+        i = 0
+        for input in self.inputs:
+            if input.currentState:
+                i = i + 1
+        return i
+
+def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
+        draw.line(screen, color, pos1, pos2, 3)
         deltax = pos2[0] - pos1[0]
         deltay = pos2[1] - pos1[1]
         if (deltax == 0 and deltay > 0):
@@ -155,6 +186,12 @@ def findItem(interactables, pos):
             return i
     return None
 
+def singleStep(interactables: Iterable[InteractableKind]):
+    for i in interactables:
+        i.calculate()
+    for i in interactables:
+        i.apply()
+    
 
 # define a main function
 def main():
@@ -173,7 +210,8 @@ def main():
     screen = pygame.display.set_mode((700,700), constants.RESIZABLE)
      
     # define a variable to control the main loop
-    running = True
+    closing = False
+    running = False
     assets = Assets()
 
     interactables = []
@@ -182,7 +220,7 @@ def main():
     posAtStart = (0,0)
      
     # main loop
-    while running:
+    while not closing:
         # event handling, gets all event from the event queue
         for event in pygame.event.get():
             if event.type == constants.MOUSEBUTTONDOWN:
@@ -236,14 +274,25 @@ def main():
                     selected.kind = InteractableKind.nots[selected.kind]
                 elif event.key == constants.K_DOWN and selected is not None:
                     selected.kind = InteractableKind.nots[selected.kind]
+                elif event.key == constants.K_F10 and not running:
+                    singleStep(interactables)
+                elif event.key == constants.K_F5:
+                    # TODO: Reset
+                    running = True
+                elif event.key == constants.K_F6:
+                    # TODO: Reset
+                    running = False
             elif event.type == constants.QUIT:
-                running = False
+                closing = True
+
+        if running:
+            singleStep(interactables)
 
         screen.fill(BLACK)
 
         for box in interactables:
             for input in box.inputs:
-                drawLineWithArrows(assets, screen, input.rect.center, box.rect.center)
+                drawLineWithArrows(assets, screen, input.rect.center, box.rect.center, LIGHTBLUE if input.prevState else BLUE)
 
         for box in interactables:
             box.draw()
