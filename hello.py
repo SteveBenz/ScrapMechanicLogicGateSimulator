@@ -144,16 +144,42 @@ class Interactable:
         elif (self.kind == InteractableKind.XNor):
             self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() % 2 == 0
 
-    def apply(self):
-        self.prevState = self.currentState
-        self.currentState = self.nextState
-
     def numActivatedInputs(self) -> int:
         i = 0
         for input in self.inputs:
             if input.currentState:
                 i = i + 1
         return i
+
+    def recalculate(self):
+        if (self.kind == InteractableKind.InputOff):
+            self.currentState = False
+        elif (self.kind == InteractableKind.InputOn):
+            self.currentState = True
+        elif (self.kind == InteractableKind.And):
+            self.currentState = len(self.inputs) > 0 and len(self.inputs) == self._reNumActivatedInputs()
+        elif (self.kind == InteractableKind.Or):
+            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() > 0
+        elif (self.kind == InteractableKind.Xor):
+            self.currentState = self._reNumActivatedInputs() % 2 == 1
+        elif (self.kind == InteractableKind.Nand):
+            self.currentState = len(self.inputs) > 0 and len(self.inputs) != self._reNumActivatedInputs()
+        elif (self.kind == InteractableKind.Nor):
+            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() == 0
+        elif (self.kind == InteractableKind.XNor):
+            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() % 2 == 0
+
+    def _reNumActivatedInputs(self) -> int:
+        i = 0
+        for input in self.inputs:
+            if input.prevState:
+                i = i + 1
+        return i
+
+    def apply(self):
+        self.prevState = self.currentState
+        self.currentState = self.nextState
+
 
 def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
         draw.line(screen, color, pos1, pos2, 3)
@@ -252,6 +278,7 @@ def main():
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
                             target.inputs.append(selected)
+                        target.recalculate()
             elif event.type == constants.MOUSEMOTION:
                 if event.buttons[0] == 1:
                     # the >5 thing is to prevent random jiggles while clicking from instigating moves.
@@ -265,22 +292,26 @@ def main():
                     for i in interactables:
                         if selected in i.inputs:
                             i.inputs.remove(selected)
+                            i.recalculate()
                     selected = None
                 elif event.key == constants.K_LEFT and selected is not None:
                     selected.kind = InteractableKind.prevs[selected.kind]
+                    selected.recalculate()
                 elif event.key == constants.K_RIGHT and selected is not None:
                     selected.kind = InteractableKind.nexts[selected.kind]
+                    selected.recalculate()
                 elif event.key == constants.K_UP and selected is not None:
                     selected.kind = InteractableKind.nots[selected.kind]
+                    selected.recalculate()
                 elif event.key == constants.K_DOWN and selected is not None:
                     selected.kind = InteractableKind.nots[selected.kind]
+                    selected.recalculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
                 elif event.key == constants.K_F5:
                     # TODO: Reset
                     running = True
                 elif event.key == constants.K_F6:
-                    # TODO: Reset
                     running = False
             elif event.type == constants.QUIT:
                 closing = True

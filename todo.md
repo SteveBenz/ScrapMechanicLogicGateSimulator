@@ -10,8 +10,8 @@
 [x]  Draw connections
 [x]  Create an Input widget
 [x]  Input widget can be on, off, turning on or turning off
-[ ]  Gates show whether they're currently outputting true or false
-[ ]  Add Step and Reset buttons to control area
+[x]  Gates show whether they're currently outputting true or false
+[x]  Add Step and Reset buttons to control area
 [ ]  Load and Store
 [ ]  Timers
 
