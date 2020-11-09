@@ -1,5 +1,6 @@
 # Gotta do this first:
 #  python3 -m pip install -U pygame --user
+#  python3 -m pip install -U pickle-mixin --user
 
 # import the pygame module, so you can use it
 import pygame.display as display
@@ -13,6 +14,8 @@ import pygame.key as key
 import pygame as pygame
 import math
 import time
+import pickle
+import json
 from enum import Enum
 from typing import TypeVar, Iterable, Tuple
 
@@ -111,6 +114,17 @@ class Interactable:
         self.rect = self._assets.nor.get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
     
+    def toDictionary(self):
+        return {
+            'kind': self.kind,
+            'x': self.rect.centerx,
+            'y': self.rect.centery
+        }
+
+    @staticmethod
+    def fromDictionary(serialized: dict, screen: pygame.Surface, assets: Assets):
+        return Interactable(serialized['kind'], screen, assets, (serialized['x'], serialized['y']))
+
     def draw(self):
         draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
         if (self.selected):
@@ -233,6 +247,30 @@ def reset(interactables: Iterable[InteractableKind]):
     for i in interactables:
         i.reset()
     
+def serialize(interactables: Iterable[InteractableKind]) -> str:
+    dicts = []
+    for i in interactables:
+        serialized = i.toDictionary()
+        inputIndices = []
+        for x in i.inputs:
+            inputIndices.append(interactables.index(x))
+        serialized['inputs'] = inputIndices
+        dicts.append(serialized)
+    return json.dumps(dicts, indent=4)
+
+def deserialize(jsonContent: str, screen: pygame.Surface, assets: Assets):
+    listOfDicts = json.loads(jsonContent)
+    iterables = []
+    for i in listOfDicts:
+        iterables.append(Interactable.fromDictionary(i, screen, assets))
+    iterableIndex = 0
+    for i in listOfDicts:
+        inputIndices = i['inputs']
+        for index in inputIndices:
+            iterables[iterableIndex].inputs.append(iterables[index])
+        iterableIndex += 1
+    return iterables
+
 # define a main function
 def main():
      
@@ -255,6 +293,15 @@ def main():
     assets = Assets()
 
     interactables = []
+    try:
+        file = open('smlogicsim.json', 'r')
+        jsonContent = file.read()
+        interactables = deserialize(jsonContent, screen, assets)
+    except IOError:
+        None
+    finally:
+        file.close()
+    
     selected = None
     isMoving = False
     posAtStart = (0,0)
@@ -333,6 +380,10 @@ def main():
                     running = True
                 elif event.key == constants.K_F6:
                     running = False
+                elif event.key == constants.K_s:
+                    file = open('smlogicsim.json', 'w')
+                    file.write(serialize(interactables))
+                    file.close()
             elif event.type == constants.QUIT:
                 closing = True
 
@@ -359,7 +410,12 @@ def main():
             box.draw()
         display.flip()
         # display.update()
-     
+
+    # Always just save on exit     
+    file = open('smlogicsim.json', 'w')
+    file.write(serialize(interactables))
+    file.close()
+
      
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)

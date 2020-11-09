@@ -12,7 +12,8 @@
 [x]  Input widget can be on, off, turning on or turning off
 [x]  Gates show whether they're currently outputting true or false
 [x]  Add Step and Reset buttons to control area
-[ ]  Load and Store - no dialog, command line argument or default
+[x]  Load and Store - no dialog, command line argument or default
+[ ]  Feedback on save
 [ ]  Timers
 [x]  Process ticks at 5/second or something
 [x]  Show debugging/paused state
