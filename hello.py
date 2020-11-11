@@ -37,6 +37,7 @@ class InteractableKind:
     XNor = "xnor"
     InputOn = "input-on"
     InputOff = "input-off"
+    Timer10 = "timer10"
 
     nexts = {
         And: Or,
@@ -46,7 +47,8 @@ class InteractableKind:
         Nor: XNor,
         XNor: Nand,
         InputOn: InputOff,
-        InputOff: InputOn
+        InputOff: InputOn,
+        Timer10: Timer10
     }
     prevs = {
         And: Xor,
@@ -56,7 +58,8 @@ class InteractableKind:
         Nor: Nand,
         XNor: Nor,
         InputOn: InputOff,
-        InputOff: InputOn
+        InputOff: InputOn,
+        Timer10: Timer10
     }
     nots = {
         And: Nand,
@@ -67,6 +70,7 @@ class InteractableKind:
         XNor: Xor,
         InputOn: InputOff,
         InputOff: InputOn,
+        Timer10: Timer10
     }
 
 class Assets:
@@ -79,16 +83,9 @@ class Assets:
         self.xnor = image.load("assets/xnor-black.png")
         self.arrow = image.load("assets/arrow.png")
 
-        # Gray background with a black button
-        self.input_off = pygame.Surface((64,64))
-        draw.rect(self.input_off, GRAY, (0,0,64,64))
-        draw.circle(self.input_off, BLACK, (32,32), 24, 4)
-
-        # Gray background with a yellow button
-        self.input_on = pygame.Surface((64,64))
-        draw.rect(self.input_on, pygame.color.THECOLORS['gray'], (0,0,64,64))
-        draw.circle(self.input_on, BLACK, (32,32), 24, 4)
-        draw.circle(self.input_on, YELLOW, (32,32), 22)
+        self.input_on = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(self.input_on, BLACK, (32,32), 24, 8)
+        self.input_off = self.input_on
 
         self.kindToAssetMap = {
             InteractableKind.And: self.and_,
@@ -113,6 +110,7 @@ class Interactable:
         self.selected = False
         self.rect = self._assets.nor.get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
+        self.timerTickStorage = [False]*10
     
     def toDictionary(self):
         return {
@@ -132,8 +130,23 @@ class Interactable:
         else:
             draw.rect(self._screen, BLUE, self.rect, 4)
         
-        self._screen.blit(self._assets.kindToAssetMap[self.kind], self.rect.topleft)
+        if self.kind == InteractableKind.Timer10:
+            self._drawTimer()
+        else:
+            self._screen.blit(self._assets.kindToAssetMap[self.kind], self.rect.topleft)
     
+    def _drawTimer(self):
+        timerbox = self.rect.move(6,7)
+        timerbox.width -= 12
+        timerbox.height -= 11
+        draw.rect(self._screen, BLACK, timerbox, 2)
+        for i in range(10):
+            y = timerbox.bottom - 4 - i*5
+            x_left = timerbox.left + 7
+            x_right = timerbox.right - 7
+            if self.timerTickStorage[i]:
+                draw.line(self._screen, LIGHTBLUE, (x_left, y), (x_right, y), 4)
+
     # returns true if pos is inside the drawn area of this thing
     def containsPosition(self, pos):
         return self.rect.collidepoint(pos)
@@ -142,22 +155,27 @@ class Interactable:
         self.rect.move_ip(pos[0], pos[1])
 
     def calculate(self):
-        if (self.kind == InteractableKind.InputOff):
+        if self.kind == InteractableKind.InputOff:
             self.nextState = False
-        elif (self.kind == InteractableKind.InputOn):
+        elif self.kind == InteractableKind.InputOn:
             self.nextState = True
-        elif (self.kind == InteractableKind.And):
+        elif self.kind == InteractableKind.And:
             self.nextState = len(self.inputs) > 0 and len(self.inputs) == self.numActivatedInputs()
-        elif (self.kind == InteractableKind.Or):
+        elif self.kind == InteractableKind.Or:
             self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() > 0
-        elif (self.kind == InteractableKind.Xor):
+        elif self.kind == InteractableKind.Xor:
             self.nextState = self.numActivatedInputs() % 2 == 1
-        elif (self.kind == InteractableKind.Nand):
+        elif self.kind == InteractableKind.Nand:
             self.nextState = len(self.inputs) > 0 and len(self.inputs) != self.numActivatedInputs()
-        elif (self.kind == InteractableKind.Nor):
+        elif self.kind == InteractableKind.Nor:
             self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() == 0
-        elif (self.kind == InteractableKind.XNor):
+        elif self.kind == InteractableKind.XNor:
             self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() % 2 == 0
+        elif self.kind == InteractableKind.Timer10:
+            for i in range(9):
+                self.timerTickStorage[9-i] = self.timerTickStorage[8-i]
+            self.nextState = self.timerTickStorage[9]
+            self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].currentState
 
     def numActivatedInputs(self) -> int:
         i = 0
@@ -167,22 +185,25 @@ class Interactable:
         return i
 
     def recalculate(self):
-        if (self.kind == InteractableKind.InputOff):
+        if self.kind == InteractableKind.InputOff:
             self.currentState = False
-        elif (self.kind == InteractableKind.InputOn):
+        elif self.kind == InteractableKind.InputOn:
             self.currentState = True
-        elif (self.kind == InteractableKind.And):
+        elif self.kind == InteractableKind.And:
             self.currentState = len(self.inputs) > 0 and len(self.inputs) == self._reNumActivatedInputs()
-        elif (self.kind == InteractableKind.Or):
+        elif self.kind == InteractableKind.Or:
             self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() > 0
-        elif (self.kind == InteractableKind.Xor):
+        elif self.kind == InteractableKind.Xor:
             self.currentState = self._reNumActivatedInputs() % 2 == 1
-        elif (self.kind == InteractableKind.Nand):
+        elif self.kind == InteractableKind.Nand:
             self.currentState = len(self.inputs) > 0 and len(self.inputs) != self._reNumActivatedInputs()
-        elif (self.kind == InteractableKind.Nor):
+        elif self.kind == InteractableKind.Nor:
             self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() == 0
-        elif (self.kind == InteractableKind.XNor):
+        elif self.kind == InteractableKind.XNor:
             self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() % 2 == 0
+        #elif self.kind == InteractableKind.Timer10:
+        #    Not sure what we really should do here.
+        #    self.timerTickStorage = [False] * 10
 
     def _reNumActivatedInputs(self) -> int:
         i = 0
@@ -318,7 +339,9 @@ def main():
                     if selectedNow is None:
                         if selected is not None:
                             selected.selected = False
-                        kind = InteractableKind.InputOff if key.get_mods() in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT) else InteractableKind.And
+                        kind = InteractableKind.InputOff if key.get_mods() in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT) \
+                            else InteractableKind.Timer10 if key.get_mods() in (constants.KMOD_CTRL, constants.KMOD_LCTRL, constants.KMOD_RCTRL) \
+                            else InteractableKind.And
                         selected = Interactable(kind, screen, assets, event.pos)
                         selected.selected = True
                         interactables.append( selected )
@@ -340,6 +363,8 @@ def main():
                             # If the connection already goes the other way, reverse it.
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
+                            if target.kind == InteractableKind.Timer10:
+                                target.inputs.clear()
                             target.inputs.append(selected)
                         target.recalculate()
             elif event.type == constants.MOUSEMOTION:

@@ -13,12 +13,13 @@
 [x]  Gates show whether they're currently outputting true or false
 [x]  Add Step and Reset buttons to control area
 [x]  Load and Store - no dialog, command line argument or default
-[ ]  Feedback on save
-[ ]  Timers
+[ ]  Feedback on save?  Or just cut it?
+[x]  Timers
 [x]  Process ticks at 5/second or something
 [x]  Show debugging/paused state
 [x]  F5 should reset everything but timers
 [x]  F4 should stop and reset
+[ ]  Timers with adjustable duration
 [ ]  Simple circle for input
 
 Cut
