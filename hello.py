@@ -16,6 +16,7 @@ import math
 import time
 import pickle
 import json
+import sys
 from enum import Enum
 from typing import TypeVar, Iterable, Tuple
 
@@ -317,14 +318,14 @@ def main():
     assets = Assets()
 
     interactables = []
+    filename = sys.argv[1] if len(sys.argv) > 1 else 'smlogicsim.json'
     try:
-        file = open('smlogicsim.json', 'r')
+        file = open(filename, 'r')
         jsonContent = file.read()
+        file.close()
         interactables = deserialize(jsonContent, screen, assets)
     except IOError:
         None
-    finally:
-        file.close()
     
     selected = None
     isMoving = False
@@ -408,7 +409,7 @@ def main():
                 elif event.key == constants.K_F6:
                     running = False
                 elif event.key == constants.K_s:
-                    file = open('smlogicsim.json', 'w')
+                    file = open(filename, 'w')
                     file.write(serialize(interactables))
                     file.close()
             elif event.type == constants.QUIT:
@@ -439,11 +440,10 @@ def main():
         # display.update()
 
     # Always just save on exit     
-    file = open('smlogicsim.json', 'w')
+    file = open(filename, 'w')
     file.write(serialize(interactables))
     file.close()
 
-     
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
 if __name__=="__main__":
