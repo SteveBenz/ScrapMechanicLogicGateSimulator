@@ -212,13 +212,14 @@ class Interactable:
                 i = i + 1
         return i
 
-    def reset(self):
+    def reset(self, isFullReset: bool):
         if (self.kind == InteractableKind.InputOff):
             self.currentState = False
         elif (self.kind == InteractableKind.InputOn):
             self.currentState = True
         elif (self.kind == InteractableKind.Timer10):
-            None
+            if isFullReset:
+                self.timerTickStorage = [False]*10
         else:
             self.currentState = False
         self.prevState = False       
@@ -266,9 +267,9 @@ def singleStep(interactables: Iterable[InteractableKind]):
         i.apply()
     
 
-def reset(interactables: Iterable[InteractableKind]):
+def reset(interactables: Iterable[InteractableKind], isFullReset: bool):
     for i in interactables:
-        i.reset()
+        i.reset(isFullReset)
     
 def serialize(interactables: Iterable[InteractableKind]) -> str:
     dicts = []
@@ -401,9 +402,8 @@ def main():
                     tick += 1
                 elif event.key == constants.K_F4:
                     running = False
-                    reset(interactables)
+                    reset(interactables, event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT))
                 elif event.key == constants.K_F5:
-                    # TODO: Reset
                     running = True
                 elif event.key == constants.K_F6:
                     running = False
