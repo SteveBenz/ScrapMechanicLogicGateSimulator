@@ -217,6 +217,8 @@ class Interactable:
             self.currentState = False
         elif (self.kind == InteractableKind.InputOn):
             self.currentState = True
+        elif (self.kind == InteractableKind.Timer10):
+            None
         else:
             self.currentState = False
         self.prevState = False       
