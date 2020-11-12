@@ -11,6 +11,7 @@ import pygame.transform as transform
 import pygame.constants as constants
 import pygame.color as color
 import pygame.key as key
+import pygame.mouse as mouse
 import pygame as pygame
 import math
 import time
@@ -340,21 +341,13 @@ def main():
             if event.type == constants.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     selectedNow = findItem(interactables, event.pos)
+                    if selected is not None: selected.selected = False
                     if selectedNow is None:
-                        if selected is not None:
-                            selected.selected = False
-                        kind = InteractableKind.InputOff if key.get_mods() in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT) \
-                            else InteractableKind.Timer10 if key.get_mods() in (constants.KMOD_CTRL, constants.KMOD_LCTRL, constants.KMOD_RCTRL) \
-                            else InteractableKind.And
-                        selected = Interactable(kind, screen, assets, event.pos)
-                        selected.selected = True
-                        interactables.append( selected )
+                        selected = None
                     else:
-                        if selected is not None:
-                            selected.selected = False
                         selectedNow.selected = True
                         selected = selectedNow
-                    posAtStart = event.pos
+                        posAtStart = event.pos
                 elif event.button == 3 and selected is not None:
                     target = findItem(interactables, event.pos)
                     # we're making a connection from the selected item *to* the target,
@@ -412,6 +405,17 @@ def main():
                     file = open(filename, 'w')
                     file.write(serialize(interactables))
                     file.close()
+                elif event.key == constants.K_g or event.key == constants.K_l \
+                  or event.key == constants.K_t \
+                  or event.key == constants.K_i:
+                    newKind = InteractableKind.And if event.key == constants.K_g or event.key == constants.K_l else \
+                              InteractableKind.Timer10 if event.key == constants.K_t else \
+                              InteractableKind.InputOff
+                    if selected is not None: selected.selected = False
+                    selected = Interactable(newKind, screen, assets, mouse.get_pos())
+                    selected.selected = True
+                    interactables.append( selected )
+
             elif event.type == constants.QUIT:
                 closing = True
 
