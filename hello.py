@@ -330,6 +330,7 @@ def main():
     
     selected = None
     isMoving = False
+    isLinking = False
     posAtStart = (0,0)
     tick = 0
     lastTickTime = time.time()
@@ -348,11 +349,10 @@ def main():
                         selectedNow.selected = True
                         selected = selectedNow
                         posAtStart = event.pos
-                elif event.button == 3 and selected is not None:
+            elif event.type == constants.MOUSEBUTTONUP:
+                if isLinking:
                     target = findItem(interactables, event.pos)
-                    # we're making a connection from the selected item *to* the target,
-                    # so we're adding to target.inputs
-                    if target is not None and target is not selected and target.kind not in (InteractableKind.InputOff, InteractableKind.InputOn):
+                    if target is not None and target is not selected:
                         if selected in target.inputs:
                             # the connection is already there - undo it
                             target.inputs.remove(selected)
@@ -364,11 +364,18 @@ def main():
                                 target.inputs.clear()
                             target.inputs.append(selected)
                         target.recalculate()
+                isLinking = False
+                isMoving = False
             elif event.type == constants.MOUSEMOTION:
                 if event.buttons[0] == 1:
                     # the >5 thing is to prevent random jiggles while clicking from instigating moves.
-                    if selected is not None and not isMoving and (abs(event.pos[0] - posAtStart[0]) > 5 or abs(event.pos[1] - posAtStart[1])):
-                        isMoving = True
+                    if selected is not None \
+                    and not isMoving \
+                    and not isLinking \
+                    and (abs(event.pos[0] - posAtStart[0]) > 5 or abs(event.pos[1] - posAtStart[1])):
+                        keyboardModifiers = key.get_mods()
+                        isMoving = keyboardModifiers in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT)
+                        isLinking = keyboardModifiers == 0
                     if isMoving:
                         selected.move(event.rel)
             elif event.type == constants.KEYDOWN:
@@ -395,6 +402,7 @@ def main():
                     singleStep(interactables)
                     tick += 1
                 elif event.key == constants.K_F4:
+                    tick = 0
                     running = False
                     reset(interactables, event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT))
                 elif event.key == constants.K_F5:
@@ -440,6 +448,15 @@ def main():
 
         for box in interactables:
             box.draw()
+
+        if isLinking:
+            mousePos = mouse.get_pos()
+            target = findItem(interactables, mousePos)
+            if target is None:
+                draw.line(screen, GRAY, selected.rect.center, mouse.get_pos(), 1)
+            else:
+                draw.line(screen, GREEN, selected.rect.center, target.rect.center, 1)
+
         display.flip()
         # display.update()
 

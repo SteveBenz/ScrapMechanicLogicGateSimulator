@@ -13,14 +13,18 @@
 [x]  Gates show whether they're currently outputting true or false
 [x]  Add Step and Reset buttons to control area
 [x]  Load and Store - no dialog, command line argument or default
-[ ]  Feedback on save?  Or just cut it?
 [x]  Timers
 [x]  Process ticks at 5/second or something
 [x]  Show debugging/paused state
 [x]  F5 should reset everything but timers
 [x]  F4 should stop and reset
 [ ]  Timers with adjustable duration
-[ ]  Simple circle for input
+[x]  Simple circle for input
+[x]  Drag works for links
+[ ]  Rename to something sensible
+[ ]  Write readme
+[ ]  Inputs shouldn't be able to have inputs
 
 Cut
 [ ]  Create a region that's used for control (and you can't place stuff in that region)
+[ ]  Feedback on save?  Or just cut it?
