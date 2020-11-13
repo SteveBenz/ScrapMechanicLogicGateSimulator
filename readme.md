@@ -128,14 +128,16 @@ Strictly speaking, I don't know of any glitch with timers themselves, that's bec
 
 ![timer](tutorial/timer.png)
 
-It should be the case that timer is just periodically on and off depending on the duration of the timer but somehow we get these random puffs mixed in there.  How does that happen?
+It should be the case that timer is just periodically on and off depending on the duration of the timer but somehow we get these random puffs mixed in there, like the random 0 bit flowing through the bottom timer in the picture above.  How does that happen?
 
-Well, it's because it doesn't store the state of the logic gate and, for the first tick after loading, it's false.  You can see this effect in the simulator by doing this:
+Well, it's because it doesn't store the state of the logic gate and, for the first tick after loading, it's false even though the not gate should be making it true.  You can see this effect in the simulator by doing this:
 
 1. Completely reset the simulator by pressing `Shift-F4`.
 2. Press F5 to start the simulator rolling.
 3. At some point while the logic gate is sending out a "True" signal, press `F4` to simulate an unload event.
 4. Press `F5` to resume it.
+
+You can replicate this in scrap mechanic pretty easily too - just exit the game while the logic gate is true.  When you reload, you'll see that annoying blip start flowing through your timer.
 
 ## Glitch-Proofing Our Stuff
 
@@ -145,7 +147,7 @@ There's no general recipe for this, really.  For example, the memory bit will gl
 
 In my survival world, I have an automated farm.  I push a button and a giant arm pushes water cannons and seed-spewing pumps across the land.  One it starts going I can walk away from it and know it'll complete its cycle.  It can do this because of a memory bit that gets set in response to the button click.  Trouble is, if I don't hold the button long enough, it doesn't work.  Whatever can we do?
 
-[extenderbit.json](tutorial/extenderbit.extenderbit.png)
+![extenderbit.json](tutorial/extenderbit.png)
 
 Notice that the top button is not protected, and can cause the memory bit ot spaz out if you turn it on and off quickly.  But the bottom one is not, simply because it lets the signal walk through some extra gates to extend its effective duration.  Single step through to see it in action.
 
