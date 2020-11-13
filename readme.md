@@ -64,7 +64,7 @@ key on your keyboard.
 
 That should leave you something like this:
 
-[line1.json](tutorial/line1.json)
+![line1.json](tutorial/line1.json)
 
 Next we want to make connections.  To do this, hold your mouse over the "input" block (the one with
 the circle in it) then press the mouse button down, drag the mouse over to the leftmost logic gate
@@ -72,7 +72,7 @@ and release it.  That'll form a connection from the button to the logic gate.  I
 if you want to delete a link, repeat the gesture.  If you want to reverse the direction, drag from the
 other way.  That should leave you with this:
 
-[line2.json](tutorial/line2.json)
+![line2.json](tutorial/line2.json)
 
 So what we've got is a series of "And" gates connected to a button.  You can liven things up by
 changing the and gates.  To do that, click on one of the gates to select it and then press
@@ -110,7 +110,7 @@ Most folks who go to the trouble of installing this thing and reading this far i
 
 Scrap mechanic does not store the state of logic gates when you save and exit the game or unload a chunk or take a build off of the lift.  That means that every logic gate is outputing false for the very first tick, regardless.
 
-[memory bit](tutorial/memorybit.png)
+![memory bit](tutorial/memorybit.png)
 
 If you've built anything of any complexity in SM, you've probably built this simple memory circuit because you saw it on YouTube and saw the youtuber extoll it as "perfect!" but when you run it, it's not.  You likely saw right away that it flashes wildly until you press one button or the other.  If you single step through with the simulator, you can do the math and see why that is.  If it's in a stable state, it cooperates, but it can also get into an unstable state.  You can also destabilize it by sending it a really short input signal (1 or 2 ticks long).  Again, you can see why it happens if you step through the simulator.
 
@@ -118,7 +118,7 @@ If you've built anything of any complexity in SM, you've probably built this sim
 
 Strictly speaking, I don't know of any glitch with timers themselves, that's because, unlike logic gates, their states _are_ persisted.  But if you've ever built a repeating timer, you probably noticed that this happens:
 
-[timer](tutorial/timer.png)
+![timer](tutorial/timer.png)
 
 It should be the case that timer is just periodically on and off depending on the duration of the timer but somehow we get these random puffs mixed in there.  How does that happen?
 
@@ -145,7 +145,7 @@ Notice that the top button is not protected, and can cause the memory bit ot spa
 
 Suppose we want to do something on load in to compensate for the mucked up state of our circuit.  Here's a circuit that pits the weapons of our enemies against them!
 
-[loadsignal.json](tutorial/loadsignal.png)
+![loadsignal.json](tutorial/loadsignal.png)
 
 Here the normal state would be that all of the inputs to the second row would naturally be true all the time, _except when we're loading in_, where they will be false until the top-left nand gate's signal reaches them.
 
@@ -157,7 +157,7 @@ I bet a clever person could weed that out of the system if it caused mayhem in t
 
 What if you want a memory bit that keeps its state even after you unload and reload?  As we showed above, we can get a signal that fires when we reload, and we've also pointed out that timers do retain their state across reload.  So, to put the two together, we can build this:
 
-[solidstate.json](tutorial/solidstate.json)
+![solidstate.json](tutorial/solidstate.json)
 
 Basically instead of sending the on-reload signal directly to the reset pin, we're routing it to either the set or the reset pin depending on what's flowing out of the timer.
 
@@ -171,7 +171,7 @@ It's tiresome and embarassing.  What can we do?  Well, there are probably some c
 
 Note that I'm chaining timer circuits together here, but in the game it'd be silly not to just use a single timer, programmed with a longer duration than your main circuit's timers.
 
-[timerwiper.json](tutorial/timerwiper.png)
+![timerwiper.json](tutorial/timerwiper.png)
 
 # Wow these graphics are bad
 
@@ -179,4 +179,4 @@ Mea culpa.  This app would really be far better as a web application and done by
 
 # More ToDo's
 
-[todo.md] has the raw list of items that I've been considering.
+[todo.md](todo.md) has the raw list of items that I've been considering.
