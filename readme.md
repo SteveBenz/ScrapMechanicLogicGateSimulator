@@ -64,7 +64,7 @@ key on your keyboard.
 
 That should leave you something like this:
 
-![line1.json](tutorial/line1.json)
+![line1.json](tutorial/line1.png)
 
 Next we want to make connections.  To do this, hold your mouse over the "input" block (the one with
 the circle in it) then press the mouse button down, drag the mouse over to the leftmost logic gate
@@ -72,7 +72,7 @@ and release it.  That'll form a connection from the button to the logic gate.  I
 if you want to delete a link, repeat the gesture.  If you want to reverse the direction, drag from the
 other way.  That should leave you with this:
 
-![line2.json](tutorial/line2.json)
+![line2.json](tutorial/line2.png)
 
 So what we've got is a series of "And" gates connected to a button.  You can liven things up by
 changing the and gates.  To do that, click on one of the gates to select it and then press
