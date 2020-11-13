@@ -92,7 +92,7 @@ you could observe how clicking the button causes the gates to light up in a wave
 
 To see the effect in the simulator, press "F5" on your keyboard to start the simulation running.  The number in the upper-right corner is counting the ticks since the last reset.  If it's actively increasing, your simulator is running.  To pause it, you can press "F6", but let it run for now.
 
-Select the input button at the left and click it on and off and observe how the signal travels through the network.
+Select the input button at the left and turn it on and off (by pressing an arrow key) and observe how the signal travels through the network.
 
 ## How Scrap Mechanic works
 
@@ -112,9 +112,11 @@ The way you want to think about it is this:  _The color of the inputs will alway
 
 ### Glitches - Logic Gates
 
-Most folks who go to the trouble of installing this thing and reading this far is because they just can't figure out why their machine behaves wonkily and they want to really square it up.  Some of that wonky behavior comes from our own goofs, but a good part of it comes down to this:
+Most folks who go to the trouble of installing this thing and reading this far have done so because they just can't figure out why their machine behaves wonkily and they want to really square it up.  Some of that wonky behavior comes from our own goofs, but a good part of it comes down to this:
 
-Scrap mechanic does not store the state of logic gates when you save and exit the game or unload a chunk or take a build off of the lift.  That means that every logic gate is outputing false for the very first tick, regardless.
+Scrap mechanic does not store the state of logic gates when you save and exit the game or unload a chunk or take a build off of the lift.  That means that every logic gate is outputing false for the very first tick after loading.
+
+> Actually, I think I'm not putting that correctly.  I believe is that what's not getting stored is that "between-tick" state I mentioned before in the implementation.  That is, all of the *inputs* to the logic gate are treated as false on the first tick.  In any case the simulator seems to be doing the same thing as scrap mechanic in terms of that first tick, as best as my experiments were able to prove.
 
 ![memory bit](tutorial/memorybit.png)
 
