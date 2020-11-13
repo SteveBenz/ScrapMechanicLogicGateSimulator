@@ -1,0 +1,32 @@
+[
+    {
+        "kind": "input-off",
+        "x": 89,
+        "y": 96,
+        "inputs": []
+    },
+    {
+        "kind": "and",
+        "x": 203,
+        "y": 197,
+        "inputs": []
+    },
+    {
+        "kind": "and",
+        "x": 291,
+        "y": 93,
+        "inputs": []
+    },
+    {
+        "kind": "and",
+        "x": 381,
+        "y": 198,
+        "inputs": []
+    },
+    {
+        "kind": "and",
+        "x": 470,
+        "y": 99,
+        "inputs": []
+    }
+]

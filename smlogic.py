@@ -1,6 +1,5 @@
 # Gotta do this first:
 #  python3 -m pip install -U pygame --user
-#  python3 -m pip install -U pickle-mixin --user
 
 # import the pygame module, so you can use it
 import pygame.display as display
@@ -15,7 +14,6 @@ import pygame.mouse as mouse
 import pygame as pygame
 import math
 import time
-import pickle
 import json
 import sys
 from enum import Enum
