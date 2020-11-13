@@ -352,7 +352,7 @@ def main():
             elif event.type == constants.MOUSEBUTTONUP:
                 if isLinking:
                     target = findItem(interactables, event.pos)
-                    if target is not None and target is not selected:
+                    if target is not None and target is not selected and target.kind not in (InteractableKind.InputOff, InteractableKind.InputOn):
                         if selected in target.inputs:
                             # the connection is already there - undo it
                             target.inputs.remove(selected)

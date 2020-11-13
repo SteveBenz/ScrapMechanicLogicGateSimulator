@@ -23,7 +23,7 @@
 [x]  Drag works for links
 [x]  Rename to something sensible
 [ ]  Write readme
-[ ]  Inputs shouldn't be able to have inputs
+[x]  Inputs shouldn't be able to have inputs
 
 Cut
 [ ]  Create a region that's used for control (and you can't place stuff in that region)
