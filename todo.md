@@ -21,7 +21,7 @@
 [ ]  Timers with adjustable duration
 [x]  Simple circle for input
 [x]  Drag works for links
-[ ]  Rename to something sensible
+[x]  Rename to something sensible
 [ ]  Write readme
 [ ]  Inputs shouldn't be able to have inputs
 
