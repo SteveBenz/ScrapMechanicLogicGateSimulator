@@ -102,7 +102,6 @@ class Interactable:
     def __init__(self, kind: InteractableKind, screen: pygame.Surface, assets: Assets, pos):
         self.kind = kind
         self.currentState = False
-        self.nextState = False
         self.prevState = False
         self.inputs = []
         self._assets = assets
@@ -156,56 +155,26 @@ class Interactable:
 
     def calculate(self):
         if self.kind == InteractableKind.InputOff:
-            self.nextState = False
-        elif self.kind == InteractableKind.InputOn:
-            self.nextState = True
-        elif self.kind == InteractableKind.And:
-            self.nextState = len(self.inputs) > 0 and len(self.inputs) == self.numActivatedInputs()
-        elif self.kind == InteractableKind.Or:
-            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() > 0
-        elif self.kind == InteractableKind.Xor:
-            self.nextState = self.numActivatedInputs() % 2 == 1
-        elif self.kind == InteractableKind.Nand:
-            self.nextState = len(self.inputs) > 0 and len(self.inputs) != self.numActivatedInputs()
-        elif self.kind == InteractableKind.Nor:
-            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() == 0
-        elif self.kind == InteractableKind.XNor:
-            self.nextState = len(self.inputs) > 0 and self.numActivatedInputs() % 2 == 0
-        elif self.kind == InteractableKind.Timer10:
-            for i in range(9):
-                self.timerTickStorage[9-i] = self.timerTickStorage[8-i]
-            self.nextState = self.timerTickStorage[9]
-            self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].currentState
-
-    def numActivatedInputs(self) -> int:
-        i = 0
-        for input in self.inputs:
-            if input.currentState:
-                i = i + 1
-        return i
-
-    def recalculate(self):
-        if self.kind == InteractableKind.InputOff:
             self.currentState = False
         elif self.kind == InteractableKind.InputOn:
             self.currentState = True
         elif self.kind == InteractableKind.And:
-            self.currentState = len(self.inputs) > 0 and len(self.inputs) == self._reNumActivatedInputs()
+            self.currentState = len(self.inputs) > 0 and len(self.inputs) == self._numActivatedInputs()
         elif self.kind == InteractableKind.Or:
-            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() > 0
+            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() > 0
         elif self.kind == InteractableKind.Xor:
-            self.currentState = self._reNumActivatedInputs() % 2 == 1
+            self.currentState = self._numActivatedInputs() % 2 == 1
         elif self.kind == InteractableKind.Nand:
-            self.currentState = len(self.inputs) > 0 and len(self.inputs) != self._reNumActivatedInputs()
+            self.currentState = len(self.inputs) > 0 and len(self.inputs) != self._numActivatedInputs()
         elif self.kind == InteractableKind.Nor:
-            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() == 0
+            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() == 0
         elif self.kind == InteractableKind.XNor:
-            self.currentState = len(self.inputs) > 0 and self._reNumActivatedInputs() % 2 == 0
-        #elif self.kind == InteractableKind.Timer10:
-        #    Not sure what we really should do here.
-        #    self.timerTickStorage = [False] * 10
+            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() % 2 == 0
+        else:
+            self.currentState = self.timerTickStorage[9]
+            self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].prevState
 
-    def _reNumActivatedInputs(self) -> int:
+    def _numActivatedInputs(self) -> int:
         i = 0
         for input in self.inputs:
             if input.prevState:
@@ -226,8 +195,10 @@ class Interactable:
 
     def apply(self):
         self.prevState = self.currentState
-        self.currentState = self.nextState
-
+        if self.kind == InteractableKind.Timer10:
+            for i in range(9):
+                self.timerTickStorage[9-i] = self.timerTickStorage[8-i]
+            self.currentState = self.timerTickStorage[9]
 
 def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
         draw.line(screen, color, pos1, pos2, 3)
@@ -262,14 +233,17 @@ def findItem(interactables, pos):
 
 def singleStep(interactables: Iterable[InteractableKind]):
     for i in interactables:
-        i.calculate()
-    for i in interactables:
         i.apply()
+    for i in interactables:
+        i.calculate()
     
 
 def reset(interactables: Iterable[InteractableKind], isFullReset: bool):
     for i in interactables:
         i.reset(isFullReset)
+    for i in interactables:
+        if i.kind != InteractableKind.Timer10:
+            i.calculate()
     
 def serialize(interactables: Iterable[InteractableKind]) -> str:
     dicts = []
@@ -293,29 +267,26 @@ def deserialize(jsonContent: str, screen: pygame.Surface, assets: Assets):
         for index in inputIndices:
             iterables[iterableIndex].inputs.append(iterables[index])
         iterableIndex += 1
+    for i in iterables:
+        i.calculate()
     return iterables
 
 # define a main function
 def main():
      
+
     # initialize the pygame module
     pygame.init()
 
     # load and set the logo
-    logo = pygame.image.load("logo32x32.png")
+    logo = pygame.image.load(sys.path[0] + "/logo32x32.png")
     pygame.display.set_icon(logo)
-    pygame.display.set_caption("Scrap Mechanic Logic Gate Simulator")
-
 
     sysfont = font.SysFont(None, 24)
 
     screen = pygame.display.set_mode((700,700), constants.RESIZABLE)
-     
-    # define a variable to control the main loop
-    closing = False
-    running = False
-    assets = Assets()
 
+    assets = Assets()
     interactables = []
     filename = sys.argv[1] if len(sys.argv) > 1 else 'smlogicsim.json'
     try:
@@ -325,6 +296,13 @@ def main():
         interactables = deserialize(jsonContent, screen, assets)
     except IOError:
         None
+
+    pygame.display.set_caption("Scrap Mechanic Logic Gate Simulator - " + filename)
+
+    # define a variable to control the main loop
+    closing = False
+    running = False
+
     
     selected = None
     isMoving = False
@@ -361,7 +339,7 @@ def main():
                             if target.kind == InteractableKind.Timer10:
                                 target.inputs.clear()
                             target.inputs.append(selected)
-                        target.recalculate()
+                        target.calculate()
                 isLinking = False
                 isMoving = False
             elif event.type == constants.MOUSEMOTION:
@@ -382,20 +360,20 @@ def main():
                     for i in interactables:
                         if selected in i.inputs:
                             i.inputs.remove(selected)
-                            i.recalculate()
+                            i.calculate()
                     selected = None
                 elif event.key == constants.K_LEFT and selected is not None:
                     selected.kind = InteractableKind.prevs[selected.kind]
-                    selected.recalculate()
+                    selected.calculate()
                 elif event.key == constants.K_RIGHT and selected is not None:
                     selected.kind = InteractableKind.nexts[selected.kind]
-                    selected.recalculate()
+                    selected.calculate()
                 elif event.key == constants.K_UP and selected is not None:
                     selected.kind = InteractableKind.nots[selected.kind]
-                    selected.recalculate()
+                    selected.calculate()
                 elif event.key == constants.K_DOWN and selected is not None:
                     selected.kind = InteractableKind.nots[selected.kind]
-                    selected.recalculate()
+                    selected.calculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
                     tick += 1

@@ -42,7 +42,7 @@ The main window works with a combination of mouse and keyboard; the gestures are
 
 `F4` - Reset the simulator.  This simulates unloading and re-loading scrap mechanic.  If you don't know why that's a crucial thing, skip down to the "Glitches" section below.
 
-`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by taking an object off of the lift.
+`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.
 
 Gates with a white background indicates it's in the "True" state and those with a gray background are in the "False" state.  Connections can be light blue or dark blue, and they indicate what the state of the input object was at the start of the tick.  You use that color to understand why the logic gate is in the state that it's in.
 
@@ -102,7 +102,9 @@ You might have heard the word "ticks" before.  In the context of computer gaming
 
 Why doesn't it?  Well, pretty much all the really interesting circuits in scrap mechanic involve feedback loops and the scrap mechanic devs knew that was going to be a thing.  With loops, there is no single answer to compute because the whole circuit cycles between states over time.  So it's not like on each frame the whole chain gets computed instantly - it just can't work like that.
 
-So what they do is basically this:  They make a copy of the the state of every gate and input in an object, then they go around computing the new state of every logic gate _based on the old state_ that was recorded earlier.
+I'm not privvy to the SM code, but I've run quite a few experiments to prove that this is an effective way to understand the algorithm:
+
+First off, you have to think of each connection as having a state, either On or Off.  It then goes through each logic gate and calculates what the gate's state should be, based on the state of the "wires".  After it's done that calculation for **all** the gates, it sets the state of the wires based on the current state.  Now, I kinda doubt they actually attach state to the wires like I said.  More than likely they do it like in the simulator, where there's a "previous" state and they read that "previous" state.
 
 In the simulator, that old, recorded state is reflected in the color of the connection lines.  Light Blue means that, prior to the next tick, the input was True.
 
@@ -112,15 +114,11 @@ The way you want to think about it is this:  _The color of the inputs will alway
 
 ### Glitches - Logic Gates
 
-Most folks who go to the trouble of installing this thing and reading this far have done so because they just can't figure out why their machine behaves wonkily and they want to really square it up.  Some of that wonky behavior comes from our own goofs, but a good part of it comes down to this:
+Most folks who go to the trouble of installing this thing and reading this far have done so because they just can't figure out why their machine behaves wonkily and they want to really square it up.  For example, if you create the ubiquitous NOR-flip-flop memory circuit, you'll find that it can do some odd things when you load back into the game or when you come back to your base from afar.  Sometimes the circuit is as you left it.  Sometimes it's completely spazzing out, and sometimes it's in a different state than when you left it.
 
-Scrap mechanic does not store the state of logic gates when you save and exit the game or unload a chunk or take a build off of the lift.  That means that every logic gate is outputing false for the very first tick after loading.
+Some of that wonky behavior comes from our own goofs, but a good part of it comes down to this:  Scrap mechanic does not restore the state of the network perfectly correctly.  Shocked?  I'm guessing not.  Let's just all breathe a sigh of relief that the scrap mechanic devs are developing games and not health care systems.
 
-> Actually, I think I'm not putting that correctly.  I believe is that what's not getting stored is that "between-tick" state I mentioned before in the implementation.  That is, all of the *inputs* to the logic gate are treated as false on the first tick.  In any case the simulator seems to be doing the same thing as scrap mechanic in terms of that first tick, as best as my experiments were able to prove.
-
-![memory bit](tutorial/memorybit.png)
-
-If you've built anything of any complexity in SM, you've probably built this simple memory circuit because you saw it on YouTube and saw the youtuber extoll it as "perfect!" but when you run it, it's not.  You likely saw right away that it flashes wildly until you press one button or the other.  If you single step through with the simulator, you can do the math and see why that is.  If it's in a stable state, it cooperates, but it can also get into an unstable state.  You can also destabilize it by sending it a really short input signal (1 or 2 ticks long).  Again, you can see why it happens if you step through the simulator.
+At this point, my best theory is that it is somehow tightly related to the state of the logic gates when the build was taken off the lift last time.  What about stuff that was never on the lift?  I don't know.  Again, my guess is that either the current state of the circuit or the tick-1 state of the circuit is coming from the state it was in when it was taken off the lift.  I've done a few experiments that lead me to believe it's something like this, but not enough to say with confidence.  It certainly seems to be the case with switches - if I put a machine on the lift and turn all its switches of, take it off the lift, then flip them all on, exit and come back, you'll see your machine return to the 'off' state when you load back in.
 
 ### Glitches - Timers
 
@@ -130,14 +128,16 @@ Strictly speaking, I don't know of any glitch with timers themselves, that's bec
 
 It should be the case that timer is just periodically on and off depending on the duration of the timer but somehow we get these random puffs mixed in there, like the random 0 bit flowing through the bottom timer in the picture above.  How does that happen?
 
-Well, it's because it doesn't store the state of the logic gate and, for the first tick after loading, it's false even though the not gate should be making it true.  You can see this effect in the simulator by doing this:
+Well, it's because of the logic gate.  In this case, I believe it came off the lift with the logic gate "on", so when load in, it's momentarily "on" again until it reads persisted data from the timer.
 
 1. Completely reset the simulator by pressing `Shift-F4`.
 2. Press F5 to start the simulator rolling.
 3. At some point while the logic gate is sending out a "True" signal, press `F4` to simulate an unload event.
 4. Press `F5` to resume it.
 
-You can replicate this in scrap mechanic pretty easily too - just exit the game while the logic gate is true.  When you reload, you'll see that annoying blip start flowing through your timer.
+You can replicate this in scrap mechanic pretty easily - just exit the game while the logic gate is true.  When you reload, you'll see that annoying blip start flowing through your timer.  If that doesn't work for you, exit the game when the logic gate is false; you'll for sure see it then.  Again, seems to be related to the state of the gate when it was on the lift.
+
+The simulator doesn't have any notion of this lift state thing, but I'd add it if I could get really confident that I understand the workings of it!  In the simulator, it wipes all the gates to zero when simulating reload.
 
 ## Glitch-Proofing Our Stuff
 
@@ -149,19 +149,19 @@ In my survival world, I have an automated farm.  I push a button and a giant arm
 
 ![extenderbit.json](tutorial/extenderbit.png)
 
-Notice that the top button is not protected, and can cause the memory bit ot spaz out if you turn it on and off quickly.  But the bottom one is not, simply because it lets the signal walk through some extra gates to extend its effective duration.  Single step through to see it in action.
+Notice that the top button is not protected, and can cause the memory bit to spaz out if you turn it on and off quickly.  But the bottom one is not, simply because it lets the signal walk through some extra gates to extend its effective duration.  Single step through to see it in action.
 
 ### Load-In Detector
 
-Suppose we want to do something on load in to compensate for the mucked up state of our circuit.  Here's a circuit that pits the weapons of our enemies against them!
+If you hold your mouth just right, this circuit will emit a 3-tick pulse on login.  But note!  This will only work in the game if, while the thing is on the build, you turn that "NAND" gate into an "AND" gate so that gates are all false.
 
 ![loadsignal.json](tutorial/loadsignal.png)
 
 Here the normal state would be that all of the inputs to the second row would naturally be true all the time, _except when we're loading in_, where they will be false until the top-left nand gate's signal reaches them.
 
-To make this practical, I've tied the signal to a memory bit - so this is a memory bit that will reset itself automatically on reload and not spaz out.  Well, that's not quite true, as you can see if you step through it - it does become set for two ticks before settling back to unset.
+To make this practical, I've tied the signal to a memory bit - so this is a memory bit that will reset itself automatically on reload and not spaz out.  Well, that's not quite true, as you can see if you step through it - it does become set for two ticks before settling back to unset.  I bet a clever person could weed that out of the system if it caused mayhem in their build.
 
-I bet a clever person could weed that out of the system if it caused mayhem in their build.
+Given the sketchiness of Scrap Mechanic's load-in logic, you're smart to avoid these circuits where you can.
 
 ### Solid-State Memory
 
