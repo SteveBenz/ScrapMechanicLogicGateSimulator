@@ -91,12 +91,13 @@ class Interactable:
 
 class LogicGate(Interactable):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
+    # i = #inputs, a = #activatedInputs => bool
     functions = {
         "and": lambda i, a: i > 0 and i == a,
         "or": lambda i, a: a > 0,
         "xor": lambda i, a: a % 2 == 1,
         "nand": lambda i, a: i > 0 and i != a,
-        "nor": lambda i, a: i > 0 and i != a,
+        "nor": lambda i, a: i > 0 and a == 0,
         "xnor": lambda i, a: i > 0 and a % 2 == 0
     }
 
