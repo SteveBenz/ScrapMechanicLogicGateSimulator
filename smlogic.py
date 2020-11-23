@@ -50,7 +50,8 @@ class Interactable:
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
         self.maxInputCount = -1
 
-    def toDictionary(self):
+    def loadState(self, state: dict): pass
+    def saveState(self) -> dict:
         return {
             'kind': self.kind,
             'x': self.rect.centerx,
@@ -79,9 +80,6 @@ class Interactable:
     
     def swapGate(self, dir: int): pass
     def alternate(self): pass
-
-    @staticmethod
-    def buildFromDictionary(serialized: dict): pass
 
 @static_init
 class LogicGate(Interactable):
@@ -113,6 +111,18 @@ class LogicGate(Interactable):
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = -1
+        self.savedState = False
+
+    #override
+    def saveState(self) -> dict:
+        state = super().saveState()
+        state['savedState'] = self.savedState
+        return state
+
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        self.savedState = serialized['savedState'] if 'savedState' in serialized else False
 
     def calculate(self):
         activatedInputs = 0
@@ -172,6 +182,17 @@ class Timer(Interactable):
         super().__init__(kind, pos)
         self.timerTickStorage = [False]*10
         self.maxInputCount = 1
+
+    #override
+    def saveState(self) -> dict:
+        serialized = super().saveState()
+        serialized['timerTickStorage'] = self.timerTickStorage
+        return serialized
+
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        self.timerTickStorage = serialized['timerTickStorage'] if 'timerTickStorage' in serialized else [False]*10
 
     @classmethod
     def static_init(cls):
@@ -235,7 +256,9 @@ def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: T
 
 def interactableFromDictionary(serialized: dict):
     interactableType = Interactable.kindToTypeMap[serialized['kind']]
-    return interactableType(serialized['kind'], (serialized['x'], serialized['y']))
+    interactable = interactableType(serialized['kind'], (serialized['x'], serialized['y']))
+    interactable.loadState(serialized)
+    return interactable
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -259,7 +282,7 @@ def reset(interactables: Iterable[Interactable], isFullReset: bool):
 def serialize(interactables: Iterable[Interactable]) -> str:
     dicts = []
     for i in interactables:
-        serialized = i.toDictionary()
+        serialized = i.saveState()
         inputIndices = []
         for x in i.inputs:
             inputIndices.append(interactables.index(x))
@@ -439,9 +462,10 @@ def main():
         display.flip()
         # display.update()
 
-    # Always just save on exit     
+    # Always just save on exit
+    savedState = serialize(interactables)
     with open(filename, 'w') as file:
-        file.write(serialize(interactables))
+        file.write(savedState)
 
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
