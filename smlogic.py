@@ -63,8 +63,7 @@ class Interactable:
             draw.rect(screen, GREEN, self.rect, 4)
         else:
             draw.rect(screen, BLUE, self.rect, 4)
-        image = self.get_image()
-        screen.blit(image, self.rect.topleft)
+        screen.blit(self.get_image(), self.rect.topleft)
 
     def get_image(self) -> pygame.Surface: pass
 
