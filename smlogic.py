@@ -28,13 +28,19 @@ GRAY = (200, 200, 200)
 DARKGRAY = (100, 100, 100)
 YELLOW = (255,255,0)
 
-class Assets:
-    arrow = image.load("assets/arrow.png")
-
 def static_init(cls):
     if getattr(cls, "static_init", None):
         cls.static_init()
     return cls
+
+@static_init
+class Assets:
+    arrow = image.load("assets/arrow.png")
+    
+    @classmethod
+    def static_init(cls):
+        arrowRect = cls.arrow.get_rect()
+        cls.arrow = transform.scale(cls.arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
 
 class Interactable:
     hotkeyToTypeMap: dict = {}
@@ -115,10 +121,7 @@ class LogicGate(Interactable):
         self.maxInputCount = -1
 
     def calculate(self):
-        activatedInputs = 0
-        for input in self.inputs:
-            if input.prevState:
-                activatedInputs += 1
+        activatedInputs = sum([input.prevState for input in self.inputs])
         self.currentState = LogicGate.functions[self.kind](len(self.inputs), activatedInputs)
 
     def reset(self, isFullReset: bool):
@@ -199,6 +202,7 @@ class Timer(Interactable):
     def reset(self, isFullReset: bool):
         if isFullReset:
             self.timerTickStorage = [False]*10
+            self.currentState = False
         self.prevState = False
 
     #override
@@ -210,25 +214,14 @@ class Timer(Interactable):
 
 def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
     draw.line(screen, color, pos1, pos2, 3)
-    deltax = pos2[0] - pos1[0]
-    deltay = pos2[1] - pos1[1]
-    if (deltax == 0 and deltay > 0):
-        angle = math.pi / 2
-    elif (deltax == 0 and deltay < 0):
-        angle = math.pi * 1.5
-    else:
-        angle = math.atan(deltay/deltax)
-
-    angle = angle*180/math.pi # convert from radians to degrees
-    angle = -angle # but we really want to rotate clockwise
-    if deltax < 0:
-        angle = angle + 180
-    angle -= 180 # stupid image is already rotated 180 degrees
+    
+    # get counterclockwise degrees for rotation; image is already rotated 180
+    deltaX = pos2[0] - pos1[0]
+    deltaY = pos2[1] - pos1[1]
+    angle = -math.degrees(math.atan2(deltaY, deltaX)) - 180
     
     arrow = Assets.arrow
     arrow = transform.rotate(arrow, angle)
-    arrowRect = arrow.get_rect()
-    arrow = transform.scale(arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
     arrowRect = arrow.get_rect()
     arrowRect.move_ip((pos2[0] + pos1[0] - arrowRect.width)/2, (pos2[1] + pos1[1] - arrowRect.height)/2)
     screen.blit(arrow, arrowRect)
