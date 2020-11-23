@@ -28,89 +28,39 @@ GRAY = (200, 200, 200)
 DARKGRAY = (100, 100, 100)
 YELLOW = (255,255,0)
 
-class InteractableKind:
-    And = "and"
-    Or = "or"
-    Xor = "xor"
-    Nand = "nand"
-    Nor = "nor"
-    XNor = "xnor"
-    InputOn = "input-on"
-    InputOff = "input-off"
-    Timer10 = "timer10"
-
-    nexts = {
-        And: Or,
-        Or: Xor,
-        Xor: And,
-        Nand: Nor,
-        Nor: XNor,
-        XNor: Nand,
-        InputOn: InputOff,
-        InputOff: InputOn,
-        Timer10: Timer10
-    }
-    prevs = {
-        And: Xor,
-        Or: And,
-        Xor: Or,
-        Nand: XNor,
-        Nor: Nand,
-        XNor: Nor,
-        InputOn: InputOff,
-        InputOff: InputOn,
-        Timer10: Timer10
-    }
-    nots = {
-        And: Nand,
-        Or: Nor,
-        Xor: XNor,
-        Nand: And,
-        Nor: Or,
-        XNor: Xor,
-        InputOn: InputOff,
-        InputOff: InputOn,
-        Timer10: Timer10
-    }
-
 class Assets:
-    def __init__(self):
-        self.and_ = image.load("assets/and-black.png")
-        self.or_ = image.load("assets/or-black.png")
-        self.xor = image.load("assets/xor-black.png")
-        self.nand = image.load("assets/nand-black.png")
-        self.nor = image.load("assets/nor-black.png")
-        self.xnor = image.load("assets/xnor-black.png")
-        self.arrow = image.load("assets/arrow.png")
+    storage = {}
 
-        self.input_on = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-        draw.circle(self.input_on, BLACK, (32,32), 24, 8)
-        self.input_off = self.input_on
+    def get(asset: str):
+        return Assets.storage[asset]
 
-        self.kindToAssetMap = {
-            InteractableKind.And: self.and_,
-            InteractableKind.Or: self.or_,
-            InteractableKind.Xor: self.xor,
-            InteractableKind.Nand: self.nand,
-            InteractableKind.Nor: self.nor,
-            InteractableKind.XNor: self.xnor,
-            InteractableKind.InputOff: self.input_off,
-            InteractableKind.InputOn: self.input_on
+    def initAssets():
+        inputAsset = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(inputAsset, BLACK, (32,32), 24, 8)
+        
+        Assets.storage = {
+            "and": image.load("assets/and-black.png"),
+            "or": image.load("assets/or-black.png"),
+            "xor": image.load("assets/xor-black.png"),
+            "nand": image.load("assets/nand-black.png"),
+            "nor": image.load("assets/nor-black.png"),
+            "xnor": image.load("assets/xnor-black.png"),
+            "input-on": inputAsset,
+            "input-off": inputAsset,
+            "arrow": image.load("assets/arrow.png")
         }
 
 class Interactable:
-    def __init__(self, kind: InteractableKind, screen: pygame.Surface, assets: Assets, pos):
+    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
         self.kind = kind
         self.currentState = False
         self.prevState = False
         self.inputs = []
-        self._assets = assets
         self._screen = screen
         self.selected = False
-        self.rect = self._assets.nor.get_rect() # gateRect is the size of the image.  All the gates are the same size.
+        self.rect = Assets.get("nor").get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
-        self.timerTickStorage = [False]*10
-    
+
     def toDictionary(self):
         return {
             'kind': self.kind,
@@ -118,23 +68,91 @@ class Interactable:
             'y': self.rect.centery
         }
 
-    @staticmethod
-    def fromDictionary(serialized: dict, screen: pygame.Surface, assets: Assets):
-        return Interactable(serialized['kind'], screen, assets, (serialized['x'], serialized['y']))
-
     def draw(self):
         draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
         if (self.selected):
             draw.rect(self._screen, GREEN, self.rect, 4)
         else:
             draw.rect(self._screen, BLUE, self.rect, 4)
-        
-        if self.kind == InteractableKind.Timer10:
-            self._drawTimer()
-        else:
-            self._screen.blit(self._assets.kindToAssetMap[self.kind], self.rect.topleft)
+        self._screen.blit(Assets.get(self.kind), self.rect.topleft)
+
+    # returns true if pos is inside the drawn area of this thing
+    def containsPosition(self, pos):
+        return self.rect.collidepoint(pos)
+
+    def move(self, pos):
+        self.rect.move_ip(pos[0], pos[1])
+
+    def apply(self):
+        self.prevState = self.currentState
     
-    def _drawTimer(self):
+    def swapGate(self, dir: int): pass
+    def alternate(self): pass
+
+class LogicGate(Interactable):
+    gates = ["and", "or", "xor", "nand", "nor", "xnor"]
+    # i = #inputs, a = #activatedInputs => bool
+    functions = {
+        "and": lambda i, a: i > 0 and i == a,
+        "or": lambda i, a: a > 0,
+        "xor": lambda i, a: a % 2 == 1,
+        "nand": lambda i, a: i > 0 and i != a,
+        "nor": lambda i, a: i > 0 and a == 0,
+        "xnor": lambda i, a: i > 0 and a % 2 == 0
+    }
+
+    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
+        super().__init__(kind, screen, pos)
+
+    def calculate(self):
+        activatedInputs = 0
+        for input in self.inputs:
+            if input.prevState:
+                activatedInputs += 1
+        self.currentState = LogicGate.functions[self.kind](len(self.inputs), activatedInputs)
+
+    def reset(self, isFullReset: bool):
+        self.currentState = False
+        self.prevState = False
+    
+    #override
+    def swapGate(self, dir: int):
+        i = LogicGate.gates.index(self.kind)
+        self.kind = LogicGate.gates[((i + dir) % 3) + (i - (i % 3))]
+    
+    #override
+    def alternate(self):
+        i = LogicGate.gates.index(self.kind)
+        self.kind = LogicGate.gates[(i + 3) % 6]
+
+class Input(Interactable):
+    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
+        super().__init__(kind, screen, pos)
+
+    def calculate(self):
+        self.currentState = (self.kind == "input-on")
+
+    def reset(self, isFullReset: bool):
+        self.currentState = (self.kind == "input-on")
+        self.prevState = False
+
+    #override
+    def alternate(self):
+        self.kind = "input-on" if self.kind == "input-off" else "input-off"
+
+class Timer(Interactable):
+    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
+        super().__init__(kind, screen, pos)
+        self.timerTickStorage = [False]*10
+
+    #override
+    def draw(self):
+        draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
+        if (self.selected):
+            draw.rect(self._screen, GREEN, self.rect, 4)
+        else:
+            draw.rect(self._screen, BLUE, self.rect, 4)
+
         timerbox = self.rect.move(6,7)
         timerbox.width -= 12
         timerbox.height -= 11
@@ -146,84 +164,52 @@ class Interactable:
             if self.timerTickStorage[i]:
                 draw.line(self._screen, LIGHTBLUE, (x_left, y), (x_right, y), 4)
 
-    # returns true if pos is inside the drawn area of this thing
-    def containsPosition(self, pos):
-        return self.rect.collidepoint(pos)
-
-    def move(self, pos):
-        self.rect.move_ip(pos[0], pos[1])
-
     def calculate(self):
-        if self.kind == InteractableKind.InputOff:
-            self.currentState = False
-        elif self.kind == InteractableKind.InputOn:
-            self.currentState = True
-        elif self.kind == InteractableKind.And:
-            self.currentState = len(self.inputs) > 0 and len(self.inputs) == self._numActivatedInputs()
-        elif self.kind == InteractableKind.Or:
-            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() > 0
-        elif self.kind == InteractableKind.Xor:
-            self.currentState = self._numActivatedInputs() % 2 == 1
-        elif self.kind == InteractableKind.Nand:
-            self.currentState = len(self.inputs) > 0 and len(self.inputs) != self._numActivatedInputs()
-        elif self.kind == InteractableKind.Nor:
-            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() == 0
-        elif self.kind == InteractableKind.XNor:
-            self.currentState = len(self.inputs) > 0 and self._numActivatedInputs() % 2 == 0
-        else:
-            self.currentState = self.timerTickStorage[9]
-            self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].prevState
-
-    def _numActivatedInputs(self) -> int:
-        i = 0
-        for input in self.inputs:
-            if input.prevState:
-                i = i + 1
-        return i
+        self.currentState = self.timerTickStorage[9]
+        self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].prevState
 
     def reset(self, isFullReset: bool):
-        if (self.kind == InteractableKind.InputOff):
-            self.currentState = False
-        elif (self.kind == InteractableKind.InputOn):
-            self.currentState = True
-        elif (self.kind == InteractableKind.Timer10):
-            if isFullReset:
-                self.timerTickStorage = [False]*10
-        else:
-            self.currentState = False
-        self.prevState = False       
+        if isFullReset:
+            self.timerTickStorage = [False]*10
+        self.prevState = False
 
+    #override
     def apply(self):
         self.prevState = self.currentState
-        if self.kind == InteractableKind.Timer10:
-            for i in range(9):
-                self.timerTickStorage[9-i] = self.timerTickStorage[8-i]
-            self.currentState = self.timerTickStorage[9]
+        for i in range(9):
+            self.timerTickStorage[9-i] = self.timerTickStorage[8-i]
+        self.currentState = self.timerTickStorage[9]
 
-def drawLineWithArrows(assets: Assets, screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
-        draw.line(screen, color, pos1, pos2, 3)
-        deltax = pos2[0] - pos1[0]
-        deltay = pos2[1] - pos1[1]
-        if (deltax == 0 and deltay > 0):
-            angle = math.pi / 2
-        elif (deltax == 0 and deltay < 0):
-            angle = math.pi * 1.5
-        else:
-            angle = math.atan(deltay/deltax)
+def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: Tuple[float,float], color: draw):
+    draw.line(screen, color, pos1, pos2, 3)
+    deltax = pos2[0] - pos1[0]
+    deltay = pos2[1] - pos1[1]
+    if (deltax == 0 and deltay > 0):
+        angle = math.pi / 2
+    elif (deltax == 0 and deltay < 0):
+        angle = math.pi * 1.5
+    else:
+        angle = math.atan(deltay/deltax)
 
-        angle = angle*180/math.pi # convert from radians to degrees
-        angle = -angle # but we really want to rotate clockwise
-        if deltax < 0:
-            angle = angle + 180
-        angle -= 180 # stupid image is already rotated 180 degrees
-        
-        arrow = assets.arrow
-        arrow = transform.rotate(arrow, angle)
-        arrowRect = arrow.get_rect()
-        arrow = transform.scale(arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
-        arrowRect = arrow.get_rect()
-        arrowRect.move_ip((pos2[0] + pos1[0] - arrowRect.width)/2, (pos2[1] + pos1[1] - arrowRect.height)/2)
-        screen.blit(arrow, arrowRect)
+    angle = angle*180/math.pi # convert from radians to degrees
+    angle = -angle # but we really want to rotate clockwise
+    if deltax < 0:
+        angle = angle + 180
+    angle -= 180 # stupid image is already rotated 180 degrees
+    
+    arrow = Assets.get("arrow")
+    arrow = transform.rotate(arrow, angle)
+    arrowRect = arrow.get_rect()
+    arrow = transform.scale(arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
+    arrowRect = arrow.get_rect()
+    arrowRect.move_ip((pos2[0] + pos1[0] - arrowRect.width)/2, (pos2[1] + pos1[1] - arrowRect.height)/2)
+    screen.blit(arrow, arrowRect)
+
+def interactableFromDictionary(serialized: dict, screen: pygame.Surface):
+    interactableType = LogicGate if serialized['kind'] in LogicGate.gates \
+        else Input if serialized['kind'].startswith("input") \
+        else Timer
+    return interactableType(serialized['kind'], screen, (serialized['x'], serialized['y']))
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -231,21 +217,20 @@ def findItem(interactables, pos):
             return i
     return None
 
-def singleStep(interactables: Iterable[InteractableKind]):
+def singleStep(interactables: Iterable[Interactable]):
     for i in interactables:
         i.apply()
     for i in interactables:
         i.calculate()
-    
 
-def reset(interactables: Iterable[InteractableKind], isFullReset: bool):
+def reset(interactables: Iterable[Interactable], isFullReset: bool):
     for i in interactables:
         i.reset(isFullReset)
     for i in interactables:
-        if i.kind != InteractableKind.Timer10:
+        if i.kind != "timer10":
             i.calculate()
     
-def serialize(interactables: Iterable[InteractableKind]) -> str:
+def serialize(interactables: Iterable[Interactable]) -> str:
     dicts = []
     for i in interactables:
         serialized = i.toDictionary()
@@ -256,11 +241,11 @@ def serialize(interactables: Iterable[InteractableKind]) -> str:
         dicts.append(serialized)
     return json.dumps(dicts, indent=4)
 
-def deserialize(jsonContent: str, screen: pygame.Surface, assets: Assets):
+def deserialize(jsonContent: str, screen: pygame.Surface):
     listOfDicts = json.loads(jsonContent)
     iterables = []
     for i in listOfDicts:
-        iterables.append(Interactable.fromDictionary(i, screen, assets))
+        iterables.append(interactableFromDictionary(i, screen))
     iterableIndex = 0
     for i in listOfDicts:
         inputIndices = i['inputs']
@@ -273,10 +258,12 @@ def deserialize(jsonContent: str, screen: pygame.Surface, assets: Assets):
 
 # define a main function
 def main():
-     
 
     # initialize the pygame module
     pygame.init()
+
+    # initialize assets dictionary
+    Assets.initAssets()
 
     # load and set the logo
     logo = pygame.image.load(sys.path[0] + "/logo32x32.png")
@@ -286,14 +273,13 @@ def main():
 
     screen = pygame.display.set_mode((700,700), constants.RESIZABLE)
 
-    assets = Assets()
     interactables = []
     filename = sys.argv[1] if len(sys.argv) > 1 else 'smlogicsim.json'
     try:
-        file = open(filename, 'r')
-        jsonContent = file.read()
-        file.close()
-        interactables = deserialize(jsonContent, screen, assets)
+        jsonContent = ""
+        with open(filename, 'r') as file:
+            jsonContent = file.read()
+        interactables = deserialize(jsonContent, screen)
     except IOError:
         None
 
@@ -328,7 +314,7 @@ def main():
             elif event.type == constants.MOUSEBUTTONUP:
                 if isLinking:
                     target = findItem(interactables, event.pos)
-                    if target is not None and target is not selected and target.kind not in (InteractableKind.InputOff, InteractableKind.InputOn):
+                    if target is not None and target is not selected and target.kind not in ("input-off", "input-on"):
                         if selected in target.inputs:
                             # the connection is already there - undo it
                             target.inputs.remove(selected)
@@ -336,7 +322,7 @@ def main():
                             # If the connection already goes the other way, reverse it.
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
-                            if target.kind == InteractableKind.Timer10:
+                            if target.kind == "timer10":
                                 target.inputs.clear()
                             target.inputs.append(selected)
                         target.calculate()
@@ -363,16 +349,16 @@ def main():
                             i.calculate()
                     selected = None
                 elif event.key == constants.K_LEFT and selected is not None:
-                    selected.kind = InteractableKind.prevs[selected.kind]
+                    selected.swapGate(-1)
                     selected.calculate()
                 elif event.key == constants.K_RIGHT and selected is not None:
-                    selected.kind = InteractableKind.nexts[selected.kind]
+                    selected.swapGate(1)
                     selected.calculate()
                 elif event.key == constants.K_UP and selected is not None:
-                    selected.kind = InteractableKind.nots[selected.kind]
+                    selected.alternate()
                     selected.calculate()
                 elif event.key == constants.K_DOWN and selected is not None:
-                    selected.kind = InteractableKind.nots[selected.kind]
+                    selected.alternate()
                     selected.calculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
@@ -386,19 +372,18 @@ def main():
                 elif event.key == constants.K_F6:
                     running = False
                 elif event.key == constants.K_s:
-                    file = open(filename, 'w')
-                    file.write(serialize(interactables))
-                    file.close()
-                elif event.key == constants.K_g or event.key == constants.K_l \
-                  or event.key == constants.K_t \
-                  or event.key == constants.K_i:
-                    newKind = InteractableKind.And if event.key == constants.K_g or event.key == constants.K_l else \
-                              InteractableKind.Timer10 if event.key == constants.K_t else \
-                              InteractableKind.InputOff
+                    with open(filename, 'w') as file:
+                        file.write(serialize(interactables))
+                elif event.key in (constants.K_g, constants.K_l, constants.K_t, constants.K_i):
                     if selected is not None: selected.selected = False
-                    selected = Interactable(newKind, screen, assets, mouse.get_pos())
+                    if event.key in (constants.K_g, constants.K_l):
+                        selected = LogicGate("and", screen, mouse.get_pos())
+                    elif event.key == constants.K_t:
+                        selected = Timer("timer10", screen, mouse.get_pos())
+                    else:
+                        selected = Input("input-off", screen, mouse.get_pos())
                     selected.selected = True
-                    interactables.append( selected )
+                    interactables.append(selected)
 
             elif event.type == constants.QUIT:
                 closing = True
@@ -420,7 +405,7 @@ def main():
 
         for box in interactables:
             for input in box.inputs:
-                drawLineWithArrows(assets, screen, input.rect.center, box.rect.center, LIGHTBLUE if input.prevState else BLUE)
+                drawLineWithArrows(screen, input.rect.center, box.rect.center, LIGHTBLUE if input.prevState else BLUE)
 
         for box in interactables:
             box.draw()
@@ -437,9 +422,8 @@ def main():
         # display.update()
 
     # Always just save on exit     
-    file = open(filename, 'w')
-    file.write(serialize(interactables))
-    file.close()
+    with open(filename, 'w') as file:
+        file.write(serialize(interactables))
 
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)
