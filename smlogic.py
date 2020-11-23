@@ -52,7 +52,15 @@ class Assets:
             "arrow": image.load("assets/arrow.png")
         }
 
+def static_init(cls):
+    if getattr(cls, "static_init", None):
+        cls.static_init()
+    return cls
+
 class Interactable:
+    hotkeyToTypeMap: dict = {}
+    kindToTypeMap: dict = {}
+
     def __init__(self, kind: str, pos: Tuple[float,float]):
         self.kind = kind
         self.currentState = False
@@ -94,7 +102,7 @@ class Interactable:
     @staticmethod
     def buildFromDictionary(serialized: dict): pass
 
-
+@static_init
 class LogicGate(Interactable):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
     # i = #inputs, a = #activatedInputs => bool
@@ -106,6 +114,13 @@ class LogicGate(Interactable):
         "nor": lambda i, a: i > 0 and a == 0,
         "xnor": lambda i, a: i > 0 and a % 2 == 0
     }
+
+    @classmethod
+    def static_init(cls):
+        for gate in cls.gates:
+            Interactable.kindToTypeMap[gate] = cls
+        Interactable.hotkeyToTypeMap[constants.K_g] = lambda pos: LogicGate('and', pos)
+        Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
@@ -132,10 +147,17 @@ class LogicGate(Interactable):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[(i + 3) % 6]
 
+@static_init
 class Input(Interactable):
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = 0
+
+    @classmethod
+    def static_init(cls):
+        Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input-off', pos)
+        Interactable.kindToTypeMap['input-on'] = cls
+        Interactable.kindToTypeMap['input-off'] = cls
 
     def calculate(self):
         self.currentState = (self.kind == "input-on")
@@ -148,11 +170,17 @@ class Input(Interactable):
     def alternate(self):
         self.kind = "input-on" if self.kind == "input-off" else "input-off"
 
+@static_init
 class Timer(Interactable):
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.timerTickStorage = [False]*10
         self.maxInputCount = 1
+
+    @classmethod
+    def static_init(cls):
+        Interactable.kindToTypeMap['timer10'] = cls
+        Interactable.hotkeyToTypeMap[constants.K_t] = lambda pos: Timer('timer10', pos)
 
     #override
     def draw(self, screen: pygame.Surface):
@@ -215,9 +243,7 @@ def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: T
     screen.blit(arrow, arrowRect)
 
 def interactableFromDictionary(serialized: dict):
-    interactableType = LogicGate if serialized['kind'] in LogicGate.gates \
-        else Input if serialized['kind'].startswith("input") \
-        else Timer
+    interactableType = Interactable.kindToTypeMap[serialized['kind']]
     return interactableType(serialized['kind'], (serialized['x'], serialized['y']))
 
 def findItem(interactables, pos):
@@ -343,7 +369,7 @@ def main():
                     if selected is not None \
                     and not isMoving \
                     and not isLinking \
-                    and (abs(event.pos[0] - posAtStart[0]) > 5 or abs(event.pos[1] - posAtStart[1])):
+                    and (abs(event.pos[0] - posAtStart[0]) > 5 or abs(event.pos[1] - posAtStart[1]) > 5):
                         keyboardModifiers = key.get_mods()
                         isMoving = keyboardModifiers in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT)
                         isLinking = keyboardModifiers == 0
@@ -383,14 +409,9 @@ def main():
                 elif event.key == constants.K_s:
                     with open(filename, 'w') as file:
                         file.write(serialize(interactables))
-                elif event.key in (constants.K_g, constants.K_l, constants.K_t, constants.K_i):
+                elif event.key in Interactable.hotkeyToTypeMap.keys():
                     if selected is not None: selected.selected = False
-                    if event.key in (constants.K_g, constants.K_l):
-                        selected = LogicGate("and", mouse.get_pos())
-                    elif event.key == constants.K_t:
-                        selected = Timer("timer10", mouse.get_pos())
-                    else:
-                        selected = Input("input-off", mouse.get_pos())
+                    selected = Interactable.hotkeyToTypeMap[event.key](mouse.get_pos())
                     selected.selected = True
                     interactables.append(selected)
 
