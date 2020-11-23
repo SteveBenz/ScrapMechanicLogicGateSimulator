@@ -53,12 +53,11 @@ class Assets:
         }
 
 class Interactable:
-    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
+    def __init__(self, kind: str, pos: Tuple[float,float]):
         self.kind = kind
         self.currentState = False
         self.prevState = False
         self.inputs = []
-        self._screen = screen
         self.selected = False
         self.rect = Assets.get("nor").get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
@@ -71,13 +70,13 @@ class Interactable:
             'y': self.rect.centery
         }
 
-    def draw(self):
-        draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
+    def draw(self, screen: pygame.Surface):
+        draw.rect(screen, GRAY if self.currentState else DARKGRAY, self.rect)
         if (self.selected):
-            draw.rect(self._screen, GREEN, self.rect, 4)
+            draw.rect(screen, GREEN, self.rect, 4)
         else:
-            draw.rect(self._screen, BLUE, self.rect, 4)
-        self._screen.blit(Assets.get(self.kind), self.rect.topleft)
+            draw.rect(screen, BLUE, self.rect, 4)
+        screen.blit(Assets.get(self.kind), self.rect.topleft)
 
     # returns true if pos is inside the drawn area of this thing
     def containsPosition(self, pos):
@@ -92,6 +91,10 @@ class Interactable:
     def swapGate(self, dir: int): pass
     def alternate(self): pass
 
+    @staticmethod
+    def buildFromDictionary(serialized: dict): pass
+
+
 class LogicGate(Interactable):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
     # i = #inputs, a = #activatedInputs => bool
@@ -104,8 +107,8 @@ class LogicGate(Interactable):
         "xnor": lambda i, a: i > 0 and a % 2 == 0
     }
 
-    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
-        super().__init__(kind, screen, pos)
+    def __init__(self, kind: str, pos: Tuple[float,float]):
+        super().__init__(kind, pos)
         self.maxInputCount = -1
 
     def calculate(self):
@@ -130,8 +133,8 @@ class LogicGate(Interactable):
         self.kind = LogicGate.gates[(i + 3) % 6]
 
 class Input(Interactable):
-    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
-        super().__init__(kind, screen, pos)
+    def __init__(self, kind: str, pos: Tuple[float,float]):
+        super().__init__(kind, pos)
         self.maxInputCount = 0
 
     def calculate(self):
@@ -146,29 +149,29 @@ class Input(Interactable):
         self.kind = "input-on" if self.kind == "input-off" else "input-off"
 
 class Timer(Interactable):
-    def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
-        super().__init__(kind, screen, pos)
+    def __init__(self, kind: str, pos: Tuple[float,float]):
+        super().__init__(kind, pos)
         self.timerTickStorage = [False]*10
         self.maxInputCount = 1
 
     #override
-    def draw(self):
-        draw.rect(self._screen, GRAY if self.currentState else DARKGRAY, self.rect)
+    def draw(self, screen: pygame.Surface):
+        draw.rect(screen, GRAY if self.currentState else DARKGRAY, self.rect)
         if (self.selected):
-            draw.rect(self._screen, GREEN, self.rect, 4)
+            draw.rect(screen, GREEN, self.rect, 4)
         else:
-            draw.rect(self._screen, BLUE, self.rect, 4)
+            draw.rect(screen, BLUE, self.rect, 4)
 
         timerbox = self.rect.move(6,7)
         timerbox.width -= 12
         timerbox.height -= 11
-        draw.rect(self._screen, BLACK, timerbox, 2)
+        draw.rect(screen, BLACK, timerbox, 2)
         for i in range(10):
             y = timerbox.bottom - 4 - i*5
             x_left = timerbox.left + 7
             x_right = timerbox.right - 7
             if self.timerTickStorage[i]:
-                draw.line(self._screen, LIGHTBLUE, (x_left, y), (x_right, y), 4)
+                draw.line(screen, LIGHTBLUE, (x_left, y), (x_right, y), 4)
 
     def calculate(self):
         self.currentState = self.timerTickStorage[9]
@@ -211,11 +214,11 @@ def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: T
     arrowRect.move_ip((pos2[0] + pos1[0] - arrowRect.width)/2, (pos2[1] + pos1[1] - arrowRect.height)/2)
     screen.blit(arrow, arrowRect)
 
-def interactableFromDictionary(serialized: dict, screen: pygame.Surface):
+def interactableFromDictionary(serialized: dict):
     interactableType = LogicGate if serialized['kind'] in LogicGate.gates \
         else Input if serialized['kind'].startswith("input") \
         else Timer
-    return interactableType(serialized['kind'], screen, (serialized['x'], serialized['y']))
+    return interactableType(serialized['kind'], (serialized['x'], serialized['y']))
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -247,11 +250,11 @@ def serialize(interactables: Iterable[Interactable]) -> str:
         dicts.append(serialized)
     return json.dumps(dicts, indent=4)
 
-def deserialize(jsonContent: str, screen: pygame.Surface):
+def deserialize(jsonContent: str):
     listOfDicts = json.loads(jsonContent)
     iterables = []
     for i in listOfDicts:
-        iterables.append(interactableFromDictionary(i, screen))
+        iterables.append(interactableFromDictionary(i))
     iterableIndex = 0
     for i in listOfDicts:
         inputIndices = i['inputs']
@@ -285,7 +288,7 @@ def main():
         jsonContent = ""
         with open(filename, 'r') as file:
             jsonContent = file.read()
-        interactables = deserialize(jsonContent, screen)
+        interactables = deserialize(jsonContent)
     except IOError:
         None
 
@@ -383,11 +386,11 @@ def main():
                 elif event.key in (constants.K_g, constants.K_l, constants.K_t, constants.K_i):
                     if selected is not None: selected.selected = False
                     if event.key in (constants.K_g, constants.K_l):
-                        selected = LogicGate("and", screen, mouse.get_pos())
+                        selected = LogicGate("and", mouse.get_pos())
                     elif event.key == constants.K_t:
-                        selected = Timer("timer10", screen, mouse.get_pos())
+                        selected = Timer("timer10", mouse.get_pos())
                     else:
-                        selected = Input("input-off", screen, mouse.get_pos())
+                        selected = Input("input-off", mouse.get_pos())
                     selected.selected = True
                     interactables.append(selected)
 
@@ -414,7 +417,7 @@ def main():
                 drawLineWithArrows(screen, input.rect.center, box.rect.center, LIGHTBLUE if input.prevState else BLUE)
 
         for box in interactables:
-            box.draw()
+            box.draw(screen)
 
         if isLinking:
             mousePos = mouse.get_pos()
