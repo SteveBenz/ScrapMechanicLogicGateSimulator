@@ -29,28 +29,7 @@ DARKGRAY = (100, 100, 100)
 YELLOW = (255,255,0)
 
 class Assets:
-    storage = {}
-
-    @staticmethod
-    def get(asset: str):
-        return Assets.storage[asset]
-
-    @staticmethod
-    def initAssets():
-        inputAsset = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-        draw.circle(inputAsset, BLACK, (32,32), 24, 8)
-        
-        Assets.storage = {
-            "and": image.load("assets/and-black.png"),
-            "or": image.load("assets/or-black.png"),
-            "xor": image.load("assets/xor-black.png"),
-            "nand": image.load("assets/nand-black.png"),
-            "nor": image.load("assets/nor-black.png"),
-            "xnor": image.load("assets/xnor-black.png"),
-            "input-on": inputAsset,
-            "input-off": inputAsset,
-            "arrow": image.load("assets/arrow.png")
-        }
+    arrow = image.load("assets/arrow.png")
 
 def static_init(cls):
     if getattr(cls, "static_init", None):
@@ -67,7 +46,7 @@ class Interactable:
         self.prevState = False
         self.inputs = []
         self.selected = False
-        self.rect = Assets.get("nor").get_rect() # gateRect is the size of the image.  All the gates are the same size.
+        self.rect = pygame.Rect(0,0,64,64) # All the images are 64x64
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
         self.maxInputCount = -1
 
@@ -84,7 +63,10 @@ class Interactable:
             draw.rect(screen, GREEN, self.rect, 4)
         else:
             draw.rect(screen, BLUE, self.rect, 4)
-        screen.blit(Assets.get(self.kind), self.rect.topleft)
+        image = self.get_image()
+        screen.blit(image, self.rect.topleft)
+
+    def get_image(self) -> pygame.Surface: pass
 
     # returns true if pos is inside the drawn area of this thing
     def containsPosition(self, pos):
@@ -105,6 +87,8 @@ class Interactable:
 @static_init
 class LogicGate(Interactable):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
+    images = {}
+
     # i = #inputs, a = #activatedInputs => bool
     functions = {
         "and": lambda i, a: i > 0 and i == a,
@@ -119,8 +103,13 @@ class LogicGate(Interactable):
     def static_init(cls):
         for gate in cls.gates:
             Interactable.kindToTypeMap[gate] = cls
+            cls.images[gate] = image.load("assets/" + gate + "-black.png")
         Interactable.hotkeyToTypeMap[constants.K_g] = lambda pos: LogicGate('and', pos)
-        Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)
+        Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)        
+
+    #override
+    def get_image(self) -> pygame.Surface:
+        return LogicGate.images[self.kind]
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
@@ -149,6 +138,8 @@ class LogicGate(Interactable):
 
 @static_init
 class Input(Interactable):
+    image = None
+
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = 0
@@ -158,6 +149,12 @@ class Input(Interactable):
         Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input-off', pos)
         Interactable.kindToTypeMap['input-on'] = cls
         Interactable.kindToTypeMap['input-off'] = cls
+        cls.image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(cls.image, BLACK, (32,32), 24, 8)
+
+    #override
+    def get_image(self) -> pygame.Surface:
+        return Input.image
 
     def calculate(self):
         self.currentState = (self.kind == "input-on")
@@ -183,23 +180,18 @@ class Timer(Interactable):
         Interactable.hotkeyToTypeMap[constants.K_t] = lambda pos: Timer('timer10', pos)
 
     #override
-    def draw(self, screen: pygame.Surface):
-        draw.rect(screen, GRAY if self.currentState else DARKGRAY, self.rect)
-        if (self.selected):
-            draw.rect(screen, GREEN, self.rect, 4)
-        else:
-            draw.rect(screen, BLUE, self.rect, 4)
+    def get_image(self):
+        image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
 
-        timerbox = self.rect.move(6,7)
-        timerbox.width -= 12
-        timerbox.height -= 11
-        draw.rect(screen, BLACK, timerbox, 2)
+        timerbox = pygame.Rect(6, 7, 64-12, 64-11)
+        draw.rect(image, BLACK, timerbox, 2)
         for i in range(10):
             y = timerbox.bottom - 4 - i*5
             x_left = timerbox.left + 7
             x_right = timerbox.right - 7
             if self.timerTickStorage[i]:
-                draw.line(screen, LIGHTBLUE, (x_left, y), (x_right, y), 4)
+                draw.line(image, LIGHTBLUE, (x_left, y), (x_right, y), 4)
+        return image
 
     def calculate(self):
         self.currentState = self.timerTickStorage[9]
@@ -234,7 +226,7 @@ def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: T
         angle = angle + 180
     angle -= 180 # stupid image is already rotated 180 degrees
     
-    arrow = Assets.get("arrow")
+    arrow = Assets.arrow
     arrow = transform.rotate(arrow, angle)
     arrowRect = arrow.get_rect()
     arrow = transform.scale(arrow, (int(arrowRect.width * .03), int(arrowRect.height * .03)))
@@ -296,9 +288,6 @@ def main():
 
     # initialize the pygame module
     pygame.init()
-
-    # initialize assets dictionary
-    Assets.initAssets()
 
     # load and set the logo
     logo = pygame.image.load(sys.path[0] + "/logo32x32.png")
