@@ -31,9 +31,11 @@ YELLOW = (255,255,0)
 class Assets:
     storage = {}
 
+    @staticmethod
     def get(asset: str):
         return Assets.storage[asset]
 
+    @staticmethod
     def initAssets():
         inputAsset = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
         draw.circle(inputAsset, BLACK, (32,32), 24, 8)
@@ -60,6 +62,7 @@ class Interactable:
         self.selected = False
         self.rect = Assets.get("nor").get_rect() # gateRect is the size of the image.  All the gates are the same size.
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
+        self.maxInputCount = -1
 
     def toDictionary(self):
         return {
@@ -103,6 +106,7 @@ class LogicGate(Interactable):
 
     def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
         super().__init__(kind, screen, pos)
+        self.maxInputCount = -1
 
     def calculate(self):
         activatedInputs = 0
@@ -128,6 +132,7 @@ class LogicGate(Interactable):
 class Input(Interactable):
     def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
         super().__init__(kind, screen, pos)
+        self.maxInputCount = 0
 
     def calculate(self):
         self.currentState = (self.kind == "input-on")
@@ -144,6 +149,7 @@ class Timer(Interactable):
     def __init__(self, kind: str, screen: pygame.Surface, pos: Tuple[float,float]):
         super().__init__(kind, screen, pos)
         self.timerTickStorage = [False]*10
+        self.maxInputCount = 1
 
     #override
     def draw(self):
@@ -314,7 +320,7 @@ def main():
             elif event.type == constants.MOUSEBUTTONUP:
                 if isLinking:
                     target = findItem(interactables, event.pos)
-                    if target is not None and target is not selected and target.kind not in ("input-off", "input-on"):
+                    if target is not None and target is not selected and target.maxInputCount != 0:
                         if selected in target.inputs:
                             # the connection is already there - undo it
                             target.inputs.remove(selected)
@@ -322,7 +328,7 @@ def main():
                             # If the connection already goes the other way, reverse it.
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
-                            if target.kind == "timer10":
+                            if target.maxInputCount == 1:
                                 target.inputs.clear()
                             target.inputs.append(selected)
                         target.calculate()
