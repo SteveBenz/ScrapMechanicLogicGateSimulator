@@ -93,8 +93,38 @@ class Interactable:
     
     def calculate(self): pass
 
+# LogicGate and Input both have a notion of a singled bit of saved state (either on or off).
+# This class consolodates that logic.
+class InteractableWithSingleBitSavedState(Interactable):
+    def __init__(self, kind: str, pos: Tuple[float,float]):
+        super().__init__(kind, pos)
+        self.savedState = False
+
+    @staticmethod
+    def addSavedOnIndicator(screen: pygame.Surface):
+        tLen = 15
+        draw.polygon(screen, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+
+    @staticmethod
+    def addSavedOffIndicator(screen: pygame.Surface):
+        tLen = 15
+        draw.polygon(screen, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
+
+    #override
+    def saveState(self) -> dict:
+        state = super().saveState()
+        state['savedState'] = self.savedState
+        return state
+
+    # We don't offer an implementation of loadState because there are some backwards-compat
+    # shenanigans in Input, so we need specialized implementations in both subclasses
+
+    #override
+    def paint(self):
+        self.savedState = self.currentState
+
 @static_init
-class LogicGate(Interactable):
+class LogicGate(InteractableWithSingleBitSavedState):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
     imagesSavedOn = {}
     imagesSavedOff = {}
@@ -116,12 +146,11 @@ class LogicGate(Interactable):
             baseImage = image.load("assets/" + gate + "-black.png")
             imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
             imageSavedOn.blit(baseImage, baseImage.get_rect())
-            tLen = 15
-            draw.polygon(imageSavedOn, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+            InteractableWithSingleBitSavedState.addSavedOnIndicator(imageSavedOn)
+            cls.imagesSavedOn[gate] = imageSavedOn
             imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
             imageSavedOff.blit(baseImage, baseImage.get_rect())
-            draw.polygon(imageSavedOff, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
-            cls.imagesSavedOn[gate] = imageSavedOn
+            InteractableWithSingleBitSavedState.addSavedOffIndicator(imageSavedOff)
             cls.imagesSavedOff[gate] = imageSavedOff
         Interactable.hotkeyToTypeMap[constants.K_g] = lambda pos: LogicGate('and', pos)
         Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)        
@@ -133,13 +162,6 @@ class LogicGate(Interactable):
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = -1
-        self.savedState = False
-
-    #override
-    def saveState(self) -> dict:
-        state = super().saveState()
-        state['savedState'] = self.savedState
-        return state
 
     #override
     def loadState(self, serialized: dict):
@@ -168,18 +190,14 @@ class LogicGate(Interactable):
     #override
     def putOnLift(self):
         self.currentState = len(self.inputs) > 0 and self.kind in ("nand", "nor", "xnor")
-        self.savedState = self.currentState
         self.prevState = False
+        self.savedState = self.currentState
 
     #override
     def swapGate(self, dir: int):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[((i + dir) % 3) + (i - (i % 3))]
         self.calculate()
-        self.savedState = self.currentState
-
-    #override
-    def paint(self):
         self.savedState = self.currentState
 
     #override
@@ -190,7 +208,7 @@ class LogicGate(Interactable):
         self.savedState = self.currentState
 
 @static_init
-class Input(Interactable):
+class Input(InteractableWithSingleBitSavedState):
     imageSavedOn = None
     imageSavedOff = None
 
@@ -207,13 +225,12 @@ class Input(Interactable):
         Interactable.kindToTypeMap['input-off'] = cls # input-off is for backwards compatability
         Interactable.kindToTypeMap['input-on'] = cls # input-on is for backwards compatability
         Interactable.kindToTypeMap['input'] = cls
-        tLen = 15
         cls.imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
         draw.circle(cls.imageSavedOn, BLACK, (32,32), 24, 8)
-        draw.polygon(cls.imageSavedOn, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+        InteractableWithSingleBitSavedState.addSavedOnIndicator(cls.imageSavedOn)
         cls.imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
         draw.circle(cls.imageSavedOff, BLACK, (32,32), 24, 8)
-        draw.polygon(cls.imageSavedOff, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
+        InteractableWithSingleBitSavedState.addSavedOffIndicator(cls.imageSavedOff)
 
     #override
     def loadState(self, serialized: dict):
@@ -224,12 +241,6 @@ class Input(Interactable):
         # else it should have been set in the constructor because 'kind' was input-on or off.
         self.currentState = self.savedState
         self.prevState = False
-
-    #override
-    def saveState(self) -> dict:
-        state = super().saveState()
-        state['savedState'] = self.savedState
-        return state
 
     #override
     def get_image(self) -> pygame.Surface:
@@ -247,10 +258,6 @@ class Input(Interactable):
         self.savedState = False
         self.currentState = False
         self.prevState = False
-
-    #override
-    def paint(self):
-        self.savedState = self.currentState
 
     #override
     def alternate(self):
