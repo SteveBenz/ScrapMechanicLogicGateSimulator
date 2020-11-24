@@ -60,11 +60,11 @@ class Interactable:
 
     def draw(self, screen: pygame.Surface):
         draw.rect(screen, GRAY if self.currentState else DARKGRAY, self.rect)
+        screen.blit(self.get_image(), self.rect.topleft)
         if (self.selected):
             draw.rect(screen, GREEN, self.rect, 4)
         else:
             draw.rect(screen, BLUE, self.rect, 4)
-        screen.blit(self.get_image(), self.rect.topleft)
 
     def get_image(self) -> pygame.Surface: pass
 
@@ -79,12 +79,19 @@ class Interactable:
         self.prevState = self.currentState
     
     def swapGate(self, dir: int): pass
+
     def alternate(self): pass
+
+    def inputsChanged(self):
+        self.calculate()
+    
+    def calculate(self): pass
 
 @static_init
 class LogicGate(Interactable):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
-    images = {}
+    imagesSavedOn = {}
+    imagesSavedOff = {}
 
     # i = #inputs, a = #activatedInputs => bool
     functions = {
@@ -100,13 +107,22 @@ class LogicGate(Interactable):
     def static_init(cls):
         for gate in cls.gates:
             Interactable.kindToTypeMap[gate] = cls
-            cls.images[gate] = image.load("assets/" + gate + "-black.png")
+            baseImage = image.load("assets/" + gate + "-black.png")
+            imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+            imageSavedOn.blit(baseImage, baseImage.get_rect())
+            tLen = 15
+            draw.polygon(imageSavedOn, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+            imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+            imageSavedOff.blit(baseImage, baseImage.get_rect())
+            draw.polygon(imageSavedOff, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
+            cls.imagesSavedOn[gate] = imageSavedOn
+            cls.imagesSavedOff[gate] = imageSavedOff
         Interactable.hotkeyToTypeMap[constants.K_g] = lambda pos: LogicGate('and', pos)
         Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)        
 
     #override
     def get_image(self) -> pygame.Surface:
-        return LogicGate.images[self.kind]
+        return LogicGate.imagesSavedOn[self.kind] if self.savedState else LogicGate.imagesSavedOff[self.kind]
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
@@ -123,7 +139,10 @@ class LogicGate(Interactable):
     def loadState(self, serialized: dict):
         super().loadState(serialized)
         self.savedState = serialized['savedState'] if 'savedState' in serialized else False
+        self.currentState = self.savedState
+        self.prevState = False
 
+    #override
     def calculate(self):
         activatedInputs = 0
         for input in self.inputs:
@@ -131,19 +150,27 @@ class LogicGate(Interactable):
                 activatedInputs += 1
         self.currentState = LogicGate.functions[self.kind](len(self.inputs), activatedInputs)
 
+    #override
+    def inputsChanged(self):
+        self.calculate()
+
     def reset(self, isFullReset: bool):
-        self.currentState = False
-        self.prevState = False
+        self.currentState = self.savedState
+        self.prevState = self.savedState
     
     #override
     def swapGate(self, dir: int):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[((i + dir) % 3) + (i - (i % 3))]
+        self.calculate()
+        self.savedState = self.currentState
     
     #override
     def alternate(self):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[(i + 3) % 6]
+        self.calculate()
+        self.savedState = self.currentState
 
 @static_init
 class Input(Interactable):
@@ -152,6 +179,8 @@ class Input(Interactable):
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = 0
+        self.currentState = (self.kind == "input-on")
+        self.prevState = False
 
     @classmethod
     def static_init(cls):
@@ -165,6 +194,7 @@ class Input(Interactable):
     def get_image(self) -> pygame.Surface:
         return Input.image
 
+    #override
     def calculate(self):
         self.currentState = (self.kind == "input-on")
 
@@ -175,6 +205,7 @@ class Input(Interactable):
     #override
     def alternate(self):
         self.kind = "input-on" if self.kind == "input-off" else "input-off"
+        self.currentState = (self.kind == "input-on")
 
 @static_init
 class Timer(Interactable):
@@ -368,10 +399,11 @@ def main():
                             # If the connection already goes the other way, reverse it.
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
+                                selected.inputsChanged()
                             if target.maxInputCount == 1:
                                 target.inputs.clear()
                             target.inputs.append(selected)
-                        target.calculate()
+                        target.inputsChanged()
                 isLinking = False
                 isMoving = False
             elif event.type == constants.MOUSEMOTION:
@@ -392,20 +424,16 @@ def main():
                     for i in interactables:
                         if selected in i.inputs:
                             i.inputs.remove(selected)
-                            i.calculate()
+                            i.inputsChanged()
                     selected = None
                 elif event.key == constants.K_LEFT and selected is not None:
                     selected.swapGate(-1)
-                    selected.calculate()
                 elif event.key == constants.K_RIGHT and selected is not None:
                     selected.swapGate(1)
-                    selected.calculate()
                 elif event.key == constants.K_UP and selected is not None:
                     selected.alternate()
-                    selected.calculate()
                 elif event.key == constants.K_DOWN and selected is not None:
                     selected.alternate()
-                    selected.calculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
                     tick += 1
