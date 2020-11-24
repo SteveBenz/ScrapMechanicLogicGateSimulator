@@ -86,6 +86,8 @@ class Interactable:
 
     def putOnLift(self): pass
 
+    def paint(self): pass
+
     def inputsChanged(self):
         self.calculate()
     
@@ -175,7 +177,11 @@ class LogicGate(Interactable):
         self.kind = LogicGate.gates[((i + dir) % 3) + (i - (i % 3))]
         self.calculate()
         self.savedState = self.currentState
-    
+
+    #override
+    def paint(self):
+        self.savedState = self.currentState
+
     #override
     def alternate(self):
         i = LogicGate.gates.index(self.kind)
@@ -185,43 +191,74 @@ class LogicGate(Interactable):
 
 @static_init
 class Input(Interactable):
-    image = None
+    imageSavedOn = None
+    imageSavedOff = None
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
-        super().__init__(kind, pos)
+        super().__init__("input", pos)
         self.maxInputCount = 0
-        self.currentState = (self.kind == "input-on")
+        self.savedState = kind == "input-on" # input-on is for backwards compatability
+        self.currentState = self.saveState
         self.prevState = False
 
     @classmethod
     def static_init(cls):
-        Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input-off', pos)
-        Interactable.kindToTypeMap['input-on'] = cls
-        Interactable.kindToTypeMap['input-off'] = cls
-        cls.image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-        draw.circle(cls.image, BLACK, (32,32), 24, 8)
+        Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input', pos)
+        Interactable.kindToTypeMap['input-off'] = cls # input-off is for backwards compatability
+        Interactable.kindToTypeMap['input-on'] = cls # input-on is for backwards compatability
+        Interactable.kindToTypeMap['input'] = cls
+        tLen = 15
+        cls.imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(cls.imageSavedOn, BLACK, (32,32), 24, 8)
+        draw.polygon(cls.imageSavedOn, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+        cls.imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(cls.imageSavedOff, BLACK, (32,32), 24, 8)
+        draw.polygon(cls.imageSavedOff, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
+
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        if 'savedState' in serialized:
+            # it's the modern style
+            self.savedState = serialized['savedState']
+        # else it should have been set in the constructor because 'kind' was input-on or off.
+        self.currentState = self.savedState
+        self.prevState = False
+
+    #override
+    def saveState(self) -> dict:
+        state = super().saveState()
+        state['savedState'] = self.savedState
+        return state
 
     #override
     def get_image(self) -> pygame.Surface:
-        return Input.image
+        return Input.imageSavedOn if self.savedState else Input.imageSavedOff
 
     #override
     def calculate(self):
-        self.currentState = (self.kind == "input-on")
+        pass # It just is what it is
 
     def reload(self):
-        self.currentState = (self.kind == "input-on")
+        self.currentState = self.savedState
         self.prevState = False
 
     def putOnLift(self):
-        self.kindToTypeMap = "input-off"
+        self.savedState = False
         self.currentState = False
         self.prevState = False
 
     #override
+    def paint(self):
+        self.savedState = self.currentState
+
+    #override
     def alternate(self):
-        self.kind = "input-on" if self.kind == "input-off" else "input-off"
-        self.currentState = (self.kind == "input-on")
+        self.currentState = not self.currentState
+    
+    #override
+    def swapGate(self, dir: int):
+        self.currentState = not self.currentState
 
 @static_init
 class Timer(Interactable):
@@ -474,6 +511,9 @@ def main():
                 elif event.key == constants.K_s:
                     with open(filename, 'w') as file:
                         file.write(serialize(interactables))
+                elif event.key == constants.K_p:
+                    for i in interactables:
+                        i.paint()
                 elif event.key in Interactable.hotkeyToTypeMap.keys():
                     if selected is not None: selected.selected = False
                     selected = Interactable.hotkeyToTypeMap[event.key](mouse.get_pos())
