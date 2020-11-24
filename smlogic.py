@@ -82,6 +82,10 @@ class Interactable:
 
     def alternate(self): pass
 
+    def reload(self): pass
+
+    def putOnLift(self): pass
+
     def inputsChanged(self):
         self.calculate()
     
@@ -154,10 +158,17 @@ class LogicGate(Interactable):
     def inputsChanged(self):
         self.calculate()
 
-    def reset(self, isFullReset: bool):
+    #override
+    def reload(self):
         self.currentState = self.savedState
-        self.prevState = self.savedState
-    
+        self.prevState = False
+
+    #override
+    def putOnLift(self):
+        self.currentState = len(self.inputs) > 0 and self.kind in ("nand", "nor", "xnor")
+        self.savedState = self.currentState
+        self.prevState = False
+
     #override
     def swapGate(self, dir: int):
         i = LogicGate.gates.index(self.kind)
@@ -198,8 +209,13 @@ class Input(Interactable):
     def calculate(self):
         self.currentState = (self.kind == "input-on")
 
-    def reset(self, isFullReset: bool):
+    def reload(self):
         self.currentState = (self.kind == "input-on")
+        self.prevState = False
+
+    def putOnLift(self):
+        self.kindToTypeMap = "input-off"
+        self.currentState = False
         self.prevState = False
 
     #override
@@ -224,6 +240,8 @@ class Timer(Interactable):
     def loadState(self, serialized: dict):
         super().loadState(serialized)
         self.timerTickStorage = serialized['timerTickStorage'] if 'timerTickStorage' in serialized else [False]*10
+        self.currentState = self.timerTickStorage[9]
+        self.prevState = False
 
     @classmethod
     def static_init(cls):
@@ -233,7 +251,6 @@ class Timer(Interactable):
     #override
     def get_image(self):
         image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-
         timerbox = pygame.Rect(6, 7, 64-12, 64-11)
         draw.rect(image, BLACK, timerbox, 2)
         for i in range(10):
@@ -248,9 +265,15 @@ class Timer(Interactable):
         self.currentState = self.timerTickStorage[9]
         self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].prevState
 
-    def reset(self, isFullReset: bool):
-        if isFullReset:
-            self.timerTickStorage = [False]*10
+    #override
+    def reload(self):
+        self.currentState = self.timerTickStorage[9]
+        self.prevState = False
+
+    #override
+    def putOnLift(self):
+        self.timerTickStorage = [False]*10
+        self.currentState = False
         self.prevState = False
 
     #override
@@ -303,12 +326,14 @@ def singleStep(interactables: Iterable[Interactable]):
     for i in interactables:
         i.calculate()
 
-def reset(interactables: Iterable[Interactable], isFullReset: bool):
+# Simulates an event like entering and coming back into Scrap Mechanic
+def reload(interactables: Iterable[Interactable]):
     for i in interactables:
-        i.reset(isFullReset)
+        i.reload()
+
+def putOnLift(interactables: Iterable[Interactable]):
     for i in interactables:
-        if i.kind != "timer10":
-            i.calculate()
+        i.putOnLift()
     
 def serialize(interactables: Iterable[Interactable]) -> str:
     dicts = []
@@ -332,8 +357,6 @@ def deserialize(jsonContent: str):
         for index in inputIndices:
             iterables[iterableIndex].inputs.append(iterables[index])
         iterableIndex += 1
-    for i in iterables:
-        i.calculate()
     return iterables
 
 # define a main function
@@ -440,7 +463,10 @@ def main():
                 elif event.key == constants.K_F4:
                     tick = 0
                     running = False
-                    reset(interactables, event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT))
+                    if event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT):
+                        putOnLift(interactables)
+                    else:
+                        reload(interactables)
                 elif event.key == constants.K_F5:
                     running = True
                 elif event.key == constants.K_F6:
