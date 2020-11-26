@@ -50,6 +50,8 @@ The main window works with a combination of mouse and keyboard; the gestures are
 
 `Shift-P` - Simulate taking a the build off of the lift (which has the effect of saving the state for every control).  This has no effect on timers.
 
+_If you don't understand why there are simulator commands for painting and taking things on and off the lift, then don't stop reading here!  You really should read [Loading - Logic Gates and Switches](#loading---logic-gates-and-switches) because Scrap Mechanic does some very, very surprising things!_
+
 Gates with a white background indicates it's in the "True" state and those with a gray background are in the "False" state.  Connections can be light blue or dark blue, and they indicate what the state of the input object was at the start of the tick.  You use that color to understand why the logic gate is in the state that it's in.  It doesn't signify anything that's visible in-game.
 
 If you didn't quite get that, here's the dance-remix.  Note that all the pictures you see here have accompanying pre-built circuits.  They're in the `tutorials` folder.
@@ -254,7 +256,9 @@ Note the load-in detector circuit like before, and remember that when you build 
 
 The output of the on-reload signal gets paired with the content of the timer (which is what's remembering the saved state) and routed to either the set or the reset pin.
 
-Note that you need to set up your timer so that it's at least 5 ticks long in the game.  (Alas, in the simulator all timers are hard-coded to 9/10 ticks.)
+Note that you need to set up your timer so that it's at least 5 ticks long in the game.  (In the simulator all timers are hard-coded to 9/10 ticks.)
+
+This circuit is available [from the Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2288921476).
 
 ### Timer Wiper
 
