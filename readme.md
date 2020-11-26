@@ -42,7 +42,7 @@ The main window works with a combination of mouse and keyboard; the gestures are
 
 `F10` - Run the simulator for a single "tick"
 
-`F4` - Simulate unloading and re-loading scrap mechanic.  If you don't know why that's a crucial thing, skip down to the "Glitches" section below.
+`F4` - Simulate unloading and re-loading scrap mechanic.
 
 `Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.  It sets the saved state of every logic gate, and switch to `Off` and erases the memory of timers.
 
@@ -106,7 +106,9 @@ Select the input button at the left and turn it on and off (by pressing an arrow
 
 ### Ticks
 
-You might have heard the word "ticks" before.  In the context of computer gaming, it usually refers to the processing of a single "frame" of the game.  If you're familiar with the term FPS - frames per second, that's a frequency or a rate.  The "Tick" is basically the period of time between frames.  With that background, we can understand how scrap mechanic processes circuits, because it doesn't just analyze a long chain connections and compute its results in a single tick.
+You might have heard the word "ticks" before in the context of computers.  Usually it's referring to a clock-driven series of discrete states.  That's how it is in Scrap Mechanic logic circuits.  There are 40 "ticks" in each game-second, and our circuits are re-evaluated as a whole between each tick.
+
+With that background, we can understand how scrap mechanic processes circuits, because it doesn't just analyze a long chain connections and compute its results in a single tick.
 
 Why doesn't it?  Well, pretty much all the really interesting circuits in scrap mechanic involve feedback loops and the scrap mechanic devs knew that was going to be a thing.  With loops, there is no single answer to compute because the whole circuit cycles between states over time.  So it's not like on each frame the whole chain gets computed instantly - it just can't work like that.
 
@@ -195,7 +197,7 @@ Here are some things to pay special attention to when recreating this:
 1. It is on the Lift
 2. There's a switch, and _it must be turned **ON**_!
 3. The first timer is 10 seconds, and is just there to sort of buffer the signal while you're getting your bearings after loading.  Adjust as you desire.
-4. The next two timers are set to 9 ticks - which is a handy thing because there are 10 bars on the side of the timer, so you can see the wave-form well.  Why 9 and not 10?  Note that you _can_ make a "0 tick" delay - but if you string a series of 0-tick timers in a line, you'll see the signal travel through them, just like it does for a logic gate.  When scrap mechanic says there's a 0-tick delay, they mean a 0-tick delay over and above the 1-tick delay that every interactable gets.  Anyway, the 9-tick timers are in a loop so you can watch it better.  It's important, because if you're just learning this stuff, you'll ask "did I really just see that???!" more than once.git st
+4. The next two timers are set to 9 ticks - which is a handy thing because there are 10 bars on the side of the timer, so you can see the wave-form well.  Why 9 and not 10?  Note that you _can_ make a "0 tick" delay - but if you string a series of 0-tick timers in a line, you'll see the signal travel through them, just like it does for a logic gate.  When scrap mechanic says there's a 0-tick delay, they mean a 0-tick delay over and above the 1-tick delay that every interactable gets.  Anyway, the 9-tick timers are in a loop so you can watch it better.  It's important, because if you're just learning this stuff, you'll ask "did I really just see that???!" more than once.
 
 Take it off the lift now, exit and come back, and it'll be in exactly this state.  Another interesting exercise is to flip the switch off, wait for the timers, and reload.  Observe that the timers have retained their content, but the switch and the logic gates are all as they were.
 
