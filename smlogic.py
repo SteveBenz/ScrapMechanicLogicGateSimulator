@@ -471,6 +471,8 @@ def main():
                                 target.inputs.clear()
                             target.inputs.append(selected)
                         target.inputsChanged()
+                        target.paint()
+                        selected.paint()
                 isLinking = False
                 isMoving = False
             elif event.type == constants.MOUSEMOTION:
