@@ -216,7 +216,7 @@ class Input(InteractableWithSingleBitSavedState):
         super().__init__("input", pos)
         self.maxInputCount = 0
         self.savedState = kind == "input-on" # input-on is for backwards compatability
-        self.currentState = self.saveState
+        self.currentState = self.savedState
         self.prevState = False
 
     @classmethod
