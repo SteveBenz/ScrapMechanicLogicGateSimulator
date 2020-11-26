@@ -4,7 +4,7 @@ This is a python app that will allow you to debug your Scrap Mechanic circuits. 
 
 ![Intro](tutorial/intro.gif)
 
-This app would really be far better as a web application and done by somebody with some more advanced graphic arts skills than I have.  I did it with python and pygame because I wanted to learn that stack to be able to help my son with it in his own stuff.  The code's not going to win any awards for outstanding object oriented design either.  Feel free to flex on me by rewriting it!
+This app would really be far better as a web application and done by somebody with some more advanced graphic arts skills than I have.  I did it with python and pygame because I wanted to learn that stack to be able to help my son with it in his own stuff.
 
 ## Installation
 
@@ -26,7 +26,7 @@ You can probably figure this out with just this information. First off, there's 
 
 The main window works with a combination of mouse and keyboard; the gestures are as follows:
 
-`L` - place a logic gate centered on the mouse cursor
+`L` or `G` - place a logic gate centered on the mouse cursor
 
 `I` - Place an input gate centered on the mouse cursor
 
@@ -42,9 +42,13 @@ The main window works with a combination of mouse and keyboard; the gestures are
 
 `F10` - Run the simulator for a single "tick"
 
-`F4` - Reset the simulator.  This simulates unloading and re-loading scrap mechanic.  If you don't know why that's a crucial thing, skip down to the "Glitches" section below.
+`F4` - Simulate unloading and re-loading scrap mechanic.  If you don't know why that's a crucial thing, skip down to the "Glitches" section below.
 
-`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.
+`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.  It sets the saved state of every logic gate, and switch to `Off` and erases the memory of timers.
+
+`P` - Simulate painting a logic gate or button (which saves the state of the selected switch or logic gate).  This has no effect on timers.
+
+`Shift-P` - Simulate taking a the build off of the lift (which has the effect of saving the state for every control).  This has no effect on timers.
 
 Gates with a white background indicates it's in the "True" state and those with a gray background are in the "False" state.  Connections can be light blue or dark blue, and they indicate what the state of the input object was at the start of the tick.  You use that color to understand why the logic gate is in the state that it's in.  It doesn't signify anything that's visible in-game.
 

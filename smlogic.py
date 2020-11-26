@@ -519,8 +519,11 @@ def main():
                     with open(filename, 'w') as file:
                         file.write(serialize(interactables))
                 elif event.key == constants.K_p:
-                    for i in interactables:
-                        i.paint()
+                    if event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT):
+                        for i in interactables:
+                            i.paint()
+                    elif selected is not None:
+                        selected.paint()
                 elif event.key in Interactable.hotkeyToTypeMap.keys():
                     if selected is not None: selected.selected = False
                     selected = Interactable.hotkeyToTypeMap[event.key](mouse.get_pos())
