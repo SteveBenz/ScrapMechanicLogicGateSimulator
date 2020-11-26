@@ -1,14 +1,16 @@
 [
     {
-        "kind": "input-on",
+        "kind": "input",
         "x": 60,
         "y": 107,
+        "savedState": true,
         "inputs": []
     },
     {
         "kind": "and",
         "x": 165,
         "y": 187,
+        "savedState": false,
         "inputs": [
             0
         ]
@@ -17,6 +19,7 @@
         "kind": "and",
         "x": 260,
         "y": 103,
+        "savedState": false,
         "inputs": [
             1
         ]
@@ -25,6 +28,7 @@
         "kind": "and",
         "x": 373,
         "y": 182,
+        "savedState": false,
         "inputs": [
             2
         ]
@@ -33,6 +37,7 @@
         "kind": "and",
         "x": 486,
         "y": 101,
+        "savedState": false,
         "inputs": [
             3
         ]

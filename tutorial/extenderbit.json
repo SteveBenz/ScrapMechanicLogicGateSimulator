@@ -1,20 +1,23 @@
 [
     {
-        "kind": "input-off",
+        "kind": "input",
         "x": 61,
         "y": 107,
+        "savedState": false,
         "inputs": []
     },
     {
-        "kind": "input-off",
+        "kind": "input",
         "x": 64,
         "y": 233,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "nor",
         "x": 345,
         "y": 231,
+        "savedState": false,
         "inputs": [
             4,
             6,
@@ -26,6 +29,7 @@
         "kind": "or",
         "x": 348,
         "y": 102,
+        "savedState": false,
         "inputs": [
             2,
             0
@@ -35,6 +39,7 @@
         "kind": "nand",
         "x": 468,
         "y": 105,
+        "savedState": false,
         "inputs": [
             3
         ]
@@ -43,6 +48,7 @@
         "kind": "and",
         "x": 141,
         "y": 362,
+        "savedState": false,
         "inputs": [
             1
         ]
@@ -51,6 +57,7 @@
         "kind": "and",
         "x": 266,
         "y": 360,
+        "savedState": false,
         "inputs": [
             5
         ]

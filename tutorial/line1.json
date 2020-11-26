@@ -1,32 +1,37 @@
 [
     {
-        "kind": "input-off",
+        "kind": "input",
         "x": 89,
         "y": 96,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "and",
         "x": 203,
         "y": 197,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "and",
         "x": 291,
         "y": 93,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "and",
         "x": 381,
         "y": 198,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "and",
         "x": 470,
         "y": 99,
+        "savedState": false,
         "inputs": []
     }
 ]
