@@ -3,6 +3,18 @@
         "kind": "timer10",
         "x": 63,
         "y": 56,
+        "timerTickStorage": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
         "inputs": [
             2
         ]
@@ -11,6 +23,7 @@
         "kind": "nand",
         "x": 177,
         "y": 115,
+        "savedState": true,
         "inputs": [
             0
         ]
@@ -19,6 +32,18 @@
         "kind": "timer10",
         "x": 63,
         "y": 174,
+        "timerTickStorage": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false
+        ],
         "inputs": [
             1
         ]

@@ -4,7 +4,7 @@ This is a python app that will allow you to debug your Scrap Mechanic circuits. 
 
 ![Intro](tutorial/intro.gif)
 
-This app would really be far better as a web application and done by somebody with some more advanced graphic arts skills than I have.  I did it with python and pygame because I wanted to learn that stack to be able to help my son with it in his own stuff.  The code's not going to win any awards for outstanding object oriented design either.  Feel free to flex on me by rewriting it!
+This app would really be far better as a web application and done by somebody with some more advanced graphic arts skills than I have.  I did it with python and pygame because I wanted to learn that stack to be able to help my son with it in his own stuff.
 
 ## Installation
 
@@ -26,7 +26,7 @@ You can probably figure this out with just this information. First off, there's 
 
 The main window works with a combination of mouse and keyboard; the gestures are as follows:
 
-`L` - place a logic gate centered on the mouse cursor
+`L` or `G` - place a logic gate centered on the mouse cursor
 
 `I` - Place an input gate centered on the mouse cursor
 
@@ -42,9 +42,15 @@ The main window works with a combination of mouse and keyboard; the gestures are
 
 `F10` - Run the simulator for a single "tick"
 
-`F4` - Reset the simulator.  This simulates unloading and re-loading scrap mechanic.  If you don't know why that's a crucial thing, skip down to the "Glitches" section below.
+`F4` - Simulate unloading and re-loading scrap mechanic.
 
-`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.
+`Shift-F4` - Completely clear the circuit including clearing timers.  In the game, this can only be done by putting an object on the lift.  It sets the saved state of every logic gate, and switch to `Off` and erases the memory of timers.
+
+`P` - Simulate painting a logic gate or button (which saves the state of the selected switch or logic gate).  This has no effect on timers.
+
+`Shift-P` - Simulate taking a the build off of the lift (which has the effect of saving the state for every control).  This has no effect on timers.
+
+_If you don't understand why there are simulator commands for painting and taking things on and off the lift, then don't stop reading here!  You really should read [Loading - Logic Gates and Switches](#loading---logic-gates-and-switches) because Scrap Mechanic does some very, very surprising things!_
 
 Gates with a white background indicates it's in the "True" state and those with a gray background are in the "False" state.  Connections can be light blue or dark blue, and they indicate what the state of the input object was at the start of the tick.  You use that color to understand why the logic gate is in the state that it's in.  It doesn't signify anything that's visible in-game.
 
@@ -100,7 +106,9 @@ Select the input button at the left and turn it on and off (by pressing an arrow
 
 ### Ticks
 
-You might have heard the word "ticks" before.  In the context of computer gaming, it usually refers to the processing of a single "frame" of the game.  If you're familiar with the term FPS - frames per second, that's a frequency or a rate.  The "Tick" is basically the period of time between frames.  With that background, we can understand how scrap mechanic processes circuits, because it doesn't just analyze a long chain connections and compute its results in a single tick.
+You might have heard the word "ticks" before in the context of computers.  Usually it's referring to a clock-driven series of discrete states.  That's how it is in Scrap Mechanic logic circuits.  There are 40 "ticks" in each game-second, and our circuits are re-evaluated as a whole between each tick.
+
+With that background, we can understand how scrap mechanic processes circuits, because it doesn't just analyze a long chain connections and compute its results in a single tick.
 
 Why doesn't it?  Well, pretty much all the really interesting circuits in scrap mechanic involve feedback loops and the scrap mechanic devs knew that was going to be a thing.  With loops, there is no single answer to compute because the whole circuit cycles between states over time.  So it's not like on each frame the whole chain gets computed instantly - it just can't work like that.
 
@@ -114,11 +122,11 @@ To illustrate this, run the simulator, set the input object to "On" and let the 
 
 The way you want to think about it is this:  _The color of the inputs will always explain the current state of the gate_.  The state of a gate will flow down the wire to the next gate, _but on the next tick_.  You might think "Wait!  That's now how Scrap Mechanic Works!" and there's some truth to that, but if the circuit is in a stable state, there's no difference between what's "in the wire" and the gate itself.  The simulator is meant to help you with _unstable_ circuits, and so it takes the time to show you this nuance.
 
-### Glitches - Logic Gates
+### Loading - Logic Gates and Switches
 
 Most folks who go to the trouble of installing this thing and reading this far have done so because they just can't figure out why their machine behaves wonkily and they want to square it up.  For example, if you create the ubiquitous NOR-flip-flop memory circuit, you'll find that it can do some odd things when you load back into the game or when you come back to your base from afar.  Sometimes the circuit is as you left it.  Sometimes it's completely spazzing out, and sometimes it's in a different state than when you left it.
 
-Some of that wonky behavior comes from our own goofs, but a good part of it comes down to this:  what we would expect Scrap Mechanic to do is to save the state of the logic gates on-exit so that it would come back to that state when we load back in.  But this is Scrap Mechanic, so you have to throw that idea out the window.  It saves the state of your logic gate at a few magic times:
+Why would that be?  Surely you'd think that Scrap Mechanic would save the current state of your circuits when it unloads a block and reload that state when you load the game back up or return from some distant land in your car.  But no.  It doesn't work like that.  That would make a lot of sense.  That's the way I think I'd make it work, but this is Scrap Mechanic, and it is as it does.  It saves the state of your logic gates and switches at a few magic times:
 
 1. When you take it off the lift.
 2. When you change the nature of the gate (e.g. switch from an "AND" to a "NOR" gate).
@@ -127,16 +135,15 @@ Some of that wonky behavior comes from our own goofs, but a good part of it come
 
 Note that this business of taking things off the lift saving state is also true for switches!  Try this:  bolt a light and a switch together on the lift, connect the switch to the light, flip the switch on, then take the thing off the lift.  Light's still on.  Turn the switch off.  Exit.  When you load back in, observe that the switch is on again!  Put it on the lift, turn it off, take it off the lift, turn it on, exit, come back and lo, the switch is off.  Same thing for painting the switch:  turn it on, paint it, turn it off, exit, come back and boom, it's on again.
 
-The simulator does not replicate this behavior for the following sketchy reasons:
+The saved state is signified by the triangle in the upper-right corner of logic gates and switches in the simulator.  A filled in triangle means it's saved state is `On` and an empty triangle is `Off`.
 
-1. Laziness.
-2. It's hard to believe anybody could or would rebuild a machine from the simulator plan click-for-click.
-3. I could be wrong.  I got this theory-of-scrap-mechanic from experimentation and observation; I'd love to hear if others can replicate my results.
-4. You'd think that one day the scrap mechanic devs will fix this.
+One thing to note about the simulator and saved state is the simulator lets you do some stuff that's not practically possible in the game because it lets you pause the game.  If you're trying to replicate a sequence of moves in the simulator that you're going to do in the game, only use `P` (save the state) when the circuit is actually at a stable state.  (That is, pressing `F10` doesn't change the `On` / `Off` state of your circuit.)
 
-### Glitches - Timers
+### Loading - Timers
 
-Strictly speaking, I don't know of any glitch with timers themselves, that's because, unlike logic gates, their states _are_ stored when you exit as they are in the game (and not, like logic gates, like they were when they were on the lift).  But if you've ever built a repeating timer, you probably noticed that this happens:
+Unlike logic gates and switches, Timer states _are_ stored when you exit as they are in the game when you unloaded and not, like logic gates, like they were when they were on the lift.  This is also true for state-ful interactables like pistons and controllers.  E.g. if you hook a button up to a controller and a piston, then flip the button on, exit, and come back, you'll find your piston retracting and your controller un-spinning.  That is, on-load, they were in their extended/rotated state, but as soon as they loaded back in, the signal they get from the switch (which flipped itself off on reload) is telling them to retract.
+
+That brings its own brand of mischief to the table.  If you've ever built a repeating timer, you probably noticed that this happens:
 
 ![timer](tutorial/timer.png)
 
@@ -153,7 +160,7 @@ You can replicate this in scrap mechanic pretty easily.  Create a timer circuit 
 
 ## Glitch-Proofing Our Stuff
 
-Making a glitch-proofer for the load-in thing is actually pretty tricky.  We'll start with something really basic and then work our way through to fixing the timer glitch and creating a memory-cell that remembers its state even on reload.
+Making a glitch-proofer for the load-in thing requires a fair bit of care.  We'll start with something really basic and then work our way through to fixing the timer glitch and creating a memory-cell that remembers its state even on reload.
 
 ### 3-Tick Pulse Extender
 
@@ -173,19 +180,11 @@ Notice that the top button is not protected, and can cause the memory bit to spa
 
 It's a really trivial thing, but you'll see it quite a bit, so be sure you fully grok it before moving on.
 
-### Load-In Detector
-
-There are a lot of different ways to make one of these circuits.  Here's one that works fine in the simulator.  It will too in the game if you hold your mouth just right.  In the next section, we'll talk about how to do that.  For now, let's just look at it in the simulator where we can step through it easily.
-
-![loadsignal.json](tutorial/loadsignal.png)
-
-Here the normal state would be that all of the inputs to the second row would naturally be true all the time, _except when we're loading in_, where they will be false until the top-left nand gate's signal reaches them.
-
-To make this practical, I've tied the signal to a memory bit - so this is a memory bit that will reset itself automatically on reload and not spaz out.  Well, that's not quite true, as you can see if you step through it - it does become set for two ticks before settling back to unset.  I bet a clever person could weed that out of the system if it caused mayhem in their build.
-
 ### Building a Load-In Detector In the Game
 
-Making this happen in the game is tricky, and more than a little bit frustrating if you haven't learned the trick I discussed above about exactly when it saves things.  Let's walk through exactly how to do it by building a demonstration circuit.  Here's what we're building:
+Given that our circuitry can get out of kilter on reload, it'd be a good thing if we could make a circuit that will detect this condition and allow us to recover from it.
+
+Making this happen in the game is tricky, and more than a little bit frustrating if you haven't learned the rules for exactly when it saves things.  Let's walk through exactly how to do it by building a demonstration circuit.  Here's what we're building:
 
 ![Connections](tutorial/smloaddetector-build.png)
 
@@ -198,7 +197,7 @@ Here are some things to pay special attention to when recreating this:
 1. It is on the Lift
 2. There's a switch, and _it must be turned **ON**_!
 3. The first timer is 10 seconds, and is just there to sort of buffer the signal while you're getting your bearings after loading.  Adjust as you desire.
-4. The next two timers are set to 10 ticks - which is a handy thing because there are 10 bars on the side of the timer, so you can see the wave-form well.  It's in a loop so you can watch it better.  It's important, because if you're just learning this stuff, you'll ask "did I really just see that???!" more than once.
+4. The next two timers are set to 9 ticks - which is a handy thing because there are 10 bars on the side of the timer, so you can see the wave-form well.  Why 9 and not 10?  Note that you _can_ make a "0 tick" delay - but if you string a series of 0-tick timers in a line, you'll see the signal travel through them, just like it does for a logic gate.  When scrap mechanic says there's a 0-tick delay, they mean a 0-tick delay over and above the 1-tick delay that every interactable gets.  Anyway, the 9-tick timers are in a loop so you can watch it better.  It's important, because if you're just learning this stuff, you'll ask "did I really just see that???!" more than once.
 
 Take it off the lift now, exit and come back, and it'll be in exactly this state.  Another interesting exercise is to flip the switch off, wait for the timers, and reload.  Observe that the timers have retained their content, but the switch and the logic gates are all as they were.
 
@@ -229,15 +228,39 @@ To underline the point, try this:  change the last AND gate in the chain to an O
 
 Let's go over in detail why we see two bars:  The first bit that heads into the timers comes from the NAND gate.  That was last touched when it was on the lift, and it was in the ON state then, so the first bit that hits the timer is `True`.  The next guy in the chain is from the AND gate that was turned into an OR, and it was ON when it was twiddled, so the ON gets translated by the NAND gate into a `False` so we get an empty slot in our timer.  Next, we get the untouched AND gate, which was OFF when it was on the lift.  So that flows into the newly-made OR gate and stays the same, then goes on into the NAND gate and gets turned into a `True` heading into the timer.  Finally, there's the NAND gate at the front of the stack, and it became ON when we attached the button, so it flows to the final NAND gate as a `True` and therefor sends a `False` tick to the timer.  And, of course, every subsequent tick it stays `False` for the same reason.
 
+### The Load-detector in the simulator
+
+You can walk through this in the simulator stepwise to see the same effects happen in slo-mo.  You'll find tutorial\loadsignal.json is ready for you - it's got the circuit built and in the state it'd be when it's on the lift.
+
+![On the lift](tutorial/loadsignal-onlift.png)
+
+Take it off the lift with `Shift-P`.  When you do that, the only change you will see are the colored triangles that indicate the saved state changing to reflect their current state.
+
+If you then do the "magic" steps discussed above (deleting the switch and re-adding it, and so on), you get this:
+
+![After the Magic](tutorial/loadsignal-aftermagic.png)
+
+Notice how the NAND gate's save state changed after we reconnected the now OFF input gate.  It's also crucial to note that the save state of the three subsequent gates is the opposite of their current state.  When you press `F4` (to simulate a reload) and press `F5` (to start the simulator running), you get the effect we observed in the game.
+
 ### Solid-State Memory
 
 What if you want a memory bit that keeps its state even after you unload and reload?  As we showed above, we can get a signal that fires when we reload, and we've also pointed out that timers do retain their state across reload.  So, to put the two together, we can build this:
 
 ![solidstate.json](tutorial/solidstate.png)
 
-Basically instead of sending the on-reload signal directly to the reset pin, we're routing it to either the set or the reset pin depending on what's flowing out of the timer.
+Note the load-in detector circuit like before, and remember that when you build these things, you have to prime it a bit.  Here's how you can simulate the priming of this one:
 
-Note that you need to set up your timer so that it's at least 5 ticks long in the game.  (Alas, in the simulator all timers are hard-coded to 10 ticks because lazy.)
+  1. Press `Shift-F4`
+  2. Press `F5`  -- now you've got it on the lift and it's jittering wildly.
+  3. Turn the input in the top-left on and let it stabilize.
+  4. Press `Shift-P` to simulate taking it off the lift.
+  5. Turn the switch in the top left off and paint it with `P`
+
+The output of the on-reload signal gets paired with the content of the timer (which is what's remembering the saved state) and routed to either the set or the reset pin.
+
+Note that you need to set up your timer so that it's at least 5 ticks long in the game.  (In the simulator all timers are hard-coded to 9/10 ticks.)
+
+This circuit is available [from the Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2288921476).
 
 ### Timer Wiper
 
@@ -248,6 +271,8 @@ It's tiresome and embarassing.  What can we do?  Well, there are probably some c
 Note that I'm chaining timer circuits together here, but in the game it'd be silly not to just use a single timer, programmed with a longer duration than your main circuit's timers.
 
 ![timerwiper.json](tutorial/timerwiper.png)
+
+There's more than one way to do this.  In my own game, I didn't implement it like this.  I built a circuit that detects a `True-False-True` sequence to initiate the wipe rather than the on-load event.  Further, you oftentimes don't actually need solid state memory.  For example, in my farm I have memory-cells that is true when the planter is moving forward and false when it's moving backwards or parked.  I simply put the memory cell into the "parked" state and painted it at that time.  That works more than fine - I'm very, very unlikely to ever exit or unload the game while the planter is in motion.  I dare say that's true for most stuff.  An elevator might be an example of something where you'd really want a solid-state circuit, but you could also get that effect by other means (e.g. a floor-sensing detector).
 
 ## Issues and contributing
 

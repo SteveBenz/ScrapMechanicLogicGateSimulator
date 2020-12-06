@@ -56,7 +56,8 @@ class Interactable:
         self.rect.move_ip((pos[0] - self.rect.width/2, pos[1] - self.rect.height/2)) # now it's the rect moved to the spot we want it
         self.maxInputCount = -1
 
-    def toDictionary(self):
+    def loadState(self, state: dict): pass
+    def saveState(self) -> dict:
         return {
             'kind': self.kind,
             'x': self.rect.centerx,
@@ -65,11 +66,11 @@ class Interactable:
 
     def draw(self, screen: pygame.Surface):
         draw.rect(screen, GRAY if self.currentState else DARKGRAY, self.rect)
+        screen.blit(self.get_image(), self.rect.topleft)
         if (self.selected):
             draw.rect(screen, GREEN, self.rect, 4)
         else:
             draw.rect(screen, BLUE, self.rect, 4)
-        screen.blit(self.get_image(), self.rect.topleft)
 
     def get_image(self) -> pygame.Surface: pass
 
@@ -84,15 +85,55 @@ class Interactable:
         self.prevState = self.currentState
     
     def swapGate(self, dir: int): pass
+
     def alternate(self): pass
 
+    def reload(self): pass
+
+    def putOnLift(self): pass
+
+    def paint(self): pass
+
+    def inputsChanged(self):
+        self.calculate()
+    
+    def calculate(self): pass
+
+# LogicGate and Input both have a notion of a singled bit of saved state (either on or off).
+# This class consolodates that logic.
+class InteractableWithSingleBitSavedState(Interactable):
+    def __init__(self, kind: str, pos: Tuple[float,float]):
+        super().__init__(kind, pos)
+        self.savedState = False
+
     @staticmethod
-    def buildFromDictionary(serialized: dict): pass
+    def addSavedOnIndicator(screen: pygame.Surface):
+        tLen = 15
+        draw.polygon(screen, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)))
+
+    @staticmethod
+    def addSavedOffIndicator(screen: pygame.Surface):
+        tLen = 15
+        draw.polygon(screen, BLUE, ((63-tLen, 0), (63,tLen), (63,0), (63-tLen,0)), 3)
+
+    #override
+    def saveState(self) -> dict:
+        state = super().saveState()
+        state['savedState'] = self.savedState
+        return state
+
+    # We don't offer an implementation of loadState because there are some backwards-compat
+    # shenanigans in Input, so we need specialized implementations in both subclasses
+
+    #override
+    def paint(self):
+        self.savedState = self.currentState
 
 @static_init
-class LogicGate(Interactable):
+class LogicGate(InteractableWithSingleBitSavedState):
     gates = ["and", "or", "xor", "nand", "nor", "xnor"]
-    images = {}
+    imagesSavedOn = {}
+    imagesSavedOff = {}
 
     # i = #inputs, a = #activatedInputs => bool
     functions = {
@@ -108,66 +149,126 @@ class LogicGate(Interactable):
     def static_init(cls):
         for gate in cls.gates:
             Interactable.kindToTypeMap[gate] = cls
-            cls.images[gate] = image.load("assets/" + gate + "-black.png")
+            baseImage = image.load("assets/" + gate + "-black.png")
+            imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+            imageSavedOn.blit(baseImage, baseImage.get_rect())
+            InteractableWithSingleBitSavedState.addSavedOnIndicator(imageSavedOn)
+            cls.imagesSavedOn[gate] = imageSavedOn
+            imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+            imageSavedOff.blit(baseImage, baseImage.get_rect())
+            InteractableWithSingleBitSavedState.addSavedOffIndicator(imageSavedOff)
+            cls.imagesSavedOff[gate] = imageSavedOff
         Interactable.hotkeyToTypeMap[constants.K_g] = lambda pos: LogicGate('and', pos)
         Interactable.hotkeyToTypeMap[constants.K_l] = lambda pos: LogicGate('and', pos)        
 
     #override
     def get_image(self) -> pygame.Surface:
-        return LogicGate.images[self.kind]
+        return LogicGate.imagesSavedOn[self.kind] if self.savedState else LogicGate.imagesSavedOff[self.kind]
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
         super().__init__(kind, pos)
         self.maxInputCount = -1
 
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        self.savedState = serialized['savedState'] if 'savedState' in serialized else False
+        self.currentState = self.savedState
+        self.prevState = False
+
+    #override
     def calculate(self):
         activatedInputs = sum([input.prevState for input in self.inputs])
         self.currentState = LogicGate.functions[self.kind](len(self.inputs), activatedInputs)
 
-    def reset(self, isFullReset: bool):
-        self.currentState = False
+    #override
+    def inputsChanged(self):
+        self.calculate()
+
+    #override
+    def reload(self):
+        self.currentState = self.savedState
         self.prevState = False
-    
+
+    #override
+    def putOnLift(self):
+        self.currentState = len(self.inputs) > 0 and self.kind in ("nand", "nor", "xnor")
+        self.prevState = False
+        self.savedState = self.currentState
+
     #override
     def swapGate(self, dir: int):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[((i + dir) % 3) + (i - (i % 3))]
-    
+        self.calculate()
+        self.savedState = self.currentState
+
     #override
     def alternate(self):
         i = LogicGate.gates.index(self.kind)
         self.kind = LogicGate.gates[(i + 3) % 6]
+        self.calculate()
+        self.savedState = self.currentState
 
 @static_init
-class Input(Interactable):
-    image = None
+class Input(InteractableWithSingleBitSavedState):
+    imageSavedOn = None
+    imageSavedOff = None
 
     def __init__(self, kind: str, pos: Tuple[float,float]):
-        super().__init__(kind, pos)
+        super().__init__("input", pos)
         self.maxInputCount = 0
+        self.savedState = kind == "input-on" # input-on is for backwards compatability
+        self.currentState = self.savedState
+        self.prevState = False
 
     @classmethod
     def static_init(cls):
-        Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input-off', pos)
-        Interactable.kindToTypeMap['input-on'] = cls
-        Interactable.kindToTypeMap['input-off'] = cls
-        cls.image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-        draw.circle(cls.image, BLACK, (32,32), 24, 8)
+        Interactable.hotkeyToTypeMap[constants.K_i] = lambda pos: Input('input', pos)
+        Interactable.kindToTypeMap['input-off'] = cls # input-off is for backwards compatability
+        Interactable.kindToTypeMap['input-on'] = cls # input-on is for backwards compatability
+        Interactable.kindToTypeMap['input'] = cls
+        cls.imageSavedOn = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(cls.imageSavedOn, BLACK, (32,32), 24, 8)
+        InteractableWithSingleBitSavedState.addSavedOnIndicator(cls.imageSavedOn)
+        cls.imageSavedOff = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
+        draw.circle(cls.imageSavedOff, BLACK, (32,32), 24, 8)
+        InteractableWithSingleBitSavedState.addSavedOffIndicator(cls.imageSavedOff)
+
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        if 'savedState' in serialized:
+            # it's the modern style
+            self.savedState = serialized['savedState']
+        # else it should have been set in the constructor because 'kind' was input-on or off.
+        self.currentState = self.savedState
+        self.prevState = False
 
     #override
     def get_image(self) -> pygame.Surface:
-        return Input.image
+        return Input.imageSavedOn if self.savedState else Input.imageSavedOff
 
+    #override
     def calculate(self):
-        self.currentState = (self.kind == "input-on")
+        pass # It just is what it is
 
-    def reset(self, isFullReset: bool):
-        self.currentState = (self.kind == "input-on")
+    def reload(self):
+        self.currentState = self.savedState
+        self.prevState = False
+
+    def putOnLift(self):
+        self.savedState = False
+        self.currentState = False
         self.prevState = False
 
     #override
     def alternate(self):
-        self.kind = "input-on" if self.kind == "input-off" else "input-off"
+        self.currentState = not self.currentState
+    
+    #override
+    def swapGate(self, dir: int):
+        self.currentState = not self.currentState
 
 @static_init
 class Timer(Interactable):
@@ -175,6 +276,19 @@ class Timer(Interactable):
         super().__init__(kind, pos)
         self.timerTickStorage = [False]*10
         self.maxInputCount = 1
+
+    #override
+    def saveState(self) -> dict:
+        serialized = super().saveState()
+        serialized['timerTickStorage'] = self.timerTickStorage
+        return serialized
+
+    #override
+    def loadState(self, serialized: dict):
+        super().loadState(serialized)
+        self.timerTickStorage = serialized['timerTickStorage'] if 'timerTickStorage' in serialized else [False]*10
+        self.currentState = self.timerTickStorage[9]
+        self.prevState = False
 
     @classmethod
     def static_init(cls):
@@ -184,7 +298,6 @@ class Timer(Interactable):
     #override
     def get_image(self):
         image = pygame.Surface((64,64), constants.SRCALPHA, depth=32)
-
         timerbox = pygame.Rect(6, 7, 64-12, 64-11)
         draw.rect(image, BLACK, timerbox, 2)
         for i in range(10):
@@ -199,10 +312,15 @@ class Timer(Interactable):
         self.currentState = self.timerTickStorage[9]
         self.timerTickStorage[0] = len(self.inputs) > 0 and self.inputs[0].prevState
 
-    def reset(self, isFullReset: bool):
-        if isFullReset:
-            self.timerTickStorage = [False]*10
-            self.currentState = False
+    #override
+    def reload(self):
+        self.currentState = self.timerTickStorage[9]
+        self.prevState = False
+
+    #override
+    def putOnLift(self):
+        self.timerTickStorage = [False]*10
+        self.currentState = False
         self.prevState = False
 
     #override
@@ -228,7 +346,9 @@ def drawLineWithArrows(screen: pygame.Surface, pos1: Tuple[float,float], pos2: T
 
 def interactableFromDictionary(serialized: dict):
     interactableType = Interactable.kindToTypeMap[serialized['kind']]
-    return interactableType(serialized['kind'], (serialized['x'], serialized['y']))
+    interactable = interactableType(serialized['kind'], (serialized['x'], serialized['y']))
+    interactable.loadState(serialized)
+    return interactable
 
 def findItem(interactables, pos):
     for i in interactables:
@@ -242,17 +362,19 @@ def singleStep(interactables: Iterable[Interactable]):
     for i in interactables:
         i.calculate()
 
-def reset(interactables: Iterable[Interactable], isFullReset: bool):
+# Simulates an event like entering and coming back into Scrap Mechanic
+def reload(interactables: Iterable[Interactable]):
     for i in interactables:
-        i.reset(isFullReset)
+        i.reload()
+
+def putOnLift(interactables: Iterable[Interactable]):
     for i in interactables:
-        if i.kind != "timer10":
-            i.calculate()
+        i.putOnLift()
     
 def serialize(interactables: Iterable[Interactable]) -> str:
     dicts = []
     for i in interactables:
-        serialized = i.toDictionary()
+        serialized = i.saveState()
         inputIndices = []
         for x in i.inputs:
             inputIndices.append(interactables.index(x))
@@ -271,8 +393,6 @@ def deserialize(jsonContent: str):
         for index in inputIndices:
             iterables[iterableIndex].inputs.append(iterables[index])
         iterableIndex += 1
-    for i in iterables:
-        i.calculate()
     return iterables
 
 # define a main function
@@ -338,10 +458,13 @@ def main():
                             # If the connection already goes the other way, reverse it.
                             if target in selected.inputs:
                                 selected.inputs.remove(target)
+                                selected.inputsChanged()
                             if target.maxInputCount == 1:
                                 target.inputs.clear()
                             target.inputs.append(selected)
-                        target.calculate()
+                        target.inputsChanged()
+                        target.paint()
+                        selected.paint()
                 isLinking = False
                 isMoving = False
             elif event.type == constants.MOUSEMOTION:
@@ -362,27 +485,26 @@ def main():
                     for i in interactables:
                         if selected in i.inputs:
                             i.inputs.remove(selected)
-                            i.calculate()
+                            i.inputsChanged()
                     selected = None
                 elif event.key == constants.K_LEFT and selected is not None:
                     selected.swapGate(-1)
-                    selected.calculate()
                 elif event.key == constants.K_RIGHT and selected is not None:
                     selected.swapGate(1)
-                    selected.calculate()
                 elif event.key == constants.K_UP and selected is not None:
                     selected.alternate()
-                    selected.calculate()
                 elif event.key == constants.K_DOWN and selected is not None:
                     selected.alternate()
-                    selected.calculate()
                 elif event.key == constants.K_F10 and not running:
                     singleStep(interactables)
                     tick += 1
                 elif event.key == constants.K_F4:
                     tick = 0
                     running = False
-                    reset(interactables, event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT))
+                    if event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT):
+                        putOnLift(interactables)
+                    else:
+                        reload(interactables)
                 elif event.key == constants.K_F5:
                     running = True
                 elif event.key == constants.K_F6:
@@ -390,6 +512,12 @@ def main():
                 elif event.key == constants.K_s:
                     with open(filename, 'w') as file:
                         file.write(serialize(interactables))
+                elif event.key == constants.K_p:
+                    if event.mod in (constants.KMOD_SHIFT, constants.KMOD_LSHIFT, constants.KMOD_RSHIFT):
+                        for i in interactables:
+                            i.paint()
+                    elif selected is not None:
+                        selected.paint()
                 elif event.key in Interactable.hotkeyToTypeMap.keys():
                     if selected is not None: selected.selected = False
                     selected = Interactable.hotkeyToTypeMap[event.key](mouse.get_pos())
@@ -432,9 +560,10 @@ def main():
         display.flip()
         # display.update()
 
-    # Always just save on exit     
+    # Always just save on exit
+    savedState = serialize(interactables)
     with open(filename, 'w') as file:
-        file.write(serialize(interactables))
+        file.write(savedState)
 
 # run the main function only if this module is executed as the main script
 # (if you import this as a module then nothing is executed)

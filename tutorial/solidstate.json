@@ -1,88 +1,103 @@
 [
     {
-        "kind": "input-off",
+        "kind": "input",
         "x": 71,
         "y": 417,
+        "savedState": false,
         "inputs": []
     },
     {
-        "kind": "input-off",
+        "kind": "input",
         "x": 66,
         "y": 527,
+        "savedState": false,
         "inputs": []
     },
     {
         "kind": "or",
         "x": 208,
         "y": 399,
+        "savedState": true,
         "inputs": [
             0,
             3,
-            13
+            12
         ]
     },
     {
         "kind": "nor",
         "x": 206,
         "y": 537,
+        "savedState": true,
         "inputs": [
             1,
             4,
-            11
+            10
         ]
     },
     {
         "kind": "nand",
         "x": 333,
         "y": 393,
+        "savedState": false,
         "inputs": [
             2
         ]
     },
     {
-        "kind": "and",
-        "x": 57,
-        "y": 63,
-        "inputs": []
-    },
-    {
         "kind": "nand",
         "x": 151,
         "y": 70,
+        "savedState": false,
         "inputs": [
-            5
+            13
         ]
     },
     {
         "kind": "and",
         "x": 246,
         "y": 63,
+        "savedState": false,
         "inputs": [
-            6
+            5
         ]
     },
     {
         "kind": "and",
         "x": 357,
         "y": 64,
+        "savedState": false,
         "inputs": [
-            7
+            6
         ]
     },
     {
         "kind": "nand",
         "x": 282,
         "y": 167,
+        "savedState": true,
         "inputs": [
+            5,
             6,
-            7,
-            8
+            7
         ]
     },
     {
         "kind": "timer10",
         "x": 404,
         "y": 207,
+        "timerTickStorage": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
         "inputs": [
             4
         ]
@@ -91,28 +106,38 @@
         "kind": "and",
         "x": 301,
         "y": 285,
+        "savedState": false,
         "inputs": [
-            10,
-            9
+            9,
+            8
         ]
     },
     {
         "kind": "and",
         "x": 119,
         "y": 178,
+        "savedState": false,
         "inputs": [
+            5,
             6,
-            7,
-            8
+            7
         ]
     },
     {
         "kind": "nor",
         "x": 125,
         "y": 277,
+        "savedState": true,
         "inputs": [
-            10,
-            12
+            9,
+            11
         ]
+    },
+    {
+        "kind": "input",
+        "x": 50,
+        "y": 71,
+        "savedState": false,
+        "inputs": []
     }
 ]
