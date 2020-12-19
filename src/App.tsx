@@ -122,6 +122,14 @@ export class App extends React.Component<AppProps, AppState> {
                 savedState: false
             });
             this.props.simulator.add(newInteractable);
+        } else if (e.key === "t") {
+            const newInteractable = new Model.Timer({
+                kind: 'timer',
+                x: xy!.x,
+                y: xy!.y,
+                tickStorage: new Array<boolean>(10).fill(false)
+            });
+            this.props.simulator.add(newInteractable);
         } else if (e.key === '[' && this.state.selected) {
             this.state.selected.twiddle(-1);
         } else if (e.key === ']' && this.state.selected) {
@@ -196,7 +204,7 @@ export class App extends React.Component<AppProps, AppState> {
         console.debug("App.handleMouseUpInInteractable");
     }
 
-    handleMouseMove(e: any) {
+    handleMouseMove(e: any): void {
         if (this.state.linkSource) {
             this.setState({
                 linkTargetX: e.evt.x,
@@ -205,8 +213,8 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
-    getViewModelForModel(model: any, id: string) {
-        if (model.constructor.name === "LogicGate") {
+    getViewModelForModel(model: Model.Interactable, id: string) {
+        if (model instanceof Model.LogicGate) {
             return (
                 <ViewModel.LogicGate
                     model={model}
@@ -218,7 +226,7 @@ export class App extends React.Component<AppProps, AppState> {
                 />
             );
         }
-        else if (model.constructor.name === 'Input') {
+        else if (model instanceof Model.Input) {
                 return <ViewModel.Input
                     model={model}
                     id={id}
@@ -227,11 +235,15 @@ export class App extends React.Component<AppProps, AppState> {
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}/>
         }
-        //     else if (model.constructor.name === 'Timer') {
-        //             // TODO:
-        //             console.debug("Timer not implemented in ViewModel.getViewModelForModel");
-        //             return undefined;
-        //     }
+        else if (model instanceof Model.Timer) {
+            return <ViewModel.Timer
+                model={model}
+                id={id}
+                isSelected={model === this.state.selected}
+                onMouseUp={this.handleMouseUpInInteractable.bind(this)}
+                onLinkStart={this.handleLinkStart.bind(this)}
+                onClick={this.handleInteractableClicked.bind(this)}/>
+        }
     }
 
     drawArrow(pair: any) {

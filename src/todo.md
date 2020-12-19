@@ -3,7 +3,7 @@
 ## Get it working comparably to python
 
 - [ ] Limits on number of inputs
-- [ ] Add timers
+- [x] Add timers
 - [x] Implement computation
 - [ ] Implement saved state
 - [ ] Import/Export to json

@@ -233,3 +233,45 @@ export class Input extends InteractableWithSingleBitSavedState {
         this.setCurrentState(!this.currentState);
     }
 }
+
+interface ISerializedTimer extends ISerializedInteractable {
+    tickStorage: Array<boolean>
+};
+
+export class Timer extends Interactable {
+    private readonly _tickStorage: Array<boolean>;
+
+    public constructor(props: ISerializedTimer) {
+        super(props);
+        this._tickStorage = [ ... props.tickStorage ];
+    }
+
+    public get tickStorage(): Array<boolean> {
+        return [... this._tickStorage];
+    }
+
+    public export(): ISerializedTimer {
+        return {
+            ...super.export(),
+            kind: 'timer',
+            tickStorage: this._tickStorage,
+        };
+    }
+
+    public calculate(): void {
+        this.setCurrentState(this._tickStorage[this._tickStorage.length-1]);
+        this._tickStorage[0] = this.inputs.length > 0 && this.inputs[0].prevState;
+    }
+
+    public apply(): void {
+        this.setPrevState(this.currentState);
+        // Advance everything in the array
+        for (let i = 0; i < this._tickStorage.length-1; ++i) {
+            this._tickStorage[this._tickStorage.length-1-i] = this._tickStorage[this._tickStorage.length-2-i];
+        }
+        this.setCurrentState(this._tickStorage[this._tickStorage.length]);
+        // tickStorage[0] will be set by calculate - it's not possible to set it here because
+        // it has to come from its input, which hasn't finished its apply cycle yet.
+    }
+}
+

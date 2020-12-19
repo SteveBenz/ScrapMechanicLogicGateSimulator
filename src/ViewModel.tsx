@@ -191,6 +191,46 @@ export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInt
     }
 };
 
+export interface ITimerProps extends IInteractableProps {
+    model: Model.Timer;
+};
+
+interface ITimerState extends IInteractableState {
+    // Don't need our own copy of the timer ticks - the model has that.
+};
+
+export class Timer extends Interactable<ITimerProps, ITimerState> {
+    constructor(props: ITimerProps) {
+        super(props);
+    }
+
+    static getDerivedStateFromProps(
+        props: IInputProps,
+        state: IInteractableState
+    ): IInteractableState {
+        return super.getDerivedStateFromProps(props, state);
+    }
+
+    groupContent() {
+        const drawingHeight: number = 64;
+        const drawingWidth: number = 64;
+        const horizontalOffset: number = 12;
+        const verticalOffset: number = 6;
+        const rectHeight = (drawingHeight - 2*verticalOffset) / this.props.model.tickStorage.length;
+
+        return super.groupContent().concat(
+            this.props.model.tickStorage.map((value: boolean, index: number) =>
+            <Rect x={horizontalOffset}
+                  width={drawingWidth - 2*horizontalOffset}
+                  y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/this.props.model.tickStorage.length}
+                  height={rectHeight}
+                  strokeWidth={1}
+                  stroke='darkgrey'
+                  fill={value ? 'blue' : 'white'}
+                   />));
+    }
+}
+
 
 export function loadAssets(onComplete: () => void)
 {
