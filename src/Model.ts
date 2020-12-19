@@ -80,8 +80,32 @@ export class Interactable {
     }
 
     addInput(newInput: Interactable): boolean {
-        // TODO: Discriminate this better.
-        this._inputs.push(newInput);
+        if (this.inputLimit == 0) {
+            // Can't draw a connection *to* an input.
+            return false;
+        }
+
+        const existingIndex: number = this.inputs.indexOf(newInput);
+        if (existingIndex >= 0) {
+            // if the connection is already there - undo it
+            this._inputs.splice(existingIndex, 1);
+        } else {
+            // If the connection already goes the other way, reverse it (this part just deletes the old arrow)
+            const indexInTarget: number = newInput.inputs.indexOf(this);
+            if (indexInTarget >= 0) {
+                newInput._inputs.splice(indexInTarget, 1);
+                newInput.calculate();
+            }
+
+            // If we allow only one input and we already have an input, toss it.
+            if (this.inputLimit === 1) {
+                this._inputs = [];
+            }
+
+            // Add the new link
+            this._inputs.push(newInput);
+        }
+
         this.calculate();
         return true;
     }
@@ -110,6 +134,10 @@ export class Interactable {
 
     public onStateChanged(handler: (eventArgs: IEventArgsInteractable) => void) {
         this.events.on('stateChanged', handler);
+    }
+
+    protected get inputLimit(): 1 | 0 | 'unlimited' {
+        return 'unlimited';
     }
 
     protected _emitMoved(x: number, y: number): void {
@@ -213,6 +241,10 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this.setCurrentState(calculatedState);
     }
 
+    protected get inputLimit(): 1 | 0 | 'unlimited' {
+        return 'unlimited';
+    }
+
     export() {
         return {
             ...super.export(),
@@ -232,10 +264,14 @@ export class Input extends InteractableWithSingleBitSavedState {
     twiddle(direction: -1 | 1) {
         this.setCurrentState(!this.currentState);
     }
+
+    protected get inputLimit(): 1 | 0 | 'unlimited' {
+        return 0;
+    }
 }
 
 interface ISerializedTimer extends ISerializedInteractable {
-    tickStorage: Array<boolean>
+    tickStorage: Array<boolean>;
 };
 
 export class Timer extends Interactable {
@@ -272,6 +308,10 @@ export class Timer extends Interactable {
         this.setCurrentState(this._tickStorage[this._tickStorage.length]);
         // tickStorage[0] will be set by calculate - it's not possible to set it here because
         // it has to come from its input, which hasn't finished its apply cycle yet.
+    }
+
+    protected get inputLimit(): 1 | 0 | 'unlimited' {
+        return 1;
     }
 }
 

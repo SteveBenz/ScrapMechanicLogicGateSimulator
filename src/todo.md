@@ -2,12 +2,13 @@
 
 ## Get it working comparably to python
 
-- [ ] Limits on number of inputs
+- [x] Limits on number of inputs
 - [x] Add timers
 - [x] Implement computation
 - [ ] Implement saved state
 - [ ] Import/Export to json
 - [x] Delete
+- [ ] Colored arrows
 
 ## Make it more presentable
 
