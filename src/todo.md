@@ -7,7 +7,7 @@
 - [x] Implement computation
 - [ ] Implement saved state
 - [ ] Import/Export to json
-- [ ] Delete
+- [x] Delete
 
 ## Make it more presentable
 
@@ -18,3 +18,4 @@
 - [ ] Buttons have tooltips
 - [ ] Popup window for copy/pasting links
 - [ ] Host in github
+- [ ] Make drawings resize

@@ -39,6 +39,7 @@ export class App extends React.Component<AppProps, AppState> {
         }
 
         this.props.simulator.onInteractableAdded( this.handleInteractableAdded );
+        this.props.simulator.onInteractableRemoved( this.handleInteractableRemoved );
     }
 
     handleInteractableAdded = (e: IEventArgsInteractableAdded) => {
@@ -46,6 +47,15 @@ export class App extends React.Component<AppProps, AppState> {
         this.setState({
             interactables: this.props.simulator.interactables,
             selected: e.interactable,
+        });
+    };
+
+    handleInteractableRemoved = (e: IEventArgsInteractableRemoved) => {
+        e.interactable.onMoved(this.handleInteractableMoved.bind(this));
+        this.setState({
+            interactables: this.props.simulator.interactables,
+            selected: undefined,
+            links: this.state.links.filter(l => l.target !== e.interactable && l.source !== e.interactable)
         });
     };
 
@@ -123,6 +133,8 @@ export class App extends React.Component<AppProps, AppState> {
             const uriFragment: string = encodeURIComponent(sharableString);
             const box: any = document.getElementById('urlbox');
             box!.value = uriFragment;
+        } else if (e.key === 'x' && this.state.selected) {
+            this.props.simulator.remove(this.state.selected);
         }
 
         console.debug("App.handleKeyPress(" + e.key + ")");
