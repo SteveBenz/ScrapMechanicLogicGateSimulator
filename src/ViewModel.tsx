@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import React from 'react';
 import { render } from 'react-dom';
-import { Image, Group, Rect } from 'react-konva';
+import { Image, Group, Rect, Circle } from 'react-konva';
 import { Simulator } from './Simulator'; 
 import * as Model from './Model';
 
@@ -27,6 +27,11 @@ interface IInteractableProps {
 interface ILogicGateProps extends IInteractableProps {
     model: Model.LogicGate;
 }
+
+interface IInputProps extends IInteractableProps {
+    model: Model.Input;
+}
+
 
 interface IInteractableState {
     isSelected: boolean;
@@ -167,6 +172,25 @@ export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGatePro
             <Image x={0} y={0} image={_assets[this.props.model.kind].image()} />]);
     }
 };
+
+export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInteractableState> {
+    constructor(props: IInputProps) {
+        super(props);
+    }
+
+    static getDerivedStateFromProps(
+        props: IInputProps,
+        state: IInteractableState
+    ): IInteractableState {
+        return super.getDerivedStateFromProps(props, state);
+    }
+
+    groupContent() {
+        return super.groupContent().concat([
+            <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black' />]);
+    }
+};
+
 
 export function loadAssets(onComplete: () => void)
 {

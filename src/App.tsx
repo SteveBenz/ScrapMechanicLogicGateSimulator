@@ -99,6 +99,13 @@ export class App extends React.Component<AppProps, AppState> {
                 savedState: false
             });
             this.props.simulator.add(newInteractable);
+        } else if (e.key === "i") {
+            const newInteractable = new Model.Input({
+                x: xy!.x,
+                y: xy!.y,
+                savedState: false
+            });
+            this.props.simulator.add(newInteractable);
         } else if (e.key === '[' && this.state.selected) {
             this.state.selected.twiddle(-1);
         } else if (e.key === ']' && this.state.selected) {
@@ -190,16 +197,22 @@ export class App extends React.Component<AppProps, AppState> {
                 <ViewModel.LogicGate
                     model={model}
                     id={id}
-                    onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     isSelected={model === this.state.selected}
+                    onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}
                 />
             );
         }
-        //     else if (model.constructor.name === 'Input') {
-        //             return <ViewModel.Input model={model} id={id} x={model.x} y={model.y}/>
-        //     }
+        else if (model.constructor.name === 'Input') {
+                return <ViewModel.Input
+                    model={model}
+                    id={id}
+                    isSelected={model === this.state.selected}
+                    onMouseUp={this.handleMouseUpInInteractable.bind(this)}
+                    onLinkStart={this.handleLinkStart.bind(this)}
+                    onClick={this.handleInteractableClicked.bind(this)}/>
+        }
         //     else if (model.constructor.name === 'Timer') {
         //             // TODO:
         //             console.debug("Timer not implemented in ViewModel.getViewModelForModel");

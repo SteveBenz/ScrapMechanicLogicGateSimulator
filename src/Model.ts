@@ -1,6 +1,4 @@
-import { timeStamp } from 'console';
 import { EventEmitter } from 'events';
-import { IEventArgsInteractableRemoved } from './Simulator';
 
 
 export interface ISerializedInteractable {
@@ -48,7 +46,12 @@ export class Interactable {
         this._emitMoved(x, y);
     }
 
-    public get currentState() { return this._currentState; }
+    public get currentState(): boolean { return this._currentState; }
+
+    protected setCurrentState(newValue: boolean): void {
+        this._currentState = newValue;
+        this._emitStateChanged();
+    }
 
     public export(): ISerializedInteractable {
         return {
@@ -160,6 +163,15 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
     }
 }
 
-export class Input extends InteractableWithSingleBitSavedState {
+interface ISerializedInput extends ISerializedInteractableWithSingleBitSavedState {
+};
 
+export class Input extends InteractableWithSingleBitSavedState {
+    constructor(props: ISerializedInput) {
+        super(props);
+    }
+
+    twiddle(direction: -1 | 1) {
+        this.setCurrentState(!this.currentState);
+    }
 }
