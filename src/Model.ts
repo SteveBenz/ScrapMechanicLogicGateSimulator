@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 export interface ISerializedInteractable {
     x: number;
     y: number;
+    kind: LogicGateTypes | 'input' | 'timer';
 };
 
 export interface IEventArgsInteractable {
@@ -33,6 +34,17 @@ export class Interactable {
         this._y = props.y;
     }
 
+    static deserialize(serialized: ISerializedInteractable): Interactable {
+        switch (serialized.kind) {
+            case 'input':
+                return new Input(serialized as ISerializedInput);
+            case 'timer':
+                throw "not implemented";
+            default:
+                return new LogicGate(serialized as ISerializedLogicGate);
+        }
+    }
+
     public getPosition(): { x: number, y: number } {
         return { x: this._x, y: this._y };
     }
@@ -57,6 +69,7 @@ export class Interactable {
         return {
             x: this._x,
             y: this._y,
+            kind: 'input'
         }
     }
 
@@ -68,6 +81,10 @@ export class Interactable {
 
     get inputs(): Array<Interactable> {
         return [...this._inputs];
+    }
+
+    setInputs(inputs: Array<Interactable>) {
+        this._inputs = [...inputs];
     }
 
     twiddle(direction: -1 | 1) {}
@@ -108,12 +125,7 @@ type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
 
 const LogicGateKindSequence: Array<LogicGateTypes> = ['and', 'or', 'xor', 'nand', 'nor', 'xnor'];
 
-const LogicGateEventNames = {
-    kindChanged: 'kind'
-}
-
 export interface ISerializedLogicGate extends ISerializedInteractableWithSingleBitSavedState {
-    kind: LogicGateTypes;
 }
 
 export class LogicGate extends InteractableWithSingleBitSavedState {
@@ -121,6 +133,10 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
 
     constructor(props: ISerializedLogicGate) {
         super(props);
+        if (props.kind === 'timer' || props.kind === 'input') {
+            throw "Caller should prevent this";
+        }
+
         this._kind = props.kind;
     }
 

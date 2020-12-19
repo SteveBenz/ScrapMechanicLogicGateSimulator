@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:3000/?eJx1jssKgzAQRf%2FlrrNwYlLT%2FEpxkdpQghJLjNAi%2FnutjyYUuho4Z%2B7MneB8tME00Vw7O0BfJjyhuSCGFzQpwdA6f4OG7wNmtmpRnVZdCpW0Wcbuuaw2n8VTmkhu9iy%2F1vnHGI8Fpfbn9Otrhs75dus59GNo7NKGIZpwtxG6%2BFw4OP3hPHHKeZk4z3mR83p%2BAy6sXNc%3D",
             "webRoot": "${workspaceFolder}"
         }
     ]

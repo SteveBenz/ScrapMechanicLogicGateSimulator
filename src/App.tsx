@@ -1,13 +1,14 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { Stage, Layer, Arrow } from "react-konva";
-import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink } from "./Simulator";
+import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
 import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
+import * as pako from 'pako';
 
 interface AppProps {
     simulator: Simulator;
@@ -101,6 +102,7 @@ export class App extends React.Component<AppProps, AppState> {
             this.props.simulator.add(newInteractable);
         } else if (e.key === "i") {
             const newInteractable = new Model.Input({
+                kind: 'input',
                 x: xy!.x,
                 y: xy!.y,
                 savedState: false
@@ -110,21 +112,17 @@ export class App extends React.Component<AppProps, AppState> {
             this.state.selected.twiddle(-1);
         } else if (e.key === ']' && this.state.selected) {
             this.state.selected.twiddle(1);
+        } else if (e.key === 'c') {
+            const jsonSerialized: string = JSON.stringify(this.props.simulator.serialize());
+            const compressed: Uint8Array = pako.deflate(jsonSerialized);
+            const sharableString: string = Buffer.from(compressed).toString('base64');
+            const uriFragment: string = encodeURIComponent(sharableString);
+            const box: any = document.getElementById('urlbox');
+            box!.value = uriFragment;
         }
 
         console.debug("App.handleKeyPress(" + e.key + ")");
     };
-    //     stars.push({
-    //         id: stars.length + "",
-    //         x: cursorX,
-    //         y: cursorY,
-    //         rotation: 0,
-    //         isDragging: false
-    //     });
-    //     console.debug("yow");
-    // };
-
-    // window.addEventListener("keydown", handleKeyDown);
 
     handleInteractableClicked(e: any) {
         this.setState({
@@ -311,8 +309,18 @@ export class App extends React.Component<AppProps, AppState> {
 // });
 
 export function makeItSo() {
+    const queryString: string | undefined = window.location.search;
+    let serialized: ISerializedSimulator | undefined = undefined;
+    if (queryString) {
+        const base64: string = decodeURIComponent(queryString);
+        const compressedData: Uint8Array = Buffer.from(base64, 'base64');
+
+        const serializedString: string = pako.inflate(compressedData, { to: 'string' });
+        serialized = JSON.parse(serializedString);
+    }
+
     ViewModel.loadAssets(() => {
-        render(<App simulator={new Simulator()} />, document.getElementById("root"));
+        render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
     });
 }
 
