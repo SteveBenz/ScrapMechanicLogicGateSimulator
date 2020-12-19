@@ -78,7 +78,7 @@ export class Simulator {
         }
 
         this.isRunning = true;
-        this._nextTickTimeoutId = setTimeout(this._onTickTimeout.bind(this), this._pauseInterval);
+        this._nextTickTimeoutId = setTimeout(this._handleTickTimeout.bind(this), this._pauseInterval);
     }
 
     public onTick(handler: (eventArgs: IEventArgsTick) => void) {
@@ -158,11 +158,18 @@ export class Simulator {
     private _advanceOne(): void {
         ++this.currentTick;
         this._events.emit(EventNames.tick, <IEventArgsTick>{ simulator: this, tick: this.currentTick });
+
+        for (let i of this.interactables) {
+            i.apply();
+        }
+        for (let i of this.interactables) {
+            i.calculate();
+        }
     }
 
-    private _onTickTimeout(): void {
+    private _handleTickTimeout(): void {
         this._advanceOne();
-        this._nextTickTimeoutId = setTimeout(this._onTickTimeout.bind(this), this._pauseInterval);
+        this._nextTickTimeoutId = setTimeout(this._handleTickTimeout.bind(this), this._pauseInterval);
     }
 }
 

@@ -34,6 +34,10 @@ export class App extends React.Component<AppProps, AppState> {
         };
         // this.stageRef = React.useRef(undefined);
 
+        for (let i of this.props.simulator.interactables) {
+            i.onMoved(this.handleInteractableMoved.bind(this));
+        }
+
         this.props.simulator.onInteractableAdded( this.handleInteractableAdded );
     }
 

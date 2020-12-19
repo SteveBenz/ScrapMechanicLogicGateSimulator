@@ -22,12 +22,12 @@ export class Interactable {
     private readonly events: EventEmitter;
     private _inputs: Array<Interactable>;
 
-    private prevState: boolean;
+    private _prevState: boolean;
     private _currentState: boolean;
 
     constructor(props: ISerializedInteractable) {
         this.events = new EventEmitter();
-        this.prevState = false;
+        this._prevState = false;
         this._currentState = false;
         this._inputs = [];
         this._x = props.x;
@@ -65,6 +65,12 @@ export class Interactable {
         this._emitStateChanged();
     }
 
+    public get prevState(): boolean { return this._prevState; }
+    protected setPrevState(newValue: boolean): void {
+        this._prevState = newValue;
+        this._emitStateChanged();
+    }
+
     public export(): ISerializedInteractable {
         return {
             x: this._x,
@@ -76,6 +82,7 @@ export class Interactable {
     addInput(newInput: Interactable): boolean {
         // TODO: Discriminate this better.
         this._inputs.push(newInput);
+        this.calculate();
         return true;
     }
 
@@ -88,6 +95,14 @@ export class Interactable {
     }
 
     twiddle(direction: -1 | 1) {}
+
+    /** Causes the calculated state to become the state that other interactables will see. */
+    public apply() {
+        this._prevState = this.currentState;
+    }
+
+    /** Sets currentState based on the previous state of its inputs. */
+    public calculate() {}
 
     public onMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void) {
         this.events.on('moved', handler);
@@ -168,8 +183,35 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         }
 
         this.kind = LogicGateKindSequence[index];
+        this.calculate();
     }
 
+    public calculate() {
+        // This becomes the sum of all the inputs where the previous state is true
+        const numActivatedInputs = this.inputs.reduce((a, b) => a + (b.prevState ? 1 : 0), 0);
+        let calculatedState: boolean;
+        switch(this.kind) {
+            case 'and':
+                calculatedState = this.inputs.length > 0 && numActivatedInputs === this.inputs.length;
+                break;
+            case 'or':
+                calculatedState = this.inputs.length > 0 && numActivatedInputs > 0;
+                break;
+            case 'xor':
+                calculatedState = numActivatedInputs % 2 === 1;
+                break;
+            case 'nand':
+                calculatedState = this.inputs.length > 0 && numActivatedInputs !== this.inputs.length;
+                break;
+            case 'nor':
+                calculatedState = this.inputs.length > 0 && numActivatedInputs === 0;
+                break;
+            case 'xnor':
+                calculatedState = this.inputs.length > 0 && numActivatedInputs % 2 === 0;
+                break;
+        }
+        this.setCurrentState(calculatedState);
+    }
 
     export() {
         return {
