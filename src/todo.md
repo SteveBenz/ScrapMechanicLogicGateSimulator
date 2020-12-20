@@ -6,9 +6,9 @@
 - [x] Add timers
 - [x] Implement computation
 - [x] Implement saved state
-- [ ] Import/Export to json
 - [x] Delete
-- [ ] Colored arrows
+- [x] Colored arrows
+- [ ] Make it not do a full redraw on move
 
 ## Make it more presentable
 
@@ -20,3 +20,4 @@
 - [ ] Popup window for copy/pasting links
 - [ ] Host in github
 - [ ] Make drawings resize
+- [ ] Import/Export to json

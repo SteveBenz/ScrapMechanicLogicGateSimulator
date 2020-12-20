@@ -256,41 +256,6 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
-    drawArrow(pair: any) {
-        var sourceX = pair.source.x+32;
-        var sourceY = pair.source.y+32;
-        var targetX = pair.target.x+32;
-        var targetY = pair.target.y+32;
-
-        if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
-            // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
-            const sign = (targetX > sourceX) ? 1 : -1;
-            const yTrim = 32*(targetY - sourceY)/(targetX-sourceX);
-            sourceX += sign*32;
-            targetX -= sign*32;
-            sourceY += sign*yTrim;
-            targetY -= sign*yTrim;
-        }
-        else {
-            const sign = (targetY > sourceY) ? 1 : -1;
-            const xTrim = 32*(targetX - sourceX)/(targetY-sourceY);
-            sourceX += sign*xTrim;
-            targetX -= sign*xTrim;
-            sourceY += sign*32;
-            targetY -= sign*32;
-        }
-
-        return <Arrow
-            x={sourceX}
-            y={sourceY}
-            points={[0,0, targetX-sourceX, targetY-sourceY]}
-            fill='black'
-            stroke='black'
-            strokeWidth={4}
-            pointerLength={10}
-            pointerWidth={10}/>;
-    }
-
     render() {
         let pointer: any = [];
         if (this.state.linkSource) {
@@ -318,7 +283,7 @@ export class App extends React.Component<AppProps, AppState> {
                         this.getViewModelForModel(model, index)
                     )}
                     {pointer}
-                    {this.state.links.map((link: any) => this.drawArrow(link))}
+                    {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow source={link.source} target={link.target}/>)}
                 </Layer>
             </Stage>
         );

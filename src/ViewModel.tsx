@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import React from 'react';
 import { render } from 'react-dom';
-import { Image, Group, Rect, Circle, Line} from 'react-konva';
+import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import { Simulator } from './Simulator'; 
 import * as Model from './Model';
 
@@ -246,6 +246,75 @@ export class Timer extends Interactable<ITimerProps, ITimerState> {
     }
 }
 
+export interface ILinkArrowProps {
+    source: Model.Interactable;
+    target: Model.Interactable;
+};
+
+export interface ILinkArrowState {
+    sourcePrevState: boolean;
+};
+
+export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState> {
+    public constructor(props: ILinkArrowProps) {
+        super(props);
+        this.state = {
+            sourcePrevState: props.source.prevState
+        };
+
+        props.source.onStateChanged(this._handleStateChanged.bind(this))
+    }
+
+    private _handleStateChanged(eventArgs: Model.IEventArgsInteractable): void {
+        this.setState({ sourcePrevState: this.props.source.prevState });
+    }
+
+    static getDerivedStateFromProps(
+        props: ILinkArrowProps,
+        state: ILinkArrowState
+    ): ILinkArrowState {
+        return {
+            ...state,
+            sourcePrevState: props.source.prevState
+        };
+    }
+
+    render() {
+        var sourceX = this.props.source.x+32;
+        var sourceY = this.props.source.y+32;
+        var targetX = this.props.target.x+32;
+        var targetY = this.props.target.y+32;
+
+        if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
+            // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
+            const sign = (targetX > sourceX) ? 1 : -1;
+            const yTrim = 32*(targetY - sourceY)/(targetX-sourceX);
+            sourceX += sign*32;
+            targetX -= sign*32;
+            sourceY += sign*yTrim;
+            targetY -= sign*yTrim;
+        }
+        else {
+            const sign = (targetY > sourceY) ? 1 : -1;
+            const xTrim = 32*(targetX - sourceX)/(targetY-sourceY);
+            sourceX += sign*xTrim;
+            targetX -= sign*xTrim;
+            sourceY += sign*32;
+            targetY -= sign*32;
+        }
+
+        return <Arrow
+            x={sourceX}
+            y={sourceY}
+            points={[0,0, targetX-sourceX, targetY-sourceY]}
+            fill='black'
+            stroke={this.state.sourcePrevState ? 'darkblue' : 'teal'}
+            strokeWidth={4}
+            pointerLength={10}
+            pointerWidth={10}/>;
+    }
+
+}
 
 export function loadAssets(onComplete: () => void)
 {

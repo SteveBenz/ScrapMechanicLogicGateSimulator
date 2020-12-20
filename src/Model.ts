@@ -70,8 +70,10 @@ export class Interactable {
 
     public get prevState(): boolean { return this._prevState; }
     protected setPrevState(newValue: boolean): void {
-        this._prevState = newValue;
-        this._emitStateChanged();
+        if (this._prevState != newValue) {
+            this._prevState = newValue;
+            this._emitStateChanged();
+        }
     }
 
     public export(): ISerializedInteractable {
@@ -127,7 +129,7 @@ export class Interactable {
 
     /** Causes the calculated state to become the state that other interactables will see. */
     public apply() {
-        this._prevState = this.currentState;
+        this.setPrevState(this.currentState);
     }
 
     /** Sets currentState based on the previous state of its inputs. */
@@ -238,6 +240,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
 
         this.kind = LogicGateKindSequence[index];
         this.calculate();
+        this.paint();
     }
 
     public calculate() {
