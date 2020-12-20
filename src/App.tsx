@@ -143,6 +143,16 @@ export class App extends React.Component<AppProps, AppState> {
             box!.value = uriFragment;
         } else if (e.key === 'x' && this.state.selected) {
             this.props.simulator.remove(this.state.selected);
+        } else if (e.key === '4') {
+            for (let i of this.state.interactables) {
+                i.reload();
+            }
+        } else if (e.key === '$') {
+            for (let i of this.state.interactables) {
+                i.putOnLift();
+            }
+        } else if (e.key === 'p' && this.state.selected) {
+            this.state.selected.paint();
         }
 
         console.debug("App.handleKeyPress(" + e.key + ")");

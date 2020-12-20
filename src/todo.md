@@ -5,7 +5,7 @@
 - [x] Limits on number of inputs
 - [x] Add timers
 - [x] Implement computation
-- [ ] Implement saved state
+- [x] Implement saved state
 - [ ] Import/Export to json
 - [x] Delete
 - [ ] Colored arrows

@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import React from 'react';
 import { render } from 'react-dom';
-import { Image, Group, Rect, Circle } from 'react-konva';
+import { Image, Group, Rect, Circle, Line} from 'react-konva';
 import { Simulator } from './Simulator'; 
 import * as Model from './Model';
 
@@ -134,7 +134,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
             </Group>
     }
 
-    groupContent() {
+    protected groupContent(): Array<JSX.Element> {
         return [<Rect height={64} width={64} strokeWidth={3} stroke={this.state.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} ></Rect>]
     }
 
@@ -153,6 +153,21 @@ export class InteractableWithSingleBitSavedState<TProps extends IInteractablePro
         super(props);
     }
 
+    protected groupContent(): Array<JSX.Element> {
+        if (this.props.model instanceof Model.InteractableWithSingleBitSavedState) {
+            const size: number=16;
+            return super.groupContent()
+                .concat(
+                <Line points={[63-size, 0, 63, 0, 63, size]}
+                    fill={this.props.model.savedState ? 'blue' : 'transparent'}
+                    stroke='blue'
+                    strokeWidth={3}
+                    closed={true} />);
+        }
+        else {
+            return super.groupContent();
+        }
+    }
 };
 
 export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGateProps, IInteractableState> {
@@ -167,7 +182,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGatePro
         return super.getDerivedStateFromProps(props, state);
     }
 
-    groupContent() {
+    protected groupContent(): Array<JSX.Element> {
         return super.groupContent().concat([
             <Image x={0} y={0} image={_assets[this.props.model.kind].image()} />]);
     }
@@ -185,7 +200,7 @@ export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInt
         return super.getDerivedStateFromProps(props, state);
     }
 
-    groupContent() {
+    protected groupContent(): Array<JSX.Element> {
         return super.groupContent().concat([
             <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black' />]);
     }

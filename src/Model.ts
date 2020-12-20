@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { basename } from 'path';
 
 
 export interface ISerializedInteractable {
@@ -61,8 +62,10 @@ export class Interactable {
     public get currentState(): boolean { return this._currentState; }
 
     protected setCurrentState(newValue: boolean): void {
-        this._currentState = newValue;
-        this._emitStateChanged();
+        if (this._currentState != newValue) {
+            this._currentState = newValue;
+            this._emitStateChanged();
+        }
     }
 
     public get prevState(): boolean { return this._prevState; }
@@ -107,6 +110,8 @@ export class Interactable {
         }
 
         this.calculate();
+        this.paint();
+        newInput.paint();
         return true;
     }
 
@@ -127,6 +132,12 @@ export class Interactable {
 
     /** Sets currentState based on the previous state of its inputs. */
     public calculate() {}
+
+    public reload(): void {}
+
+    public putOnLift(): void {}
+
+    public paint(): void {}
 
     public onMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void) {
         this.events.on('moved', handler);
@@ -162,6 +173,29 @@ export class InteractableWithSingleBitSavedState extends Interactable {
 
         this._savedState = props.savedState;
     }
+
+    public export(): ISerializedInteractableWithSingleBitSavedState {
+        return {
+            ...super.export(),
+            savedState: this._savedState
+        };
+    }
+
+    public get savedState(): boolean {
+        return this._savedState;
+    }
+
+    public paint(): void {
+        if (this._savedState !== this.currentState) {
+            this._savedState = this.currentState;
+            super._emitStateChanged();
+        }
+    }
+
+    public reload(): void {
+        this.setCurrentState(this.savedState);
+        this.setPrevState(false);
+    }
 }
 
 type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
@@ -183,24 +217,16 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this._kind = props.kind;
     }
 
-    get kind(): LogicGateTypes {
+    public get kind(): LogicGateTypes {
         return this._kind;
     }
 
-    set kind(newValue: LogicGateTypes) {
+    public set kind(newValue: LogicGateTypes) {
         this._kind = newValue;
         this._emitStateChanged();
     }
 
-    preTick() {
-
-    }
-
-    tick() {
-
-    }
-
-    twiddle(direction: -1 | 1) {
+    public twiddle(direction: -1 | 1) {
         let index = LogicGateKindSequence.indexOf(this._kind);
         index = index + direction;
         if (index < 0) {
@@ -241,6 +267,12 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this.setCurrentState(calculatedState);
     }
 
+    public putOnLift(): void {
+        this.setCurrentState(this.inputs.length > 0 && (this.kind === 'nand' || this.kind === 'nor' || this.kind === 'xnor'));
+        this.setPrevState(false);
+        this.paint();
+    }
+
     protected get inputLimit(): 1 | 0 | 'unlimited' {
         return 'unlimited';
     }
@@ -267,6 +299,12 @@ export class Input extends InteractableWithSingleBitSavedState {
 
     protected get inputLimit(): 1 | 0 | 'unlimited' {
         return 0;
+    }
+
+    public putOnLift(): void {
+        this.setCurrentState(false);
+        this.setPrevState(false);
+        this.paint();
     }
 }
 
