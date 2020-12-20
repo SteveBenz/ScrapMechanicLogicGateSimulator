@@ -133,11 +133,14 @@ export class Simulator {
 
     public remove(interactable: Interactable): boolean {
         let didRemove = false;
-        for (var i = this.interactables.length-1; i >= 0; --i) {
+        for (let i = this.interactables.length-1; i >= 0; --i) {
             if (this.interactables[i] === interactable) {
                 didRemove = true;
                 this.interactables.splice(i ,1);
             }
+        }
+        for (let i of this.interactables) {
+            i.removeInput(interactable);
         }
 
         if (didRemove)

@@ -117,6 +117,18 @@ export class Interactable {
         return true;
     }
 
+    removeInput(deadInput: Interactable): boolean {
+        const index: number = this.inputs.indexOf(deadInput);
+        if (index < 0) {
+            return false;
+        } else {
+            this._inputs.splice(index, 1);
+            this.calculate();
+            this.paint();
+            return true;
+        }
+    }
+
     get inputs(): Array<Interactable> {
         return [...this._inputs];
     }

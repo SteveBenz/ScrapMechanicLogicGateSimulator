@@ -307,7 +307,7 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
             x={sourceX}
             y={sourceY}
             points={[0,0, targetX-sourceX, targetY-sourceY]}
-            fill='black'
+            fill={this.state.sourcePrevState ? 'darkblue' : 'teal'}
             stroke={this.state.sourcePrevState ? 'darkblue' : 'teal'}
             strokeWidth={4}
             pointerLength={10}
