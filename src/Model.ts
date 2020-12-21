@@ -212,7 +212,7 @@ export class InteractableWithSingleBitSavedState extends Interactable {
     }
 }
 
-type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
+export type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
 
 const LogicGateKindSequence: Array<LogicGateTypes> = ['and', 'or', 'xor', 'nand', 'nor', 'xnor'];
 
@@ -238,6 +238,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
     public set kind(newValue: LogicGateTypes) {
         this._kind = newValue;
         this._emitStateChanged();
+        this.paint();
     }
 
     public twiddle(direction: -1 | 1) {

@@ -9,7 +9,7 @@ import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import * as pako from 'pako';
-import { SingleStepButton, StartStopButton } from "./Buttons";
+import { LogicGateButton, SingleStepButton, StartStopButton } from "./Buttons";
 
 interface AppProps {
     simulator: Simulator;
@@ -261,6 +261,8 @@ export class App extends React.Component<AppProps, AppState> {
         let pointer: any = [];
         const canvasHeight = window.innerHeight*.7;
         const canvasWidth = window.innerWidth-40;
+        const buttonRowY: number = canvasHeight-80+(80-64)/2;
+        const buttonRowX = (n: number) => 15+(15+64)*n;
         if (this.state.linkSource) {
             pointer = <Arrow
                 x={this.state.linkSource.x+32}
@@ -291,8 +293,14 @@ export class App extends React.Component<AppProps, AppState> {
                 <Layer>
                     <Rect x={5} y={canvasHeight-75} height={70} width={canvasWidth-10} fill='papayawhip' />
                     <Line points={[0, canvasHeight-80, window.innerWidth-40, canvasHeight-80]} stroke='grey' strokeWidth={3}/>
-                    <StartStopButton x={15} y={canvasHeight-80+(80-64)/2} model={this.props.simulator}/>
-                    <SingleStepButton x={15+15+64} y={canvasHeight-80+(80-64)/2} model={this.props.simulator}/>
+                    <StartStopButton x={buttonRowX(0)} y={buttonRowY} model={this.props.simulator}/>
+                    <SingleStepButton x={buttonRowX(1)} y={buttonRowY} model={this.props.simulator}/>
+                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY} selected={this.state.selected} kind='and'/>
+                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY} selected={this.state.selected} kind='or'/>
+                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY} selected={this.state.selected} kind='xor'/>
+                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY} selected={this.state.selected} kind='nand'/>
+                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY} selected={this.state.selected} kind='nor'/>
+                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY} selected={this.state.selected} kind='xnor'/>
                 </Layer>
             </Stage>
         );

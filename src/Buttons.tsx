@@ -1,6 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
+import { Image, Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
 import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsSimulatorRunStateChanged } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
@@ -123,3 +123,34 @@ export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToo
         this.props.model.advanceOne();
     }
 }
+
+
+interface ILogicGateButtonProps extends IToolBarButtonProps {
+    kind: Model.LogicGateTypes;
+    selected: Model.Interactable | undefined;
+};
+
+interface ILogicGateButtonState extends IToolBarButtonState {
+}
+
+export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogicGateButtonState> {
+    constructor(props: ILogicGateButtonProps) {
+        super(props);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        };
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Image x={0} y={0} image={ViewModel._assets[this.props.kind].image()} />;
+    }
+
+    protected handleClick(): void {
+        if (!this.props.selected || !(this.props.selected instanceof Model.LogicGate)) {
+            return;
+        }
+
+        this.props.selected.kind = this.props.kind;
+    }
+};

@@ -17,8 +17,9 @@
 - [ ] Introductory text and help
 - [ ] Buttons for play/pause/lift/etc.
 - [ ] Buttons for placing objects
-- [ ] Buttons have tooltips
+- [ ] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [ ] Popup window for copy/pasting links
 - [ ] Host in github
 - [ ] Make drawings resize
 - [ ] Import/Export to json
+- [ ] Clicking in the field should clear the selection

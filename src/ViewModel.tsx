@@ -5,7 +5,7 @@ import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import { Simulator } from './Simulator'; 
 import * as Model from './Model';
 
-const _assets: any = {};
+export const _assets: any = {};
 
 // https://www.cssscript.com/lightweight-context-menu-javascript-library-justcontext-js/
 // might automate the context menu for me.
