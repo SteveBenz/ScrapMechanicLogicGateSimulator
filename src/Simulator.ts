@@ -18,6 +18,10 @@ export interface IEventArgsInteractableRemoved extends IEventArgsSimulator {
     interactable: Interactable;
 }
 
+export interface IEventArgsSimulatorRunStateChanged extends IEventArgsSimulator {
+    newRunState: boolean;
+}
+
 export interface IInteractableLink {
     source: Interactable;
     target: Interactable;
@@ -79,30 +83,8 @@ export class Simulator {
 
         this.isRunning = true;
         this._nextTickTimeoutId = setTimeout(this._handleTickTimeout.bind(this), this._pauseInterval);
-    }
 
-    public onTick(handler: (eventArgs: IEventArgsTick) => void) {
-        this._events.on(EventNames.tick, handler);
-    }
-
-    public offTick(handler: (eventArgs: IEventArgsTick) => void) {
-        this._events.off(EventNames.tick, handler);
-    }
-
-    public onInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
-        this._events.on(EventNames.interactableAdded, handler);
-    }
-
-    public offInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
-        this._events.off(EventNames.interactableAdded, handler);
-    }
-
-    public onInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
-        this._events.on(EventNames.interactableRemoved, handler);
-    }
-
-    public offInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
-        this._events.off(EventNames.interactableRemoved, handler);
+        this._events.emit('runStateChanged', { simulator: this, newRunState: this.isRunning });
     }
 
     public stopRunning(): void {
@@ -116,6 +98,8 @@ export class Simulator {
         }
 
         this._nextTickTimeoutId = undefined;
+
+        this._events.emit('runStateChanged', { simulator: this, newRunState: this.isRunning });
     }
 
     public advanceOne(): void {
@@ -168,6 +152,38 @@ export class Simulator {
         for (let i of this.interactables) {
             i.calculate();
         }
+    }
+
+    public onTick(handler: (eventArgs: IEventArgsTick) => void) {
+        this._events.on(EventNames.tick, handler);
+    }
+
+    public offTick(handler: (eventArgs: IEventArgsTick) => void) {
+        this._events.off(EventNames.tick, handler);
+    }
+
+    public onInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
+        this._events.on(EventNames.interactableAdded, handler);
+    }
+
+    public offInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
+        this._events.off(EventNames.interactableAdded, handler);
+    }
+
+    public onInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
+        this._events.on(EventNames.interactableRemoved, handler);
+    }
+
+    public offInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
+        this._events.off(EventNames.interactableRemoved, handler);
+    }
+
+    public onRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void) {
+        this._events.on('runStateChanged', handler);
+    }
+
+    public offRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void) {
+        this._events.off('runStateChanged', handler);
     }
 
     private _handleTickTimeout(): void {

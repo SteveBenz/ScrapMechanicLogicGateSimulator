@@ -12,6 +12,7 @@
 
 ## Make it more presentable
 
+- [ ] Place the ticker in the upper right (?)
 - [ ] Sized appropriately
 - [ ] Introductory text and help
 - [ ] Buttons for play/pause/lift/etc.

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { Stage, Layer, Arrow } from "react-konva";
+import { Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
 import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
@@ -9,6 +9,7 @@ import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import * as pako from 'pako';
+import { SingleStepButton, StartStopButton } from "./Buttons";
 
 interface AppProps {
     simulator: Simulator;
@@ -258,6 +259,8 @@ export class App extends React.Component<AppProps, AppState> {
 
     render() {
         let pointer: any = [];
+        const canvasHeight = window.innerHeight*.7;
+        const canvasWidth = window.innerWidth-40;
         if (this.state.linkSource) {
             pointer = <Arrow
                 x={this.state.linkSource.x+32}
@@ -271,8 +274,8 @@ export class App extends React.Component<AppProps, AppState> {
         }
         return (
             <Stage
-                width={window.innerWidth}
-                height={window.innerHeight}
+                width={window.innerWidth - 40}
+                height={canvasHeight}
                 ref="stage"
                 onMouseUp={this.handleMouseUpInStage.bind(this)}
                 onMouseMove={this.handleMouseMove.bind(this)}
@@ -284,6 +287,12 @@ export class App extends React.Component<AppProps, AppState> {
                     )}
                     {pointer}
                     {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow source={link.source} target={link.target}/>)}
+                </Layer>
+                <Layer>
+                    <Rect x={5} y={canvasHeight-75} height={70} width={canvasWidth-10} fill='papayawhip' />
+                    <Line points={[0, canvasHeight-80, window.innerWidth-40, canvasHeight-80]} stroke='grey' strokeWidth={3}/>
+                    <StartStopButton x={15} y={canvasHeight-80+(80-64)/2} model={this.props.simulator}/>
+                    <SingleStepButton x={15+15+64} y={canvasHeight-80+(80-64)/2} model={this.props.simulator}/>
                 </Layer>
             </Stage>
         );
