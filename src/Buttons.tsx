@@ -25,15 +25,17 @@ interface IToolBarButtonState {
 };
 
 abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends IToolBarButtonState> extends React.Component<TProps, TState> {
-    public constructor(props: TProps) {
+    public constructor(props: TProps, private readonly isDraggable: boolean) {
         super(props);
     }
 
     render(): React.ReactNode {
         return <Group x={this.props.x} y={this.props.y}
-                   onMouseEnter={() => {this.setState({ isHovering: true })}}
-                   onMouseLeave={() => {this.setState({ isHovering: false })}}
-                   onClick={this.handleClick.bind(this)}>
+                      draggable={this.isDraggable}
+                      onDragStart={this._handleDragStart.bind(this)}
+                      onMouseEnter={() => {this.setState({ isHovering: true })}}
+                      onMouseLeave={() => {this.setState({ isHovering: false })}}
+                      onClick={this._handleClick.bind(this)}>
                 {this.getContent()}
                 <Rect x={0} y={0} height={64} width={64}
                       strokeWidth={2} stroke={this.state.isHovering ? 'black' : 'grey'}
@@ -42,13 +44,19 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
     }
 
     protected abstract getContent(): JSX.Element | Array<JSX.Element>;
+    protected abstract handleClick(): void;
+    protected handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {}
+
     private _handleClick(): void {
         if (this.state.isEnabled) {
             this.handleClick();
         }
     }
 
-    protected abstract handleClick(): void;
+    private _handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
+        eventArgs.target.stopDrag(eventArgs);
+        this.handleDragStart(eventArgs);
+    }
 };
 
 interface IStartStopButtonProps extends IToolBarButtonProps {
@@ -61,7 +69,7 @@ interface IStartStopButtonState extends IToolBarButtonState {
 
 export class StartStopButton extends ToolBarButton<IStartStopButtonProps, IStartStopButtonState> {
     public constructor(props: IStartStopButtonProps) {
-        super(props);
+        super(props, false);
         this.state = {
             isHovering: false,
             isEnabled: true,
@@ -103,7 +111,7 @@ interface ISingleStepButtonProps extends IToolBarButtonProps {
 
 export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToolBarButtonState> {
     public constructor(props: ISingleStepButtonProps) {
-        super(props);
+        super(props, false);
         this.state = {
             isHovering: false,
             isEnabled: true,
@@ -124,10 +132,15 @@ export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToo
     }
 }
 
+export interface IDragNewInteractableDragEventArgs {
+    prototype: Model.Interactable;
+    event: KonvaEventObject<MouseEvent>;
+};
 
 interface ILogicGateButtonProps extends IToolBarButtonProps {
     kind: Model.LogicGateTypes;
     selected: Model.Interactable | undefined;
+    onBeginDrag: (eventArgs: IDragNewInteractableDragEventArgs) => void;
 };
 
 interface ILogicGateButtonState extends IToolBarButtonState {
@@ -135,7 +148,7 @@ interface ILogicGateButtonState extends IToolBarButtonState {
 
 export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogicGateButtonState> {
     constructor(props: ILogicGateButtonProps) {
-        super(props);
+        super(props, true);
         this.state = {
             isEnabled: true,
             isHovering: false
@@ -152,5 +165,11 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogic
         }
 
         this.props.selected.kind = this.props.kind;
+    }
+
+    protected handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
+        this.props.onBeginDrag({
+            prototype: new Model.LogicGate({ x:eventArgs.evt.x, y:eventArgs.evt.y, savedState: false, kind: this.props.kind}),
+            event: eventArgs});
     }
 };

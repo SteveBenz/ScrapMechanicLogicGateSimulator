@@ -9,7 +9,9 @@ import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import * as pako from 'pako';
-import { LogicGateButton, SingleStepButton, StartStopButton } from "./Buttons";
+import { IDragNewInteractableDragEventArgs, LogicGateButton, SingleStepButton, StartStopButton } from "./Buttons";
+import { KonvaEventObject } from "konva/types/Node";
+import { debug } from "console";
 
 interface AppProps {
     simulator: Simulator;
@@ -22,6 +24,7 @@ interface AppState {
     linkSource?: Interactable;
     linkTargetX?: number;
     linkTargetY?: number;
+    createByDragPrototype?: Interactable;
 };
 
 export class App extends React.Component<AppProps, AppState> {
@@ -193,6 +196,12 @@ export class App extends React.Component<AppProps, AppState> {
                 wasChanged = target.addInput(source);
             }
         }
+        else if (this.state.createByDragPrototype) {
+            this.props.simulator.add(this.state.createByDragPrototype);
+            this.setState({
+                createByDragPrototype: undefined
+            });
+        }
         if (wasChanged) {
             this.setState({links: this.props.simulator.getLinks(), linkSource: undefined});
         }
@@ -215,13 +224,31 @@ export class App extends React.Component<AppProps, AppState> {
         console.debug("App.handleMouseUpInInteractable");
     }
 
-    handleMouseMove(e: any): void {
+    handleMouseMove(e: KonvaEventObject<MouseEvent>): void {
+        // console.debug("mouseMove: x=" + e.evt.x + " pageX=" + e.evt.pageX + " clientX=" + e.evt.clientX + " offsetX=" + e.evt.offsetX + " screenX=" + e.evt.screenX + " movementX=" + e.evt.movementX);
         if (this.state.linkSource) {
             this.setState({
-                linkTargetX: e.evt.x,
-                linkTargetY: e.evt.y
+                linkTargetX: e.evt.offsetX,
+                linkTargetY: e.evt.offsetY
             })
         }
+        else if (this.state.createByDragPrototype) {
+            this.state.createByDragPrototype.setPosition(e.evt.offsetX, e.evt.offsetY);
+
+            this.setState({ createByDragPrototype: this.state.createByDragPrototype });
+        }
+    }
+
+    handleMouseDown(e: KonvaEventObject<MouseEvent>): void {
+        if (!(e.target instanceof ViewModel.Interactable) && this.state.selected) {
+            this.setState({selected: undefined});
+        }
+    }
+
+    handleNewInteractableDrag(e: IDragNewInteractableDragEventArgs): void {
+        this.setState({
+            createByDragPrototype: e.prototype
+        })
     }
 
     getViewModelForModel(model: Model.Interactable, id: string) {
@@ -263,6 +290,7 @@ export class App extends React.Component<AppProps, AppState> {
         const canvasWidth = window.innerWidth-40;
         const buttonRowY: number = canvasHeight-80+(80-64)/2;
         const buttonRowX = (n: number) => 15+(15+64)*n;
+        const buttonRowHeight = 75;
         if (this.state.linkSource) {
             pointer = <Arrow
                 x={this.state.linkSource.x+32}
@@ -276,17 +304,21 @@ export class App extends React.Component<AppProps, AppState> {
         }
         return (
             <Stage
-                width={window.innerWidth - 40}
+                width={canvasWidth}
                 height={canvasHeight}
                 ref="stage"
                 onMouseUp={this.handleMouseUpInStage.bind(this)}
                 onMouseMove={this.handleMouseMove.bind(this)}
             >
                 <Layer>
+                    <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
                     <TC.TickCounter simulator={this.props.simulator} />
                     {this.state.interactables.map((model: any, index: any) =>
                         this.getViewModelForModel(model, index)
                     )}
+                    {this.state.createByDragPrototype
+                        ? this.getViewModelForModel(this.state.createByDragPrototype, 'dragproto')
+                        : []}
                     {pointer}
                     {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow source={link.source} target={link.target}/>)}
                 </Layer>
@@ -295,12 +327,12 @@ export class App extends React.Component<AppProps, AppState> {
                     <Line points={[0, canvasHeight-80, window.innerWidth-40, canvasHeight-80]} stroke='grey' strokeWidth={3}/>
                     <StartStopButton x={buttonRowX(0)} y={buttonRowY} model={this.props.simulator}/>
                     <SingleStepButton x={buttonRowX(1)} y={buttonRowY} model={this.props.simulator}/>
-                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY} selected={this.state.selected} kind='and'/>
-                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY} selected={this.state.selected} kind='or'/>
-                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY} selected={this.state.selected} kind='xor'/>
-                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY} selected={this.state.selected} kind='nand'/>
-                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY} selected={this.state.selected} kind='nor'/>
-                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY} selected={this.state.selected} kind='xnor'/>
+                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY} selected={this.state.selected} kind='and' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY} selected={this.state.selected} kind='or' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY} selected={this.state.selected} kind='xor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY} selected={this.state.selected} kind='nand' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY} selected={this.state.selected} kind='nor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY} selected={this.state.selected} kind='xnor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
                 </Layer>
             </Stage>
         );
