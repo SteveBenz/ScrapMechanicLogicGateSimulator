@@ -18,10 +18,10 @@
 - [x] Logic gate buttons can be dragged
 - [x] Input button
 - [x] Timer button
-- [ ] Trash button
-- [ ] Put on lift button
-- [ ] Take off lift button
-- [ ] Paint button
+- [x] Trash button
+- [x] Put on lift button
+- [x] Take off lift button
+- [x] Paint button
 - [ ] All Input/Timer/LogicGate buttons can work on any interactable
 - [ ] Don't allow placing interactables unless they're mostly visible
 - [ ] Place the ticker in the upper right (?)

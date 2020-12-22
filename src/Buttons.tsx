@@ -1,6 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { Image, Stage, Layer, Arrow, Line, Rect, Group, Circle } from "react-konva";
+import { Image, Stage, Layer, Arrow, Line, Rect, Group, Circle, Text } from "react-konva";
 import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsSimulatorRunStateChanged } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
@@ -158,7 +158,7 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogic
     protected getContent(): JSX.Element | JSX.Element[] {
         switch(this.props.kind) {
             case 'input':
-                return <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black' />;
+                return <Circle radius={22} x={32} y={32} strokeWidth={8} stroke={this.state.isEnabled ? 'black' : '#00000080'} />;
             case 'timer':
                 const drawingHeight: number = 64;
                 const drawingWidth: number = 64;
@@ -238,5 +238,100 @@ export class PaintButton extends ToolBarButton<IPaintButtonProps, IToolBarButton
             this.props.selected.paint();
         }
     }
+}
 
+interface ILiftButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+}
+
+export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarButtonState> {
+    constructor(props: ILiftButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return [ <Line points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
+                    strokeWidth={4}
+                    stroke='black'
+                    closed={true}/>,
+                <Line points = {[18, 42,  32, 32,  46, 42,  18, 42]}
+                    strokeWidth={1}
+                    stroke='blue'
+                    closed={true}
+                    fill='blue'
+                    />];
+    }
+
+    protected handleClick(): void {
+        for (let i of this.props.simulator.interactables) {
+            i.reload();
+        }
+    }
+}
+
+
+export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarButtonState> {
+    constructor(props: ILiftButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return [ <Line points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
+                    strokeWidth={4}
+                    stroke='black'
+                    closed={true}/>,
+                <Line points = {[18, 32,  32, 42,  46, 32,  18, 32]}
+                    strokeWidth={1}
+                    stroke='blue'
+                    closed={true}
+                    fill='blue'
+                    />];
+    }
+
+    protected handleClick(): void {
+        for (let i of this.props.simulator.interactables) {
+            i.paint();
+        }
+    }
+}
+
+
+interface IDeleteButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+    selected: Interactable | undefined;
+};
+
+export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButtonState> {
+    constructor(props: IDeleteButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: this.props.selected !== undefined,
+            isHovering: false
+        }
+    }
+
+    static getDerivedStateFromProps(props: IDeleteButtonProps, state: IToolBarButtonState): IToolBarButtonState {
+        return {
+            isEnabled: props.selected !== undefined,
+            isHovering: state.isHovering
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Text text="&#128465;" x={10} y={8} fontSize={64} fill='black'/>;
+    }
+
+    protected handleClick(): void {
+        if (this.props.selected) {
+            this.props.simulator.remove(this.props.selected);
+        }
+    }
 }
