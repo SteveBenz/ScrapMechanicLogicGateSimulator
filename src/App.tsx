@@ -9,7 +9,7 @@ import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import * as pako from 'pako';
-import { IDragNewInteractableDragEventArgs, LogicGateButton, SingleStepButton, StartStopButton } from "./Buttons";
+import { IDragNewInteractableDragEventArgs, LogicGateButton, PaintButton, SingleStepButton, StartStopButton } from "./Buttons";
 import { KonvaEventObject } from "konva/types/Node";
 import { debug } from "console";
 
@@ -333,6 +333,9 @@ export class App extends React.Component<AppProps, AppState> {
                     <LogicGateButton x={buttonRowX(5)} y={buttonRowY} selected={this.state.selected} kind='nand' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
                     <LogicGateButton x={buttonRowX(6)} y={buttonRowY} selected={this.state.selected} kind='nor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
                     <LogicGateButton x={buttonRowX(7)} y={buttonRowY} selected={this.state.selected} kind='xnor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(8)} y={buttonRowY} selected={this.state.selected} kind='input' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(9)} y={buttonRowY} selected={this.state.selected} kind='timer' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <PaintButton x={buttonRowX(10)} y={buttonRowY} selected={this.state.selected}/>
                 </Layer>
             </Stage>
         );

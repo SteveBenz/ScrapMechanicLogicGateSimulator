@@ -16,10 +16,14 @@
 - [x] Single Step button
 - [x] Logic gate buttons that can change the kind of a logic gate
 - [x] Logic gate buttons can be dragged
-- [ ] Input button
-- [ ] Timer button
+- [x] Input button
+- [x] Timer button
 - [ ] Trash button
+- [ ] Put on lift button
+- [ ] Take off lift button
+- [ ] Paint button
 - [ ] All Input/Timer/LogicGate buttons can work on any interactable
+- [ ] Don't allow placing interactables unless they're mostly visible
 - [ ] Place the ticker in the upper right (?)
 - [ ] Button for sharing hyperlink
 - [ ] Button for loading from json

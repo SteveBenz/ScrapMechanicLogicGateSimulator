@@ -318,10 +318,10 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
 
 export function loadAssets(onComplete: () => void)
 {
-    for (let kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor']) {
+    for (let kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor', 'paint']) {
         Konva.Image.fromURL('/' + kind + '-black.png', (img: string) => {
             _assets[kind] = img;
-            if (Object.keys(_assets).length === 6) {
+            if (Object.keys(_assets).length === 7) {
                 onComplete();
             }
           });

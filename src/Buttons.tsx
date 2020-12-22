@@ -1,6 +1,6 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { Image, Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
+import { Image, Stage, Layer, Arrow, Line, Rect, Group, Circle } from "react-konva";
 import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsSimulatorRunStateChanged } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
@@ -138,7 +138,7 @@ export interface IDragNewInteractableDragEventArgs {
 };
 
 interface ILogicGateButtonProps extends IToolBarButtonProps {
-    kind: Model.LogicGateTypes;
+    kind: Model.LogicGateTypes | 'timer' | 'input';
     selected: Model.Interactable | undefined;
     onBeginDrag: (eventArgs: IDragNewInteractableDragEventArgs) => void;
 };
@@ -156,20 +156,87 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogic
     }
 
     protected getContent(): JSX.Element | JSX.Element[] {
-        return <Image x={0} y={0} image={ViewModel._assets[this.props.kind].image()} />;
+        switch(this.props.kind) {
+            case 'input':
+                return <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black' />;
+            case 'timer':
+                const drawingHeight: number = 64;
+                const drawingWidth: number = 64;
+                const horizontalOffset: number = 12;
+                const verticalOffset: number = 6;
+                const tickStorage = [true, true, true, true, true, false, false, false, false, false];
+                const rectHeight = (drawingHeight - 2*verticalOffset) / tickStorage.length;
+
+                return tickStorage.map((value: boolean, index: number) =>
+                <Rect x={horizontalOffset}
+                      width={drawingWidth - 2*horizontalOffset}
+                      y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
+                      height={rectHeight}
+                      strokeWidth={1}
+                      stroke='darkgrey'
+                      fill={value ? 'blue' : 'white'}
+                       />);
+            default:
+                return <Image x={0} y={0} image={ViewModel._assets[this.props.kind].image()} />;
+        }
     }
 
     protected handleClick(): void {
-        if (!this.props.selected || !(this.props.selected instanceof Model.LogicGate)) {
+        if (!this.props.selected) {
             return;
         }
 
-        this.props.selected.kind = this.props.kind;
+        if (this.props.kind == 'input' && this.props.selected instanceof Model.Input) {
+            this.props.selected.twiddle(1);
+        } else if (this.props.kind == 'timer' && this.props.selected instanceof Model.Timer) {
+            // no action
+        } else if (this.props.kind != 'timer' && this.props.kind != 'input' && this.props.selected instanceof Model.LogicGate) {
+            this.props.selected.kind = this.props.kind;
+        } else {
+            // TODO: Convert the interactable
+        }
     }
 
     protected handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
+        let prototype: Model.Interactable;
+        switch(this.props.kind) {
+            case 'timer':
+                prototype = new Model.Timer({ x:eventArgs.evt.offsetX, y:eventArgs.evt.offsetY, kind: this.props.kind, tickStorage: new Array<boolean>(10).fill(false) });
+                break;
+            case 'input':
+                prototype = new Model.Input({ x:eventArgs.evt.offsetX, y:eventArgs.evt.offsetY, savedState: false, kind: this.props.kind});
+                break;
+            default:
+                prototype = new Model.LogicGate({ x:eventArgs.evt.offsetX, y:eventArgs.evt.offsetY, savedState: false, kind: this.props.kind});
+                break;
+        }
+
         this.props.onBeginDrag({
-            prototype: new Model.LogicGate({ x:eventArgs.evt.x, y:eventArgs.evt.y, savedState: false, kind: this.props.kind}),
+            prototype: prototype,
             event: eventArgs});
     }
 };
+
+interface IPaintButtonProps extends IToolBarButtonProps {
+    selected: Model.Interactable | undefined;
+}
+
+export class PaintButton extends ToolBarButton<IPaintButtonProps, IToolBarButtonState> {
+    constructor(props: IPaintButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Image x={0} y={0} image={ViewModel._assets['paint'].image()} />;
+    }
+
+    protected handleClick(): void {
+        if (this.props.selected instanceof Model.InteractableWithSingleBitSavedState) {
+            this.props.selected.paint();
+        }
+    }
+
+}
