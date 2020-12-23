@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
-import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator } from "./Simulator";
+import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsInteractablesReset } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
@@ -9,7 +9,7 @@ import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import * as pako from 'pako';
-import { DeleteButton, IDragNewInteractableDragEventArgs, LogicGateButton, PaintButton, PutOnLiftButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
+import { CopyLinkButton, DeleteButton, IDragNewInteractableDragEventArgs, LoadFromFileButton, LogicGateButton, PaintButton, PutOnLiftButton, SaveToFileButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
 import { KonvaEventObject } from "konva/types/Node";
 import { debug } from "console";
 
@@ -39,11 +39,32 @@ export class App extends React.Component<AppProps, AppState> {
         // this.stageRef = React.useRef(undefined);
 
         for (let i of this.props.simulator.interactables) {
-            i.onMoved(this.handleInteractableMoved.bind(this));
+            i.onMoved(this.handleInteractableMoved);
         }
 
         this.props.simulator.onInteractableAdded( this.handleInteractableAdded );
         this.props.simulator.onInteractableRemoved( this.handleInteractableRemoved );
+        this.props.simulator.onInteractablesReset( this.handleInteractablesReset );
+    }
+
+    handleInteractablesReset = (e: IEventArgsInteractablesReset) => {
+        for (let i of e.oldInteractables) {
+            i.offMoved(this.handleInteractableMoved);
+        }
+
+        const links: Array<IInteractableLink> = [];
+        for (let i of this.props.simulator.interactables) {
+            i.onMoved(this.handleInteractableMoved);
+            for (let j of i.inputs) {
+                links.push({source: j, target: i});
+            }
+        }        
+
+        this.setState({
+            interactables: this.props.simulator.interactables,
+            selected: undefined,
+            links: links
+        });
     }
 
     handleInteractableAdded = (e: IEventArgsInteractableAdded) => {
@@ -55,7 +76,7 @@ export class App extends React.Component<AppProps, AppState> {
     };
 
     handleInteractableRemoved = (e: IEventArgsInteractableRemoved) => {
-        e.interactable.onMoved(this.handleInteractableMoved.bind(this));
+        e.interactable.offMoved(this.handleInteractableMoved.bind(this));
         this.setState({
             interactables: this.props.simulator.interactables,
             selected: undefined,
@@ -139,12 +160,8 @@ export class App extends React.Component<AppProps, AppState> {
         } else if (e.key === ']' && this.state.selected) {
             this.state.selected.twiddle(1);
         } else if (e.key === 'c') {
-            const jsonSerialized: string = JSON.stringify(this.props.simulator.serialize());
-            const compressed: Uint8Array = pako.deflate(jsonSerialized);
-            const sharableString: string = Buffer.from(compressed).toString('base64');
-            const uriFragment: string = encodeURIComponent(sharableString);
             const box: any = document.getElementById('urlbox');
-            box!.value = uriFragment;
+            box!.value = this.props.simulator.serializeToCompressedQueryStringFragment();
         } else if (e.key === 'x' && this.state.selected) {
             this.props.simulator.remove(this.state.selected);
         } else if (e.key === '4') {
@@ -339,6 +356,9 @@ export class App extends React.Component<AppProps, AppState> {
                     <PutOnLiftButton x={buttonRowX(11)} y={buttonRowY} simulator={this.props.simulator}/>
                     <TakeOffLiftButton x={buttonRowX(12)} y={buttonRowY} simulator={this.props.simulator}/>
                     <DeleteButton x={buttonRowX(13)} y={buttonRowY} simulator={this.props.simulator} selected={this.state.selected}/>
+                    <CopyLinkButton x={buttonRowX(14)} y={buttonRowY} simulator={this.props.simulator}/>
+                    <LoadFromFileButton x={buttonRowX(15)} y={buttonRowY} simulator={this.props.simulator}/>
+                    <SaveToFileButton x={buttonRowX(16)} y={buttonRowY} simulator={this.props.simulator}/>
                 </Layer>
             </Stage>
         );
@@ -370,11 +390,7 @@ export function makeItSo() {
     const queryString: string | undefined = window.location.search;
     let serialized: ISerializedSimulator | undefined = undefined;
     if (queryString) {
-        const base64: string = decodeURIComponent(queryString);
-        const compressedData: Uint8Array = Buffer.from(base64, 'base64');
-
-        const serializedString: string = pako.inflate(compressedData, { to: 'string' });
-        serialized = JSON.parse(serializedString);
+        serialized = Simulator.decompressQueryStringFragment(queryString);
     }
 
     ViewModel.loadAssets(() => {

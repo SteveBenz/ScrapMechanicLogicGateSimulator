@@ -25,9 +25,10 @@
 - [ ] All Input/Timer/LogicGate buttons can work on any interactable
 - [ ] Don't allow placing interactables unless they're mostly visible
 - [ ] Place the ticker in the upper right (?)
-- [ ] Button for sharing hyperlink
+- [x] Button for sharing hyperlink
 - [ ] Button for loading from json
 - [ ] Button for exporting to json
+- [ ] Clean up warnings
 - [x] Sized appropriately
 - [ ] Introductory text and help
 - [ ] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
@@ -39,3 +40,4 @@
 
 - [ ] Checked in to repo
 - [ ] Figure out how to deploy
+- [ ] Revisit copy to clipboard

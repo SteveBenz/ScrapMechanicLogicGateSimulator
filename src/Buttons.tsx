@@ -11,6 +11,7 @@ import { Interactable } from "./Model";
 import * as pako from 'pako';
 import { KonvaEventObject } from "konva/types/Node";
 import { JsxElement } from "typescript";
+import FileSaver, { saveAs } from 'file-saver';
 
 
 interface IToolBarButtonProps {
@@ -335,3 +336,123 @@ export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButt
         }
     }
 }
+
+interface ICopyLinkButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+};
+
+export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBarButtonState> {
+    constructor(props: ICopyLinkButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Text text="&#128279;" x={6} y={14} fontSize={42} fill='black'/>;
+    }
+
+    protected handleClick(): void {
+        const returnUrl: string = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
+
+        // TODO: Doing this for-real seems to require being served by HTTPS, so re-test it then.  This is certainly
+        //   bad because it keeps recreating the textarea.  But it also is probably useless as there's a
+        //   navigator.clipboard function that would do this more easily.
+        //
+        // https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+        var box = document.createElement("textarea");
+
+        // Avoid scrolling to bottom
+        box.style.top = "0";
+        box.style.left = "0";
+        box.style.position = "fixed";
+
+        box!.value = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
+        box.focus();
+        box.select();
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+            alert('Fallback: Copying text command was ' + msg);
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+    }
+}
+
+
+interface ISaveToFileButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+};
+
+export class SaveToFileButton extends ToolBarButton<ISaveToFileButtonProps, IToolBarButtonState> {
+    constructor(props: ISaveToFileButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Text text="&#128190;" x={6} y={14} fontSize={42} fill='black'/>;
+    }
+
+    protected handleClick(): void {
+        const file = new File([JSON.stringify(this.props.simulator.serialize(), null, 4)], "logicgatesim.json", {type: "text/plain;charset=utf-8"});
+        FileSaver.saveAs(file);
+    }
+}
+
+interface ILoadFromFileButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+};
+
+export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, IToolBarButtonState> {
+    private readonly fileInputElement: HTMLInputElement;
+
+    constructor(props: ILoadFromFileButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+
+        const fileElem = document.getElementById("fileElem") as HTMLInputElement;
+        if (!fileElem) {
+            throw "index.html is busted - fileElem <input> is missing";
+        }
+
+        this.fileInputElement = fileElem;
+
+        this.fileInputElement.addEventListener('change', this.handleFileGiven.bind(this), false)
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Text text="&#128193;" x={6} y={14} fontSize={42} fill='black'/>;
+    }
+
+    protected handleClick(): void {
+        const fileElem = document.getElementById("fileElem");
+        fileElem!.click();
+    }
+
+    // This function tied to the 'change' event of the file dialog in index.html
+    handleFileGiven(ev: Event): void {
+        if (!this.fileInputElement.files || this.fileInputElement.files.length === 0) {
+            return;
+        }
+
+        // hacky - no message when file load fails.
+        const reader = new FileReader();
+        reader.onload = (ev: ProgressEvent) => {
+            const json: string = reader.result as string;
+            const serialized: ISerializedSimulator = JSON.parse(json) as ISerializedSimulator;
+            this.props.simulator.load(serialized);
+        };
+        reader.readAsText(this.fileInputElement.files[0]);
+    }
+}
+

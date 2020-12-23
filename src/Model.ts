@@ -157,8 +157,16 @@ export class Interactable {
         this.events.on('moved', handler);
     }
 
+    public offMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void) {
+        this.events.off('moved', handler);
+    }
+
     public onStateChanged(handler: (eventArgs: IEventArgsInteractable) => void) {
         this.events.on('stateChanged', handler);
+    }
+
+    public offStateChanged(handler: (eventArgs: IEventArgsInteractable) => void) {
+        this.events.off('stateChanged', handler);
     }
 
     protected get inputLimit(): 1 | 0 | 'unlimited' {

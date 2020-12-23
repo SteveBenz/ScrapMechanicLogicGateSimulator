@@ -38,17 +38,45 @@ interface IInteractableState {
 }
 
 export class Interactable<TProps extends IInteractableProps, TState extends IInteractableState> extends React.Component<TProps, TState> {
+    /**
+     * @summary This is the model (which we get from props) that was last attached to (listening for events, such
+     * as the state changing).  It has to be handled really carefully, at least if you want to abide by the rules
+     * set forth.  It generally reflects the state of the prop the last time the render() method was run.  Note that
+     * on the first render this is not set, and instead we wait for the componentDidMount event.  After that, it gets
+     * updated at render time.  The difference is because we can't accept any setState calls until the component is
+     * mounted.
+     * 
+     * @see https://blog.bitsrc.io/react-16-lifecycle-methods-how-and-when-to-use-them-f4ad31fb2282
+     */
+    private attachedModel: Model.Interactable | undefined;
+
     constructor(props: TProps) {
         super(props);
-
-        this.props.model.onStateChanged(this.handleStateChanged.bind(this))
     }
 
     static getDerivedStateFromProps(
         props: IInteractableProps,
         state: IInteractableState
     ): IInteractableState {
+        console.debug("getDerivedStateFromProps");
+
         return { isSelected: props.isSelected };
+    }
+
+    componentDidMount() {
+        // after this point, the model is drawn and is reacting to events.
+        if (!this.attachedModel) {
+            this.attachedModel = this.props.model;
+            this.attachedModel.onStateChanged(this.handleStateChanged);
+        }
+    }
+
+    componentWillUnmount() {
+        console.debug("componentDidUnmount("+this.constructor.name+")");
+        if (this.attachedModel) {
+            this.attachedModel.offStateChanged(this.handleStateChanged);
+            this.attachedModel = undefined;
+        }
     }
 
     handleOnClick(e: any) {
@@ -60,7 +88,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
     }
 
-    private handleStateChanged(e: Model.IEventArgsInteractable): void {
+    private handleStateChanged = (e: Model.IEventArgsInteractable): void => {
         // TODO: Can this be {} ?
         this.setState({
             isSelected: this.state.isSelected
@@ -119,6 +147,13 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
     }
 
     render() {
+        if (this.props.model !== this.attachedModel && this.attachedModel !== undefined) {
+            // the property has changed and this isn't the first time we're redering (so the DOM exists)
+            this.attachedModel.offStateChanged(this.handleStateChanged);
+            this.attachedModel = this.props.model;
+            this.attachedModel.onStateChanged(this.handleStateChanged);
+        }
+
         // onContextMenu={this.handleContextMenu}
         return <Group
             onClick={this.handleOnClick.bind(this)}
@@ -137,15 +172,6 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
     protected groupContent(): Array<JSX.Element> {
         return [<Rect height={64} width={64} strokeWidth={3} stroke={this.state.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} ></Rect>]
     }
-
-    // handleContextMenu(e) {
-    //     const menuNode = document.getElementById('logicGateMenu');
-    //     menuNode.style.display = 'initial';
-    //     menuNode.style.top = e.evt.x + 'px';
-    //     menuNode.style.left = e.evt.y + 'px';
-    //     e.evt.preventDefault();
-    // }
-
 };
 
 export class InteractableWithSingleBitSavedState<TProps extends IInteractableProps, TState extends IInteractableState> extends Interactable<TProps, TState> {
@@ -173,6 +199,7 @@ export class InteractableWithSingleBitSavedState<TProps extends IInteractablePro
 export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGateProps, IInteractableState> {
     constructor(props: ILogicGateProps) {
         super(props);
+        console.debug("constructor(LogicGate)");
     }
 
     static getDerivedStateFromProps(
@@ -191,6 +218,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGatePro
 export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInteractableState> {
     constructor(props: IInputProps) {
         super(props);
+        console.debug("constructor(Input)");
     }
 
     static getDerivedStateFromProps(
@@ -217,13 +245,7 @@ interface ITimerState extends IInteractableState {
 export class Timer extends Interactable<ITimerProps, ITimerState> {
     constructor(props: ITimerProps) {
         super(props);
-    }
-
-    static getDerivedStateFromProps(
-        props: IInputProps,
-        state: IInteractableState
-    ): IInteractableState {
-        return super.getDerivedStateFromProps(props, state);
+        console.debug("constructor(Timer)");
     }
 
     groupContent() {
@@ -256,16 +278,29 @@ export interface ILinkArrowState {
 };
 
 export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState> {
+    private attachedModel: Model.Interactable | undefined;
+
     public constructor(props: ILinkArrowProps) {
         super(props);
         this.state = {
             sourcePrevState: props.source.prevState
         };
-
-        props.source.onStateChanged(this._handleStateChanged.bind(this))
     }
 
-    private _handleStateChanged(eventArgs: Model.IEventArgsInteractable): void {
+    componentDidMount() {
+        // after this point, the model is drawn and is reacting to events.
+        if (!this.attachedModel) {
+            this.attachedModel = this.props.source;
+            this.attachedModel.onStateChanged(this._handleStateChanged);
+        }
+    }
+
+    componentWillUnmount() {
+        this.props.source.offStateChanged(this._handleStateChanged);
+        this.attachedModel = undefined;
+    }
+
+    private _handleStateChanged = (eventArgs: Model.IEventArgsInteractable): void => {
         this.setState({ sourcePrevState: this.props.source.prevState });
     }
 
@@ -280,6 +315,13 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
     }
 
     render() {
+        if (this.props.source !== this.attachedModel && this.attachedModel !== undefined) {
+            // the property has changed and this isn't the first time we're redering (so the DOM exists)
+            this.attachedModel.offStateChanged(this._handleStateChanged);
+            this.attachedModel = this.props.source;
+            this.attachedModel.onStateChanged(this._handleStateChanged);
+        }
+
         var sourceX = this.props.source.x+32;
         var sourceY = this.props.source.y+32;
         var targetX = this.props.target.x+32;
@@ -313,7 +355,6 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
             pointerLength={10}
             pointerWidth={10}/>;
     }
-
 }
 
 export function loadAssets(onComplete: () => void)

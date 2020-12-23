@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import pako from 'pako';
 import { Interactable, ISerializedInteractable } from './Model';
 
 
@@ -16,6 +17,10 @@ export interface IEventArgsInteractableAdded extends IEventArgsSimulator {
 
 export interface IEventArgsInteractableRemoved extends IEventArgsSimulator {
     interactable: Interactable;
+}
+
+export interface IEventArgsInteractablesReset extends IEventArgsSimulator {
+    oldInteractables: Array<Interactable>;
 }
 
 export interface IEventArgsSimulatorRunStateChanged extends IEventArgsSimulator {
@@ -39,7 +44,7 @@ export class Simulator {
 
     public currentTick: number; // TODO: make it readonly to outside callers
     public isRunning: boolean; // TODO: make it readonly to outside callers
-    public readonly interactables: Array<Interactable>;
+    public interactables: Array<Interactable>;
 
     constructor(serialized?: ISerializedSimulator | undefined) {
         this._events = new EventEmitter();
@@ -47,21 +52,9 @@ export class Simulator {
         this.isRunning = false;
         this._nextTickTimeoutId = undefined;
         this._pauseInterval = 250;
+        this.interactables = [];
         if (serialized) {
-            this.interactables = serialized.interactables.map(i => Interactable.deserialize(i));
-            const interactablesInputs = new Array<Array<Interactable>>(this.interactables.length);
-            for (let i = 0; i < this.interactables.length; ++i) {
-                interactablesInputs[i] = new Array<Interactable>();
-            }
-            for (let pair of serialized.links) {
-                interactablesInputs[pair.target].push(this.interactables[pair.source]);
-            }
-            for (let i = 0; i < this.interactables.length; ++i) {
-                this.interactables[i].setInputs(interactablesInputs[i]);
-            }
-        }
-        else {
-            this.interactables = [];
+            this.load(serialized);
         }
     }
 
@@ -74,6 +67,40 @@ export class Simulator {
                 target: this.interactables.indexOf(i.target)
             }})
         }
+    }
+
+    public load(serialized: ISerializedSimulator) {
+        const oldInteractables = this.interactables;
+        this.interactables = serialized.interactables.map(i => Interactable.deserialize(i));
+        const interactablesInputs = new Array<Array<Interactable>>(this.interactables.length);
+        for (let i = 0; i < this.interactables.length; ++i) {
+            interactablesInputs[i] = new Array<Interactable>();
+        }
+        for (let pair of serialized.links) {
+            interactablesInputs[pair.target].push(this.interactables[pair.source]);
+        }
+        for (let i = 0; i < this.interactables.length; ++i) {
+            this.interactables[i].setInputs(interactablesInputs[i]);
+        }
+
+        this._emitInteractablesReset( { simulator: this, oldInteractables: oldInteractables });
+
+        this.stopRunning();
+    }
+
+    public serializeToCompressedQueryStringFragment(): string {
+        const jsonSerialized: string = JSON.stringify(this.serialize());
+        const compressed: Uint8Array = pako.deflate(jsonSerialized);
+        const sharableString: string = Buffer.from(compressed).toString('base64');
+        return encodeURIComponent(sharableString);
+    }
+
+    public static decompressQueryStringFragment(queryString: string): ISerializedSimulator {
+        const base64: string = decodeURIComponent(queryString);
+        const compressedData: Uint8Array = Buffer.from(base64, 'base64');
+
+        const serializedString: string = pako.inflate(compressedData, { to: 'string' });
+        return JSON.parse(serializedString);
     }
 
     public startRunning(): void {
@@ -184,6 +211,19 @@ export class Simulator {
 
     public offRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void) {
         this._events.off('runStateChanged', handler);
+    }
+
+    public onInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void) {
+        this._events.on('interactablesReset', handler);
+    }
+
+    public offInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void) {
+        this._events.off('interactablesReset', handler);
+    }
+
+    private _emitInteractablesReset(eventArgs: IEventArgsInteractablesReset )
+    {
+        this._events.emit('interactablesReset', eventArgs);
     }
 
     private _handleTickTimeout(): void {
