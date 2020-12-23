@@ -5,11 +5,11 @@ import { Interactable, ISerializedInteractable } from './Model';
 
 export interface IEventArgsSimulator {
     simulator: Simulator;
-};
+}
 
 export interface IEventArgsTick extends IEventArgsSimulator {
     tick: number;
-};
+}
 
 export interface IEventArgsInteractableAdded extends IEventArgsSimulator {
     interactable: Interactable;
@@ -69,14 +69,14 @@ export class Simulator {
         }
     }
 
-    public load(serialized: ISerializedSimulator) {
+    public load(serialized: ISerializedSimulator): void {
         const oldInteractables = this.interactables;
         this.interactables = serialized.interactables.map(i => Interactable.deserialize(i));
         const interactablesInputs = new Array<Array<Interactable>>(this.interactables.length);
         for (let i = 0; i < this.interactables.length; ++i) {
             interactablesInputs[i] = new Array<Interactable>();
         }
-        for (let pair of serialized.links) {
+        for (const pair of serialized.links) {
             interactablesInputs[pair.target].push(this.interactables[pair.source]);
         }
         for (let i = 0; i < this.interactables.length; ++i) {
@@ -137,7 +137,7 @@ export class Simulator {
         this._advanceOne();
     }
 
-    public add(interactable: Interactable) {
+    public add(interactable: Interactable): void {
         this.interactables.push(interactable);
         this._events.emit(EventNames.interactableAdded, <IEventArgsInteractableAdded>{ simulator: this, interactable: interactable });
     }
@@ -150,7 +150,7 @@ export class Simulator {
                 this.interactables.splice(i ,1);
             }
         }
-        for (let i of this.interactables) {
+        for (const i of this.interactables) {
             i.removeInput(interactable);
         }
 
@@ -173,51 +173,51 @@ export class Simulator {
         ++this.currentTick;
         this._events.emit(EventNames.tick, <IEventArgsTick>{ simulator: this, tick: this.currentTick });
 
-        for (let i of this.interactables) {
+        for (const i of this.interactables) {
             i.apply();
         }
-        for (let i of this.interactables) {
+        for (const i of this.interactables) {
             i.calculate();
         }
     }
 
-    public onTick(handler: (eventArgs: IEventArgsTick) => void) {
+    public onTick(handler: (eventArgs: IEventArgsTick) => void): void {
         this._events.on(EventNames.tick, handler);
     }
 
-    public offTick(handler: (eventArgs: IEventArgsTick) => void) {
+    public offTick(handler: (eventArgs: IEventArgsTick) => void): void {
         this._events.off(EventNames.tick, handler);
     }
 
-    public onInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
+    public onInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void): void {
         this._events.on(EventNames.interactableAdded, handler);
     }
 
-    public offInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void) {
+    public offInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void): void {
         this._events.off(EventNames.interactableAdded, handler);
     }
 
-    public onInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
+    public onInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void): void {
         this._events.on(EventNames.interactableRemoved, handler);
     }
 
-    public offInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void) {
+    public offInteractableRemoved(handler: (EventTarget: IEventArgsInteractableRemoved) => void): void {
         this._events.off(EventNames.interactableRemoved, handler);
     }
 
-    public onRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void) {
+    public onRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void): void {
         this._events.on('runStateChanged', handler);
     }
 
-    public offRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void) {
+    public offRunStateChanged(handler: (EventTarget: IEventArgsSimulatorRunStateChanged) => void): void {
         this._events.off('runStateChanged', handler);
     }
 
-    public onInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void) {
+    public onInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void): void {
         this._events.on('interactablesReset', handler);
     }
 
-    public offInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void) {
+    public offInteractablesReset(handler: (EventTarget: IEventArgsInteractablesReset) => void): void {
         this._events.off('interactablesReset', handler);
     }
 

@@ -1,11 +1,10 @@
 import Konva from 'konva';
-import React from 'react';
-import { render } from 'react-dom';
-import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
-import { Simulator } from './Simulator'; 
-import * as Model from './Model';
 import { KonvaEventObject } from 'konva/types/Node';
+import React from 'react';
+import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
+import * as Model from './Model';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const _assets: any = {};
 
 // https://www.cssscript.com/lightweight-context-menu-javascript-library-justcontext-js/
@@ -23,16 +22,11 @@ interface IInteractableProps {
     onMouseUp?: (eventArgs: IEventArgsInteractable) => void;
     id: string;
     isSelected: boolean;
-};
-
-
-interface IInputProps extends IInteractableProps {
-    model: Model.Input;
 }
 
+// In somebody's mind, Record<string,never> is better than interface{}... Takes all kinds I guess.
 
-interface IInteractableState {
-}
+type IInteractableState = Record<string,never>
 
 export class Interactable<TProps extends IInteractableProps, TState extends IInteractableState> extends React.Component<TProps, TState> {
     /**
@@ -47,11 +41,13 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
      */
     private attachedModel: Model.Interactable | undefined;
 
+    private group: Konva.Group | null | undefined;
+
     constructor(props: TProps) {
         super(props);
     }
 
-    componentDidMount() {
+    public componentDidMount(): void {
         // after this point, the model is drawn and is reacting to events.
         if (!this.attachedModel) {
             this.attachedModel = this.props.model;
@@ -59,7 +55,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
     }
 
-    componentWillUnmount() {
+    public componentWillUnmount(): void {
         console.debug("componentDidUnmount("+this.constructor.name+")");
         if (this.attachedModel) {
             this.attachedModel.offStateChanged(this.handleStateChanged);
@@ -67,27 +63,31 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
     }
 
-    handleOnClick(e: any) {
+    private handleOnClick(eventArgs: KonvaEventObject<MouseEvent>): void {
         if (this.props.onClick) {
             this.props.onClick({
-                evt: e,
+                evt: eventArgs.evt,
                 model: this.props.model,
             });
         }
     }
 
-    private handleStateChanged = (e: Model.IEventArgsInteractable): void => {
+    private handleStateChanged = (): void => {
         this.setState({});
     }
 
-    handleDragStart(e: any) {
+    private handleDragStart(e: KonvaEventObject<MouseEvent>): void {
         // The gesture for dragging is left mouse button, and there seems no way to
         // argue with Konva about it, except this.  We want to use left-mouse-button
         // dragging to move a pointer, so if we see the shift key is not down, we
         // cancel the drag and tell our parent about the link-start event.  We can't
         // help anymore from here, as we don't get useful events.
         if (!e.evt.shiftKey) {
-            (this.refs.group as any as Konva.Group).stopDrag();
+            if (!this.group) {
+                throw 'group did not get set in render';
+            }
+
+            this.group.stopDrag();
 
             if (this.props.onLinkStart) {
                 this.props.onLinkStart({
@@ -99,7 +99,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         // Else it's a real drag event, let that go.
     }
 
-    handleOnMouseUp(e:any) {
+    private handleOnMouseUp(e: KonvaEventObject<MouseEvent>): void {
         if (this.props.onMouseUp) {
             this.props.onMouseUp({
                 evt: e.evt,
@@ -108,16 +108,12 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
     }
 
-    handleDragEnd(e: any) {
-        if (!e.evt) {
-            // This comes from the cancellation of the drag
-            return;
-        }
+    private handleDragEnd(): void {
         // Since we change the model during the dragMove, we don't really need
         // this event, but if we don't have it, Konva gets nervous.
     }
 
-    handleDragMove(e: any) {
+    private handleDragMove(e: KonvaEventObject<MouseEvent>) {
         // The documentation gives no clue at all how to do this.  But there's a comment later:
         // var scale = stage.scaleX();
         // var new_pos = event.target.absolutePosition();
@@ -131,7 +127,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         this.props.model.setPosition(pos.x, pos.y);
     }
 
-    render() {
+    public render(): JSX.Element {
         if (this.props.model !== this.attachedModel && this.attachedModel !== undefined) {
             // the property has changed and this isn't the first time we're redering (so the DOM exists)
             this.attachedModel.offStateChanged(this.handleStateChanged);
@@ -140,24 +136,23 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
 
         // onContextMenu={this.handleContextMenu}
-        return <Group
-            onClick={this.handleOnClick.bind(this)}
-            onMouseUp={this.handleOnMouseUp.bind(this)}
-            ref="group"
-            draggable
-            x={this.props.model.x}
-            y={this.props.model.y}
-            onDragStart={this.handleDragStart.bind(this)}
-            onDragMove={this.handleDragMove.bind(this)}
-            onDragEnd={this.handleDragEnd.bind(this)}>
+        return <Group onClick={this.handleOnClick.bind(this)}
+                      vonMouseUp={this.handleOnMouseUp.bind(this)}
+                      ref={(c) => this.group = c}
+                      draggable
+                      x={this.props.model.x}
+                      y={this.props.model.y}
+                      onDragStart={this.handleDragStart.bind(this)}
+                      onDragMove={this.handleDragMove.bind(this)}
+                      onDragEnd={this.handleDragEnd.bind(this)}>
                 {this.groupContent()}
             </Group>
     }
 
     protected groupContent(): Array<JSX.Element> {
-        return [<Rect height={64} width={64} strokeWidth={3} stroke={this.props.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} ></Rect>]
+        return [<Rect key='surround' height={64} width={64} strokeWidth={3} stroke={this.props.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} />]
     }
-};
+}
 
 export class InteractableWithSingleBitSavedState<TProps extends IInteractableProps, TState extends IInteractableState> extends Interactable<TProps, TState> {
     constructor(props: TProps) {
@@ -166,7 +161,7 @@ export class InteractableWithSingleBitSavedState<TProps extends IInteractablePro
 
     protected groupContent(): Array<JSX.Element> {
         if (this.props.model instanceof Model.InteractableWithSingleBitSavedState) {
-            const size: number=16;
+            const size=16;
             return super.groupContent()
                 .concat(
                 <Line points={[63-size, 0, 63, 0, 63, size]}
@@ -179,7 +174,7 @@ export class InteractableWithSingleBitSavedState<TProps extends IInteractablePro
             return super.groupContent();
         }
     }
-};
+}
 
 interface ILogicGateProps extends IInteractableProps {
     model: Model.LogicGate;
@@ -193,9 +188,13 @@ export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGatePro
 
     protected groupContent(): Array<JSX.Element> {
         return super.groupContent().concat([
-            <Image x={0} y={0} image={_assets[this.props.model.kind].image()} />]);
+            <Image key='image' x={0} y={0} image={_assets[this.props.model.kind].image()} />]);
     }
-};
+}
+
+interface IInputProps extends IInteractableProps {
+    model: Model.Input;
+}
 
 export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInteractableState> {
     constructor(props: IInputProps) {
@@ -205,17 +204,15 @@ export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInt
 
     protected groupContent(): Array<JSX.Element> {
         return super.groupContent().concat([
-            <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black' />]);
+            <Circle key='image' radius={22} x={32} y={32} strokeWidth={8} stroke='black' />]);
     }
-};
+}
 
 export interface ITimerProps extends IInteractableProps {
     model: Model.Timer;
-};
+}
 
-interface ITimerState extends IInteractableState {
-    // Don't need our own copy of the timer ticks - the model has that.
-};
+type ITimerState = IInteractableState
 
 export class Timer extends Interactable<ITimerProps, ITimerState> {
     constructor(props: ITimerProps) {
@@ -223,16 +220,17 @@ export class Timer extends Interactable<ITimerProps, ITimerState> {
         console.debug("constructor(Timer)");
     }
 
-    groupContent() {
-        const drawingHeight: number = 64;
-        const drawingWidth: number = 64;
-        const horizontalOffset: number = 12;
-        const verticalOffset: number = 6;
+    groupContent(): Array<JSX.Element> {
+        const drawingHeight = 64;
+        const drawingWidth = 64;
+        const horizontalOffset = 12;
+        const verticalOffset = 6;
         const rectHeight = (drawingHeight - 2*verticalOffset) / this.props.model.tickStorage.length;
 
         return super.groupContent().concat(
             this.props.model.tickStorage.map((value: boolean, index: number) =>
-            <Rect x={horizontalOffset}
+            <Rect key='image'
+                  x={horizontalOffset}
                   width={drawingWidth - 2*horizontalOffset}
                   y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/this.props.model.tickStorage.length}
                   height={rectHeight}
@@ -246,21 +244,17 @@ export class Timer extends Interactable<ITimerProps, ITimerState> {
 export interface ILinkArrowProps {
     source: Model.Interactable;
     target: Model.Interactable;
-};
+}
 
-export interface ILinkArrowState {
-};
-
-export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState> {
+export class LinkArrow extends React.Component<ILinkArrowProps> {
     private attachedModel: Model.Interactable | undefined;
 
     public constructor(props: ILinkArrowProps) {
         super(props);
-        this.state = {
-        };
+        this.state = {};
     }
 
-    componentDidMount() {
+    public componentDidMount(): void {
         // after this point, the model is drawn and is reacting to events.
         if (!this.attachedModel) {
             this.attachedModel = this.props.source;
@@ -268,16 +262,16 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
         }
     }
 
-    componentWillUnmount() {
+    public componentWillUnmount(): void {
         this.props.source.offStateChanged(this._handleStateChanged);
         this.attachedModel = undefined;
     }
 
-    private _handleStateChanged = (eventArgs: Model.IEventArgsInteractable): void => {
+    private _handleStateChanged = (): void => {
         this.setState({});
     }
 
-    render() {
+    public render(): JSX.Element {
         if (this.props.source !== this.attachedModel && this.attachedModel !== undefined) {
             // the property has changed and this isn't the first time we're redering (so the DOM exists)
             this.attachedModel.offStateChanged(this._handleStateChanged);
@@ -285,10 +279,10 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
             this.attachedModel.onStateChanged(this._handleStateChanged);
         }
 
-        var sourceX = this.props.source.x+32;
-        var sourceY = this.props.source.y+32;
-        var targetX = this.props.target.x+32;
-        var targetY = this.props.target.y+32;
+        let sourceX = this.props.source.x+32;
+        let sourceY = this.props.source.y+32;
+        let targetX = this.props.target.x+32;
+        let targetY = this.props.target.y+32;
 
         if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
             // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
@@ -320,9 +314,9 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
     }
 }
 
-export function loadAssets(onComplete: () => void)
+export function loadAssets(onComplete: () => void): void
 {
-    for (let kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor', 'paint']) {
+    for (const kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor', 'paint']) {
         Konva.Image.fromURL('/' + kind + '-black.png', (img: string) => {
             _assets[kind] = img;
             if (Object.keys(_assets).length === 7) {

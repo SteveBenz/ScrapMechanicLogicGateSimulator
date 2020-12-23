@@ -1,16 +1,14 @@
 import { EventEmitter } from 'events';
-import { basename } from 'path';
-
 
 export interface ISerializedInteractable {
     x: number;
     y: number;
     kind: LogicGateTypes | 'input' | 'timer';
-};
+}
 
 export interface IEventArgsInteractable {
     source: Interactable;
-};
+}
 
 export interface IEventArgsInteractableMoved extends IEventArgsInteractable {
     x: number;
@@ -50,10 +48,10 @@ export class Interactable {
         return { x: this._x, y: this._y };
     }
 
-    public get x() { return this._x; }
-    public get y() { return this._y; }
+    public get x(): number { return this._x; }
+    public get y(): number { return this._y; }
 
-    public setPosition(x: number, y: number) {
+    public setPosition(x: number, y: number): void {
         this._x = x;
         this._y = y;
         this._emitMoved(x, y);
@@ -133,39 +131,42 @@ export class Interactable {
         return [...this._inputs];
     }
 
-    setInputs(inputs: Array<Interactable>) {
+    setInputs(inputs: Array<Interactable>): void {
         this._inputs = [...inputs];
     }
 
-    twiddle(direction: -1 | 1) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    twiddle(_direction: -1 | 1): void {
+        // No actio for twiddle in a timer.
+    }
 
     /** Causes the calculated state to become the state that other interactables will see. */
-    public apply() {
+    public apply(): void {
         this.setPrevState(this.currentState);
     }
 
     /** Sets currentState based on the previous state of its inputs. */
-    public calculate() {}
+    public calculate(): void {/* no action */}
 
-    public reload(): void {}
+    public reload(): void {/* no action */}
 
-    public putOnLift(): void {}
+    public putOnLift(): void {/* no action */}
 
-    public paint(): void {}
+    public paint(): void {/* no action */}
 
-    public onMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void) {
+    public onMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void): void {
         this.events.on('moved', handler);
     }
 
-    public offMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void) {
+    public offMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void): void {
         this.events.off('moved', handler);
     }
 
-    public onStateChanged(handler: (eventArgs: IEventArgsInteractable) => void) {
+    public onStateChanged(handler: (eventArgs: IEventArgsInteractable) => void): void {
         this.events.on('stateChanged', handler);
     }
 
-    public offStateChanged(handler: (eventArgs: IEventArgsInteractable) => void) {
+    public offStateChanged(handler: (eventArgs: IEventArgsInteractable) => void): void {
         this.events.off('stateChanged', handler);
     }
 
@@ -184,7 +185,7 @@ export class Interactable {
 
 export interface ISerializedInteractableWithSingleBitSavedState extends ISerializedInteractable {
     savedState: boolean;
-};
+}
 
 
 export class InteractableWithSingleBitSavedState extends Interactable {
@@ -224,8 +225,7 @@ export type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
 
 const LogicGateKindSequence: Array<LogicGateTypes> = ['and', 'or', 'xor', 'nand', 'nor', 'xnor'];
 
-export interface ISerializedLogicGate extends ISerializedInteractableWithSingleBitSavedState {
-}
+export type ISerializedLogicGate = ISerializedInteractableWithSingleBitSavedState
 
 export class LogicGate extends InteractableWithSingleBitSavedState {
     private _kind: LogicGateTypes;
@@ -249,7 +249,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this.paint();
     }
 
-    public twiddle(direction: -1 | 1) {
+    public twiddle(direction: -1 | 1): void {
         let index = LogicGateKindSequence.indexOf(this._kind);
         index = index + direction;
         if (index < 0) {
@@ -264,7 +264,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this.paint();
     }
 
-    public calculate() {
+    public calculate(): void {
         // This becomes the sum of all the inputs where the previous state is true
         const numActivatedInputs = this.inputs.reduce((a, b) => a + (b.prevState ? 1 : 0), 0);
         let calculatedState: boolean;
@@ -301,7 +301,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         return 'unlimited';
     }
 
-    export() {
+    export(): ISerializedLogicGate {
         return {
             ...super.export(),
             kind: this._kind
@@ -309,15 +309,15 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
     }
 }
 
-interface ISerializedInput extends ISerializedInteractableWithSingleBitSavedState {
-};
+type ISerializedInput = ISerializedInteractableWithSingleBitSavedState
 
 export class Input extends InteractableWithSingleBitSavedState {
     constructor(props: ISerializedInput) {
         super(props);
     }
 
-    twiddle(direction: -1 | 1) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    twiddle(_direction: -1 | 1): void {
         this.setCurrentState(!this.currentState);
     }
 
@@ -334,7 +334,7 @@ export class Input extends InteractableWithSingleBitSavedState {
 
 interface ISerializedTimer extends ISerializedInteractable {
     tickStorage: Array<boolean>;
-};
+}
 
 export class Timer extends Interactable {
     private readonly _tickStorage: Array<boolean>;

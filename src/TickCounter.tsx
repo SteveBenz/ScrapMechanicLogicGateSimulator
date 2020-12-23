@@ -4,11 +4,11 @@ import { Text } from 'react-konva';
 
 export interface TickCounterProps {
     simulator: Simulator;
-};
+}
 
 interface TickCounterState {
     currentTick: number;
-};
+}
 
 export class TickCounter extends React.Component<
     TickCounterProps,
@@ -20,7 +20,8 @@ export class TickCounter extends React.Component<
         this.state = {
             currentTick: props.simulator.currentTick
         };
-        props.simulator.onTick((_) => {
+        
+        props.simulator.onTick(() => {
             const newState: TickCounterState = {
                 currentTick: props.simulator.currentTick
             };
@@ -28,14 +29,7 @@ export class TickCounter extends React.Component<
         });
     }
 
-    static getDerivedStateFromProps(
-        props: TickCounterProps,
-        state: TickCounterState
-    ) {
-        return { currentTick: props.simulator.currentTick };
-    }
-
-    render() {
+    render(): JSX.Element {
         return (
             <Text
                 stroke="#ff0000"

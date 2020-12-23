@@ -1,29 +1,22 @@
 import * as React from "react";
-import { render } from "react-dom";
-import { Image, Stage, Layer, Arrow, Line, Rect, Group, Circle, Text } from "react-konva";
-import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsSimulatorRunStateChanged } from "./Simulator";
-import * as TC from "./TickCounter";
+import { Image, Line, Rect, Group, Circle, Text } from "react-konva";
+import { Simulator, ISerializedSimulator } from "./Simulator";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
-import Konva from 'konva';
-import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
-import * as pako from 'pako';
 import { KonvaEventObject } from "konva/types/Node";
-import { JsxElement } from "typescript";
-import FileSaver, { saveAs } from 'file-saver';
+import FileSaver from 'file-saver';
 
 
 interface IToolBarButtonProps {
     x: number;
     y: number;
-};
-
+}
 
 interface IToolBarButtonState {
     isHovering: boolean;
     isEnabled: boolean;
-};
+}
 
 abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends IToolBarButtonState> extends React.Component<TProps, TState> {
     public constructor(props: TProps, private readonly isDraggable: boolean) {
@@ -46,7 +39,11 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
 
     protected abstract getContent(): JSX.Element | Array<JSX.Element>;
     protected abstract handleClick(): void;
-    protected handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected handleDragStart(_eventArgs: KonvaEventObject<MouseEvent>): void {
+        // no action
+    }
 
     private _handleClick(): void {
         if (this.state.isEnabled) {
@@ -58,11 +55,11 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
         eventArgs.target.stopDrag(eventArgs);
         this.handleDragStart(eventArgs);
     }
-};
+}
 
 interface IStartStopButtonProps extends IToolBarButtonProps {
     model: Simulator,
-};
+}
 
 interface IStartStopButtonState extends IToolBarButtonState {
     isRunning: boolean,
@@ -80,16 +77,16 @@ export class StartStopButton extends ToolBarButton<IStartStopButtonProps, IStart
         this.props.model.onRunStateChanged(this.handleRunStateChanged.bind(this));
     }
 
-    private handleRunStateChanged(eventArgs: IEventArgsSimulatorRunStateChanged): void {
+    private handleRunStateChanged(): void {
         this.setState({ isRunning: this.props.model.isRunning });
     }
 
     protected getContent(): JSX.Element | Array<JSX.Element> {
         return this.props.model.isRunning ?
                 [
-                    <Line points={[32-5, 32-12, 32-5, 32+12]} lineCap='butt' strokeWidth={5} stroke='red'/>,
-                    <Line points={[32+5, 32-12, 32+5, 32+12]} lineCap='butt' strokeWidth={5} stroke='red'/>
-                ] : [   <Line points={[32-16, 32-16, 32+12, 32, 32-16, 32+16]}
+                    <Line key='1' points={[32-5, 32-12, 32-5, 32+12]} lineCap='butt' strokeWidth={5} stroke='red'/>,
+                    <Line key='2' points={[32+5, 32-12, 32+5, 32+12]} lineCap='butt' strokeWidth={5} stroke='red'/>
+                ] : [   <Line key='3'  points={[32-16, 32-16, 32+12, 32, 32-16, 32+16]}
                       strokeWidth={4}
                       stroke='green'
                       fill='green'
@@ -108,7 +105,7 @@ export class StartStopButton extends ToolBarButton<IStartStopButtonProps, IStart
 
 interface ISingleStepButtonProps extends IToolBarButtonProps {
     model: Simulator,
-};
+}
 
 export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToolBarButtonState> {
     public constructor(props: ISingleStepButtonProps) {
@@ -136,18 +133,15 @@ export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToo
 export interface IDragNewInteractableDragEventArgs {
     prototype: Model.Interactable;
     event: KonvaEventObject<MouseEvent>;
-};
+}
 
 interface ILogicGateButtonProps extends IToolBarButtonProps {
     kind: Model.LogicGateTypes | 'timer' | 'input';
     selected: Model.Interactable | undefined;
     onBeginDrag: (eventArgs: IDragNewInteractableDragEventArgs) => void;
-};
-
-interface ILogicGateButtonState extends IToolBarButtonState {
 }
 
-export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogicGateButtonState> {
+export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolBarButtonState> {
     constructor(props: ILogicGateButtonProps) {
         super(props, true);
         this.state = {
@@ -161,15 +155,16 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogic
             case 'input':
                 return <Circle radius={22} x={32} y={32} strokeWidth={8} stroke={this.state.isEnabled ? 'black' : '#00000080'} />;
             case 'timer':
-                const drawingHeight: number = 64;
-                const drawingWidth: number = 64;
-                const horizontalOffset: number = 12;
-                const verticalOffset: number = 6;
+                const drawingHeight = 64;
+                const drawingWidth = 64;
+                const horizontalOffset = 12;
+                const verticalOffset = 6;
                 const tickStorage = [true, true, true, true, true, false, false, false, false, false];
                 const rectHeight = (drawingHeight - 2*verticalOffset) / tickStorage.length;
 
                 return tickStorage.map((value: boolean, index: number) =>
-                <Rect x={horizontalOffset}
+                <Rect key={index}
+                      x={horizontalOffset}
                       width={drawingWidth - 2*horizontalOffset}
                       y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
                       height={rectHeight}
@@ -216,7 +211,7 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, ILogic
             prototype: prototype,
             event: eventArgs});
     }
-};
+}
 
 interface IPaintButtonProps extends IToolBarButtonProps {
     selected: Model.Interactable | undefined;
@@ -255,20 +250,21 @@ export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarBut
     }
 
     protected getContent(): JSX.Element | JSX.Element[] {
-        return [ <Line points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
-                    strokeWidth={4}
-                    stroke='black'
-                    closed={true}/>,
-                <Line points = {[18, 42,  32, 32,  46, 42,  18, 42]}
-                    strokeWidth={1}
-                    stroke='blue'
-                    closed={true}
-                    fill='blue'
-                    />];
+        return [ <Line key='base'
+                       points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
+                       strokeWidth={4}
+                       stroke='black'
+                       closed={true}/>,
+                <Line key='arrow'
+                      points = {[18, 42,  32, 32,  46, 42,  18, 42]}
+                      strokeWidth={1}
+                      stroke='blue'
+                      closed={true}
+                      fill='blue'/>];
     }
 
     protected handleClick(): void {
-        for (let i of this.props.simulator.interactables) {
+        for (const i of this.props.simulator.interactables) {
             i.reload();
         }
     }
@@ -285,20 +281,21 @@ export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarB
     }
 
     protected getContent(): JSX.Element | JSX.Element[] {
-        return [ <Line points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
-                    strokeWidth={4}
-                    stroke='black'
-                    closed={true}/>,
-                <Line points = {[18, 32,  32, 42,  46, 32,  18, 32]}
-                    strokeWidth={1}
-                    stroke='blue'
-                    closed={true}
-                    fill='blue'
-                    />];
+        return [ <Line key='base'
+                       points={[52, 48,  12, 48,  12, 28,  32, 28,  32, 12,  16, 12,  48, 12,  32,12,  32, 28,  52, 28,  52, 48 ]}
+                       strokeWidth={4}
+                       stroke='black'
+                       closed={true}/>,
+                  <Line key='arrow'
+                        points = {[18, 32,  32, 42,  46, 32,  18, 32]}
+                        strokeWidth={1}
+                        stroke='blue'
+                        closed={true}
+                        fill='blue'/>];
     }
 
     protected handleClick(): void {
-        for (let i of this.props.simulator.interactables) {
+        for (const i of this.props.simulator.interactables) {
             i.paint();
         }
     }
@@ -308,7 +305,7 @@ export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarB
 interface IDeleteButtonProps extends IToolBarButtonProps {
     simulator: Simulator;
     selected: Interactable | undefined;
-};
+}
 
 export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButtonState> {
     constructor(props: IDeleteButtonProps) {
@@ -339,7 +336,7 @@ export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButt
 
 interface ICopyLinkButtonProps extends IToolBarButtonProps {
     simulator: Simulator;
-};
+}
 
 export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBarButtonState> {
     constructor(props: ICopyLinkButtonProps) {
@@ -355,26 +352,28 @@ export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBar
     }
 
     protected handleClick(): void {
-        const returnUrl: string = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
 
         // TODO: Doing this for-real seems to require being served by HTTPS, so re-test it then.  This is certainly
         //   bad because it keeps recreating the textarea.  But it also is probably useless as there's a
         //   navigator.clipboard function that would do this more easily.
         //
         // https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-        var box = document.createElement("textarea");
+        const box = document.createElement("textarea");
+        if (!box) {
+            throw 'textarea is missing in index.html'
+        }
 
         // Avoid scrolling to bottom
         box.style.top = "0";
         box.style.left = "0";
         box.style.position = "fixed";
 
-        box!.value = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
+        box.value = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
         box.focus();
         box.select();
         try {
-            var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
+            const successful = document.execCommand('copy');
+            const msg = successful ? 'successful' : 'unsuccessful';
             alert('Fallback: Copying text command was ' + msg);
         } catch (err) {
             console.error('Fallback: Oops, unable to copy', err);
@@ -385,7 +384,7 @@ export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBar
 
 interface ISaveToFileButtonProps extends IToolBarButtonProps {
     simulator: Simulator;
-};
+}
 
 export class SaveToFileButton extends ToolBarButton<ISaveToFileButtonProps, IToolBarButtonState> {
     constructor(props: ISaveToFileButtonProps) {
@@ -408,7 +407,7 @@ export class SaveToFileButton extends ToolBarButton<ISaveToFileButtonProps, IToo
 
 interface ILoadFromFileButtonProps extends IToolBarButtonProps {
     simulator: Simulator;
-};
+}
 
 export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, IToolBarButtonState> {
     private readonly fileInputElement: HTMLInputElement;
@@ -436,18 +435,21 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
 
     protected handleClick(): void {
         const fileElem = document.getElementById("fileElem");
-        fileElem!.click();
+        if (!fileElem) {
+            throw 'fileElem is missing in index.html';
+        }
+        fileElem.click();
     }
 
     // This function tied to the 'change' event of the file dialog in index.html
-    handleFileGiven(ev: Event): void {
+    handleFileGiven(): void {
         if (!this.fileInputElement.files || this.fileInputElement.files.length === 0) {
             return;
         }
 
         // hacky - no message when file load fails.
         const reader = new FileReader();
-        reader.onload = (ev: ProgressEvent) => {
+        reader.onload = () => {
             const json: string = reader.result as string;
             const serialized: ISerializedSimulator = JSON.parse(json) as ISerializedSimulator;
             this.props.simulator.load(serialized);

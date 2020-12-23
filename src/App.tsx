@@ -89,7 +89,7 @@ export class App extends React.Component<AppProps, AppState> {
         this.setState({interactables: this.props.simulator.interactables});
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         if (!this.stage) throw 'stage was not set';
         const container = this.stage.container();
         container.tabIndex = 1;
