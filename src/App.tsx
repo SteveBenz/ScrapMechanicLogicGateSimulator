@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from "react";
 import { render } from "react-dom";
-import { Stage, Layer, Arrow, Line, Rect, Group } from "react-konva";
+import { Stage, Layer, Arrow, Line, Rect } from "react-konva";
 import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsInteractablesReset } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
@@ -8,14 +9,12 @@ import * as Model from "./Model";
 import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
-import * as pako from 'pako';
 import { CopyLinkButton, DeleteButton, IDragNewInteractableDragEventArgs, LoadFromFileButton, LogicGateButton, PaintButton, PutOnLiftButton, SaveToFileButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
 import { KonvaEventObject } from "konva/types/Node";
-import { debug } from "console";
 
 interface AppProps {
     simulator: Simulator;
-};
+}
 
 interface AppState {
     interactables: Array<Interactable>;
@@ -25,9 +24,11 @@ interface AppState {
     linkTargetX?: number;
     linkTargetY?: number;
     createByDragPrototype?: Interactable;
-};
+}
 
 export class App extends React.Component<AppProps, AppState> {
+    private stage: Konva.Stage | undefined;
+
     constructor(props: AppProps) {
         super(props);
         this.state = {
@@ -38,7 +39,7 @@ export class App extends React.Component<AppProps, AppState> {
         };
         // this.stageRef = React.useRef(undefined);
 
-        for (let i of this.props.simulator.interactables) {
+        for (const i of this.props.simulator.interactables) {
             i.onMoved(this.handleInteractableMoved);
         }
 
@@ -47,15 +48,15 @@ export class App extends React.Component<AppProps, AppState> {
         this.props.simulator.onInteractablesReset( this.handleInteractablesReset );
     }
 
-    handleInteractablesReset = (e: IEventArgsInteractablesReset) => {
-        for (let i of e.oldInteractables) {
+    handleInteractablesReset = (e: IEventArgsInteractablesReset): void => {
+        for (const i of e.oldInteractables) {
             i.offMoved(this.handleInteractableMoved);
         }
 
         const links: Array<IInteractableLink> = [];
-        for (let i of this.props.simulator.interactables) {
+        for (const i of this.props.simulator.interactables) {
             i.onMoved(this.handleInteractableMoved);
-            for (let j of i.inputs) {
+            for (const j of i.inputs) {
                 links.push({source: j, target: i});
             }
         }        
@@ -67,7 +68,7 @@ export class App extends React.Component<AppProps, AppState> {
         });
     }
 
-    handleInteractableAdded = (e: IEventArgsInteractableAdded) => {
+    handleInteractableAdded = (e: IEventArgsInteractableAdded): void => {
         e.interactable.onMoved(this.handleInteractableMoved.bind(this));
         this.setState({
             interactables: this.props.simulator.interactables,
@@ -75,7 +76,7 @@ export class App extends React.Component<AppProps, AppState> {
         });
     };
 
-    handleInteractableRemoved = (e: IEventArgsInteractableRemoved) => {
+    handleInteractableRemoved = (e: IEventArgsInteractableRemoved): void => {
         e.interactable.offMoved(this.handleInteractableMoved.bind(this));
         this.setState({
             interactables: this.props.simulator.interactables,
@@ -84,47 +85,24 @@ export class App extends React.Component<AppProps, AppState> {
         });
     };
 
-    handleInteractableMoved = (e: any) => {
+    handleInteractableMoved = (): void => {
         this.setState({interactables: this.props.simulator.interactables});
     }
 
-    // handleDragStart = (e) => {
-    //     const id = e.target.id();
-    //     console.log(this.refs.stage.getPointerPosition());
-    //     this.setState({
-    //         stars: this.state.stars.map((star) => {
-    //             return {
-    //                 ...star,
-    //                 isDragging: star.id === id,
-    //             };
-    //         })
-    //     });
-    // };
-
-    // handleDragEnd = (e) => {
-    //     this.setState(
-    //         {
-    //             stars: this.state.stars.map((star) => {
-    //                 return {
-    //                     ...star,
-    //                     isDragging: false,
-    //                 };
-    //             })
-    //         }
-    //     );
-    // };
-
-    componentDidMount() {
-        const stage: Konva.Stage = (this.refs.stage as any) as Konva.Stage;
-        const container = stage.container();
+    componentDidMount(): void {
+        if (!this.stage) throw 'stage was not set';
+        const container = this.stage.container();
         container.tabIndex = 1;
         container.focus();
         container.addEventListener("keypress", this.handleKeyPress);
     }
 
-    handleKeyPress = (e: any) => {
-        const stage: Konva.Stage = (this.refs.stage as any) as Konva.Stage;
-        const xy: Vector2d | null = stage.getPointerPosition();
+    handleKeyPress = (e: KeyboardEvent):void => {
+        const xy: Vector2d | null | undefined = this.stage?.getPointerPosition();
+        if (!xy) {
+            throw 'stage was not set?';
+        }
+
         if (e.key === "g") {
             this.props.simulator.startRunning();
         } else if (e.key === "s") {
@@ -134,24 +112,24 @@ export class App extends React.Component<AppProps, AppState> {
         } else if (e.key === "l") {
             const newInteractable = new Model.LogicGate({
                 kind: 'and',
-                x: xy!.x,
-                y: xy!.y,
+                x: xy.x,
+                y: xy.y,
                 savedState: false
             });
             this.props.simulator.add(newInteractable);
         } else if (e.key === "i") {
             const newInteractable = new Model.Input({
                 kind: 'input',
-                x: xy!.x,
-                y: xy!.y,
+                x: xy.x,
+                y: xy.y,
                 savedState: false
             });
             this.props.simulator.add(newInteractable);
         } else if (e.key === "t") {
             const newInteractable = new Model.Timer({
                 kind: 'timer',
-                x: xy!.x,
-                y: xy!.y,
+                x: xy.x,
+                y: xy.y,
                 tickStorage: new Array<boolean>(10).fill(false)
             });
             this.props.simulator.add(newInteractable);
@@ -160,16 +138,16 @@ export class App extends React.Component<AppProps, AppState> {
         } else if (e.key === ']' && this.state.selected) {
             this.state.selected.twiddle(1);
         } else if (e.key === 'c') {
-            const box: any = document.getElementById('urlbox');
-            box!.value = this.props.simulator.serializeToCompressedQueryStringFragment();
+            const box: HTMLInputElement = document.getElementById('urlbox') as HTMLInputElement;
+            box.value = this.props.simulator.serializeToCompressedQueryStringFragment();
         } else if (e.key === 'x' && this.state.selected) {
             this.props.simulator.remove(this.state.selected);
         } else if (e.key === '4') {
-            for (let i of this.state.interactables) {
+            for (const i of this.state.interactables) {
                 i.reload();
             }
         } else if (e.key === '$') {
-            for (let i of this.state.interactables) {
+            for (const i of this.state.interactables) {
                 i.putOnLift();
             }
         } else if (e.key === 'p' && this.state.selected) {
@@ -179,13 +157,13 @@ export class App extends React.Component<AppProps, AppState> {
         console.debug("App.handleKeyPress(" + e.key + ")");
     };
 
-    handleInteractableClicked(e: any) {
+    handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
         this.setState({
             selected: e.model,
         });
     }
 
-    handleLinkStart(e: any) {
+    handleLinkStart(e: ViewModel.IEventArgsInteractable): void {
         const model = e.model;
         this.setState({
             linkSource: model,
@@ -194,13 +172,13 @@ export class App extends React.Component<AppProps, AppState> {
         })
     }
 
-    handleMouseUpInStage(e: any) {
+    handleMouseUpInStage(e: KonvaEventObject<MouseEvent>): void {
         // This handles mouseUp events from the field, 
         const source = this.state.linkSource;
         let wasChanged = false;
         if (source) {
             let target = undefined;
-            for (let i of this.state.interactables) {
+            for (const i of this.state.interactables) {
                 // TODO: the Interactable viewmodel should decide the in-bounds calculation
                 if (i.x <= e.evt.x && e.evt.x < i.x+64
                  && i.y <= e.evt.y && e.evt.y < i.y+64) {
@@ -227,7 +205,8 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
-    handleMouseUpInInteractable(e: any) {
+    handleMouseUpInInteractable(): void {
+        // TODO: Why am I here??
         // // This handles mouseUp events from the field, 
         // if (this.state.linkSource) {
         //     const source = this.state.linkSource;
@@ -268,7 +247,7 @@ export class App extends React.Component<AppProps, AppState> {
         })
     }
 
-    getViewModelForModel(model: Model.Interactable, id: string) {
+    getViewModelForModel(model: Model.Interactable, id: string): JSX.Element {
         if (model instanceof Model.LogicGate) {
             return (
                 <ViewModel.LogicGate
@@ -299,10 +278,13 @@ export class App extends React.Component<AppProps, AppState> {
                 onLinkStart={this.handleLinkStart.bind(this)}
                 onClick={this.handleInteractableClicked.bind(this)}/>
         }
+        else {
+            throw 'unexpected model object type';
+        }
     }
 
-    render() {
-        let pointer: any = [];
+    render(): JSX.Element {
+        let pointer: Array<JSX.Element> | JSX.Element = [];
         const canvasHeight = window.innerHeight*.7;
         const canvasWidth = window.innerWidth-40;
         const buttonRowY: number = canvasHeight-80+(80-64)/2;
@@ -323,21 +305,21 @@ export class App extends React.Component<AppProps, AppState> {
             <Stage
                 width={canvasWidth}
                 height={canvasHeight}
-                ref="stage"
+                ref={(c: Konva.Stage) => {this.stage = c;}}
                 onMouseUp={this.handleMouseUpInStage.bind(this)}
                 onMouseMove={this.handleMouseMove.bind(this)}
             >
                 <Layer>
                     <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
                     <TC.TickCounter simulator={this.props.simulator} />
-                    {this.state.interactables.map((model: any, index: any) =>
-                        this.getViewModelForModel(model, index)
+                    {this.state.interactables.map((model: Interactable, index: number) =>
+                        this.getViewModelForModel(model, index.toString())
                     )}
                     {this.state.createByDragPrototype
                         ? this.getViewModelForModel(this.state.createByDragPrototype, 'dragproto')
                         : []}
                     {pointer}
-                    {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow source={link.source} target={link.target}/>)}
+                    {this.state.links.map((link: IInteractableLink, index:number) => <ViewModel.LinkArrow key={index} source={link.source} target={link.target}/>)}
                 </Layer>
                 <Layer>
                     <Rect x={5} y={canvasHeight-75} height={70} width={canvasWidth-10} fill='papayawhip' />
@@ -365,28 +347,8 @@ export class App extends React.Component<AppProps, AppState> {
     }
 }
 
-// Konva.Image.fromURL('/and-black.png', (img) => {
-//     andBlackImage = img;
-//     render(<App simulator={new Simulator()} />, document.getElementById('root'));
-// });
-
-// These work to intercept all keys, (F5 included), but you have to handle them
-// completely, here, or they don't go down to the dom-level objects...  Not sure if
-// worth it.
-// document.addEventListener('keydown', (e) => {
-//     console.debug("keydown("+e.key+")");
-//     e.preventDefault();
-// });
-// document.addEventListener('keyup', (e) => {
-//     console.debug("keyup("+e.key+")");
-//     e.preventDefault();
-// });
-// document.addEventListener('keypress', (e) => {
-//     console.debug("keypress("+e.key+")");
-//     e.preventDefault();
-// });
-
-export function makeItSo() {
+export function makeItSo(): void {
+    // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
     const queryString: string | undefined = window.location.search;
     let serialized: ISerializedSimulator | undefined = undefined;
     if (queryString) {
@@ -397,50 +359,3 @@ export function makeItSo() {
         render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
     });
 }
-
-// var stage = new Konva.Stage({
-//     container: 'root',
-//     width: window.innerWidth,
-//     height: window.innerHeight,
-// });
-
-// var layer = new Konva.Layer();
-// const star = new Konva.Star({
-//     x: 50,
-//     y: 50,
-//     innerRadius: 20,
-//     outerRadius: 40,
-//     fill: "#89b717",
-//     draggable: true,
-// });
-// layer.add(
-//     star
-// );
-// stage.add(layer);
-
-/*
-                    {this.state.stars.map((star) => (
-                        <Star
-                            key={star.id}
-                            id={star.id}
-                            x={star.x}
-                            y={star.y}
-                            numPoints={5}
-                            innerRadius={20}
-                            outerRadius={40}
-                            fill="#89b717"
-                            opacity={0.8}
-                            draggable
-                            rotation={star.rotation}
-                            shadowColor="black"
-                            shadowBlur={10}
-                            shadowOpacity={0.6}
-                            shadowOffsetX={star.isDragging ? 10 : 5}
-                            shadowOffsetY={star.isDragging ? 10 : 5}
-                            scaleX={star.isDragging ? 1.2 : 1}
-                            scaleY={star.isDragging ? 1.2 : 1}
-                            onDragStart={this.handleDragStart}
-                            onDragEnd={this.handleDragEnd}
-                        />
-                    ))}
-*/

@@ -4,15 +4,16 @@ import { render } from 'react-dom';
 import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import { Simulator } from './Simulator'; 
 import * as Model from './Model';
+import { KonvaEventObject } from 'konva/types/Node';
 
 export const _assets: any = {};
 
 // https://www.cssscript.com/lightweight-context-menu-javascript-library-justcontext-js/
 // might automate the context menu for me.
 
-interface IEventArgsInteractable {
+export interface IEventArgsInteractable {
     model: Model.Interactable;
-    evt: any; // TODO: See if we can find the actual event?
+    evt: MouseEvent;
 }
 
 interface IInteractableProps {
@@ -24,9 +25,6 @@ interface IInteractableProps {
     isSelected: boolean;
 };
 
-interface ILogicGateProps extends IInteractableProps {
-    model: Model.LogicGate;
-}
 
 interface IInputProps extends IInteractableProps {
     model: Model.Input;
@@ -182,6 +180,10 @@ export class InteractableWithSingleBitSavedState<TProps extends IInteractablePro
         }
     }
 };
+
+interface ILogicGateProps extends IInteractableProps {
+    model: Model.LogicGate;
+}
 
 export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGateProps, IInteractableState> {
     constructor(props: ILogicGateProps) {
