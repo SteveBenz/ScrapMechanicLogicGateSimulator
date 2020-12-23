@@ -34,7 +34,6 @@ interface IInputProps extends IInteractableProps {
 
 
 interface IInteractableState {
-    isSelected: boolean;
 }
 
 export class Interactable<TProps extends IInteractableProps, TState extends IInteractableState> extends React.Component<TProps, TState> {
@@ -52,15 +51,6 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
 
     constructor(props: TProps) {
         super(props);
-    }
-
-    static getDerivedStateFromProps(
-        props: IInteractableProps,
-        state: IInteractableState
-    ): IInteractableState {
-        console.debug("getDerivedStateFromProps");
-
-        return { isSelected: props.isSelected };
     }
 
     componentDidMount() {
@@ -89,10 +79,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
     }
 
     private handleStateChanged = (e: Model.IEventArgsInteractable): void => {
-        // TODO: Can this be {} ?
-        this.setState({
-            isSelected: this.state.isSelected
-        });
+        this.setState({});
     }
 
     handleDragStart(e: any) {
@@ -170,7 +157,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
     }
 
     protected groupContent(): Array<JSX.Element> {
-        return [<Rect height={64} width={64} strokeWidth={3} stroke={this.state.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} ></Rect>]
+        return [<Rect height={64} width={64} strokeWidth={3} stroke={this.props.isSelected ? 'green' : 'blue'} fill={this.props.model.currentState ? 'white' : 'grey'} ></Rect>]
     }
 };
 
@@ -202,13 +189,6 @@ export class LogicGate extends InteractableWithSingleBitSavedState<ILogicGatePro
         console.debug("constructor(LogicGate)");
     }
 
-    static getDerivedStateFromProps(
-        props: ILogicGateProps,
-        state: IInteractableState
-    ): IInteractableState {
-        return super.getDerivedStateFromProps(props, state);
-    }
-
     protected groupContent(): Array<JSX.Element> {
         return super.groupContent().concat([
             <Image x={0} y={0} image={_assets[this.props.model.kind].image()} />]);
@@ -219,13 +199,6 @@ export class Input extends InteractableWithSingleBitSavedState<IInputProps, IInt
     constructor(props: IInputProps) {
         super(props);
         console.debug("constructor(Input)");
-    }
-
-    static getDerivedStateFromProps(
-        props: IInputProps,
-        state: IInteractableState
-    ): IInteractableState {
-        return super.getDerivedStateFromProps(props, state);
     }
 
     protected groupContent(): Array<JSX.Element> {
@@ -274,7 +247,6 @@ export interface ILinkArrowProps {
 };
 
 export interface ILinkArrowState {
-    sourcePrevState: boolean;
 };
 
 export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState> {
@@ -283,7 +255,6 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
     public constructor(props: ILinkArrowProps) {
         super(props);
         this.state = {
-            sourcePrevState: props.source.prevState
         };
     }
 
@@ -301,17 +272,7 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
     }
 
     private _handleStateChanged = (eventArgs: Model.IEventArgsInteractable): void => {
-        this.setState({ sourcePrevState: this.props.source.prevState });
-    }
-
-    static getDerivedStateFromProps(
-        props: ILinkArrowProps,
-        state: ILinkArrowState
-    ): ILinkArrowState {
-        return {
-            ...state,
-            sourcePrevState: props.source.prevState
-        };
+        this.setState({});
     }
 
     render() {
@@ -349,8 +310,8 @@ export class LinkArrow extends React.Component<ILinkArrowProps, ILinkArrowState>
             x={sourceX}
             y={sourceY}
             points={[0,0, targetX-sourceX, targetY-sourceY]}
-            fill={this.state.sourcePrevState ? 'darkblue' : 'teal'}
-            stroke={this.state.sourcePrevState ? 'darkblue' : 'teal'}
+            fill={this.props.source.prevState ? 'darkblue' : 'teal'}
+            stroke={this.props.source.prevState ? 'darkblue' : 'teal'}
             strokeWidth={4}
             pointerLength={10}
             pointerWidth={10}/>;

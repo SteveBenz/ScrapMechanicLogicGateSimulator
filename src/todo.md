@@ -26,8 +26,8 @@
 - [ ] Don't allow placing interactables unless they're mostly visible
 - [ ] Place the ticker in the upper right (?)
 - [x] Button for sharing hyperlink
-- [ ] Button for loading from json
-- [ ] Button for exporting to json
+- [x] Button for loading from json
+- [x] Button for exporting to json
 - [ ] Clean up warnings
 - [x] Sized appropriately
 - [ ] Introductory text and help
