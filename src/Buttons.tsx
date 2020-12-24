@@ -14,22 +14,28 @@ interface IToolBarButtonProps {
 
 interface IToolBarButtonState {
     isHovering: boolean;
-    isEnabled: boolean;
+    isEnabled: boolean; //  <- todo: get rid of bad state-derived-from-props
+    isPressed: boolean;
 }
 
+const buttonWidth = 64;
+const buttonHeight = 64;
+const pressedScalingFactor = 1.05;
+
 abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends IToolBarButtonState> extends React.Component<TProps, TState> {
-    public constructor(props: TProps, private readonly isDraggable: boolean) {
+    public constructor(props: TProps) {
         super(props);
     }
 
     render(): React.ReactNode {
-        return <Group x={this.props.x} y={this.props.y}
-                      draggable={this.isDraggable}
-                      onDragStart={this._handleDragStart.bind(this)}
-                      onDragEnd={this._handleDragEnd.bind(this)}
-                      onMouseEnter={() => {this.setState({ isHovering: true })}}
-                      onMouseLeave={() => {this.setState({ isHovering: false })}}
-                      onClick={this._handleClick.bind(this)}>
+        return <Group x={this.props.x - (this.state.isPressed ? buttonWidth*((pressedScalingFactor - 1)/2) : 0)}
+                      y={this.props.y - (this.state.isPressed ? buttonHeight*((pressedScalingFactor - 1)/2) : 0)}
+                      onMouseEnter={this._handleMouseEnter}
+                      onMouseLeave={this._handleMouseLeave}
+                      onMouseDown={this._handleMouseDown}
+                      onMouseUp={this._handleMouseUp}
+                      scaleX={this.state.isPressed ? pressedScalingFactor : 1}
+                      scaleY={this.state.isPressed ? pressedScalingFactor : 1}>
                 {this.getContent()}
                 <Rect x={0} y={0} height={64} width={64}
                       strokeWidth={2} stroke={this.state.isHovering ? 'black' : 'grey'}
@@ -40,25 +46,28 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
     protected abstract getContent(): JSX.Element | Array<JSX.Element>;
     protected abstract handleClick(): void;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected handleDragStart(_eventArgs: KonvaEventObject<MouseEvent>): void {
-        // no action
+    protected handleDragStart: ((eventArgs: KonvaEventObject<MouseEvent>) => void) | undefined = undefined;
+
+    private _handleMouseEnter: () => void = () => {
+        this.setState({ isHovering: true });
     }
 
-    private _handleClick(): void {
-        if (this.state.isEnabled) {
-            this.handleClick();
+    private _handleMouseLeave: (_: KonvaEventObject<MouseEvent>) => void = (eventArgs) => {
+        // If the cursor is moving roughly upward, call it a drag.
+        if (this.handleDragStart && this.state.isPressed && eventArgs.evt.offsetY < this.props.y+32) {
+            this.handleDragStart(eventArgs);
         }
+
+        this.setState({ isHovering: false, isPressed: false });
     }
 
-    private _handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
-        eventArgs.target.stopDrag(eventArgs);
-        this.handleDragStart(eventArgs);
+    private _handleMouseDown: () => void = () => {
+        this.setState({ isPressed: true });
     }
 
-    private _handleDragEnd(/*eventArgs: KonvaEventObject<MouseEvent>*/): void {
-        // This is only here to silence a warning from Konva about handling drag start without drag end.
-        // (It doesn't understand that we're cheezing the drag operation by aborting it immediately.)
+    private _handleMouseUp: () => void = () => {
+        this.setState({ isPressed: false });
+        this.handleClick();
     }
 }
 
@@ -72,10 +81,11 @@ interface IStartStopButtonState extends IToolBarButtonState {
 
 export class StartStopButton extends ToolBarButton<IStartStopButtonProps, IStartStopButtonState> {
     public constructor(props: IStartStopButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isHovering: false,
             isEnabled: true,
+            isPressed: false,
             isRunning: this.props.model.isRunning,
         }
 
@@ -114,10 +124,11 @@ interface ISingleStepButtonProps extends IToolBarButtonProps {
 
 export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToolBarButtonState> {
     public constructor(props: ISingleStepButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isHovering: false,
             isEnabled: true,
+            isPressed: false,
         }
 
         this.props.model.onRunStateChanged(() => this.setState({ isEnabled: !this.props.model.isRunning }));
@@ -148,10 +159,11 @@ interface ILogicGateButtonProps extends IToolBarButtonProps {
 
 export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolBarButtonState> {
     constructor(props: ILogicGateButtonProps) {
-        super(props, true);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         };
     }
 
@@ -198,7 +210,7 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolB
         }
     }
 
-    protected handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
+    protected handleDragStart = (eventArgs: KonvaEventObject<MouseEvent>): void => {
         let prototype: Model.Interactable;
         switch(this.props.kind) {
             case 'timer':
@@ -224,10 +236,11 @@ interface IPaintButtonProps extends IToolBarButtonProps {
 
 export class PaintButton extends ToolBarButton<IPaintButtonProps, IToolBarButtonState> {
     constructor(props: IPaintButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
     protected getContent(): JSX.Element | JSX.Element[] {
@@ -247,10 +260,11 @@ interface ILiftButtonProps extends IToolBarButtonProps {
 
 export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarButtonState> {
     constructor(props: ILiftButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
 
@@ -278,10 +292,11 @@ export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarBut
 
 export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarButtonState> {
     constructor(props: ILiftButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
 
@@ -314,17 +329,19 @@ interface IDeleteButtonProps extends IToolBarButtonProps {
 
 export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButtonState> {
     constructor(props: IDeleteButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: this.props.selected !== undefined,
-            isHovering: false
+            isHovering: false,
+            isPressed: false
         }
     }
 
     static getDerivedStateFromProps(props: IDeleteButtonProps, state: IToolBarButtonState): IToolBarButtonState {
         return {
             isEnabled: props.selected !== undefined,
-            isHovering: state.isHovering
+            isHovering: state.isHovering,
+            isPressed: state.isPressed,
         }
     }
 
@@ -345,10 +362,11 @@ interface ICopyLinkButtonProps extends IToolBarButtonProps {
 
 export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBarButtonState> {
     constructor(props: ICopyLinkButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
 
@@ -393,10 +411,11 @@ interface ISaveToFileButtonProps extends IToolBarButtonProps {
 
 export class SaveToFileButton extends ToolBarButton<ISaveToFileButtonProps, IToolBarButtonState> {
     constructor(props: ISaveToFileButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
 
@@ -418,10 +437,11 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
     private readonly fileInputElement: HTMLInputElement;
 
     constructor(props: ILoadFromFileButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
 
         const fileElem = document.getElementById("fileElem") as HTMLInputElement;
@@ -470,10 +490,11 @@ interface IReloadButtonProps extends IToolBarButtonProps {
 
 export class ReloadButton extends ToolBarButton<IReloadButtonProps, IToolBarButtonState> {
     constructor(props: IReloadButtonProps) {
-        super(props, false);
+        super(props);
         this.state = {
             isEnabled: true,
-            isHovering: false
+            isHovering: false,
+            isPressed: false,
         }
     }
 

@@ -26,12 +26,13 @@
 - [x] Two rows of buttons depending on width
 - [x] Place the ticker in the upper right (?)
 - [x] Clean up the button dialog
-- [ ] Don't allow placing interactables unless they're mostly visible
+- [x] Don't allow placing interactables unless they're mostly visible
 - [x] Button for sharing hyperlink
 - [x] Button for loading from json
 - [x] Button for exporting to json
 - [x] Clean up warnings
 - [x] Sized appropriately
+- [ ] Dragging a thing off the stage deletes it
 - [ ] Introductory text and help
 - [ ] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [x] Clicking in the field should clear the selection

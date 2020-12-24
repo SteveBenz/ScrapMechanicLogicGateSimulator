@@ -30,6 +30,7 @@ interface AppState {
 
 export class App extends React.Component<AppProps, AppState> {
     private stage: Konva.Stage | undefined;
+    private maxSensibleDropY = 0; // Set in render
 
     constructor(props: AppProps) {
         super(props);
@@ -41,7 +42,6 @@ export class App extends React.Component<AppProps, AppState> {
             windowInnerHeight: window.innerHeight,
             windowInnerWidth: window.innerWidth
         };
-        // this.stageRef = React.useRef(undefined);
 
         for (const i of this.props.simulator.interactables) {
             i.onMoved(this.handleInteractableMoved);
@@ -189,9 +189,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     handleMouseUpInStage(e: KonvaEventObject<MouseEvent>): void {
         // This handles mouseUp events from the field, 
-        const source = this.state.linkSource;
-        let wasChanged = false;
-        if (source) {
+        if (this.state.linkSource) {
             let target = undefined;
             for (const i of this.state.interactables) {
                 // TODO: the Interactable viewmodel should decide the in-bounds calculation
@@ -202,22 +200,14 @@ export class App extends React.Component<AppProps, AppState> {
                  }
             }
 
-            if (target && target !== source) {
-                wasChanged = target.addInput(source);
+            if (target && target !== this.state.linkSource && target.addInput(this.state.linkSource)) {
+                this.setState({links: this.props.simulator.getLinks(), linkSource: undefined, createByDragPrototype: undefined});
             }
         }
-        else if (this.state.createByDragPrototype) {
+        else if (this.state.createByDragPrototype && this.state.createByDragPrototype.y < this.maxSensibleDropY) {
             this.props.simulator.add(this.state.createByDragPrototype);
-            this.setState({
-                createByDragPrototype: undefined
-            });
         }
-        if (wasChanged) {
-            this.setState({links: this.props.simulator.getLinks(), linkSource: undefined});
-        }
-        else {
-            this.setState({linkSource: undefined});
-        }
+        this.setState({linkSource: undefined, createByDragPrototype: undefined});
     }
 
     handleMouseUpInInteractable(): void {
@@ -260,6 +250,10 @@ export class App extends React.Component<AppProps, AppState> {
         this.setState({
             createByDragPrototype: e.prototype
         })
+    }
+
+    private handleMouseLeave(): void {
+        this.setState({linkSource: undefined, createByDragPrototype: undefined});
     }
 
     getViewModelForModel(model: Model.Interactable, id: string): JSX.Element {
@@ -311,6 +305,9 @@ export class App extends React.Component<AppProps, AppState> {
         const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
         const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);
         const buttonRowX = (n: number) => hSpaceBetweenButtons + (hSpaceBetweenButtons + buttonWidth) * (n >= maximumButtonsPerRow && numRows > 1 ? n - maximumButtonsPerRow : n);
+
+        this.maxSensibleDropY = buttonRowY(0)-32;
+
         if (this.state.linkSource) {
             pointer = <Arrow
                 x={this.state.linkSource.x+32}
@@ -329,6 +326,7 @@ export class App extends React.Component<AppProps, AppState> {
                 ref={(c: Konva.Stage) => {this.stage = c;}}
                 onMouseUp={this.handleMouseUpInStage.bind(this)}
                 onMouseMove={this.handleMouseMove.bind(this)}
+                onMouseLeave={this.handleMouseLeave.bind(this)}
             >
                 <Layer>
                     <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
