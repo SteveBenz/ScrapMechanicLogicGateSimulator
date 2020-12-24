@@ -325,7 +325,7 @@ export class App extends React.Component<AppProps, AppState> {
                     {this.state.links.map((link: IInteractableLink, index:number) => <ViewModel.LinkArrow key={index} source={link.source} target={link.target}/>)}
                 </Layer>
                 <Layer>
-                    <Rect x={5} y={canvasHeight-75} height={70} width={canvasWidth-10} fill='papayawhip' />
+                    <Rect x={0} y={canvasHeight-80} height={80} width={canvasWidth} fill='papayawhip' />
                     <Line points={[0, canvasHeight-80, window.innerWidth-40, canvasHeight-80]} stroke='grey' strokeWidth={3}/>
                     <StartStopButton x={buttonRowX(0)} y={buttonRowY} model={this.props.simulator}/>
                     <SingleStepButton x={buttonRowX(1)} y={buttonRowY} model={this.props.simulator}/>

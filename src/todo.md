@@ -23,10 +23,10 @@
 - [x] Take off lift button
 - [x] Paint button
 - [x] Reload button
-- [ ] Two rows of buttons
-- [ ] All Input/Timer/LogicGate buttons can work on any interactable
-- [ ] Don't allow placing interactables unless they're mostly visible
+- [ ] Two rows of buttons depending on width
 - [ ] Place the ticker in the upper right (?)
+- [ ] Clean up the button dialog
+- [ ] Don't allow placing interactables unless they're mostly visible
 - [x] Button for sharing hyperlink
 - [x] Button for loading from json
 - [x] Button for exporting to json
@@ -34,11 +34,16 @@
 - [x] Sized appropriately
 - [ ] Introductory text and help
 - [ ] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
-- [ ] Make imported drawings resize
 - [x] Clicking in the field should clear the selection
+- [ ] Error messages
 
 ## Deploy to GitHub
 
 - [ ] Checked in to repo
 - [ ] Figure out how to deploy
 - [ ] Revisit copy to clipboard
+
+## Cut ideas
+
+- [ ] Make imported drawings resize
+- [ ] All Input/Timer/LogicGate buttons can work on any interactable
