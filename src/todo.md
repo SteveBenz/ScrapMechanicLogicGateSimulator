@@ -23,9 +23,9 @@
 - [x] Take off lift button
 - [x] Paint button
 - [x] Reload button
-- [ ] Two rows of buttons depending on width
-- [ ] Place the ticker in the upper right (?)
-- [ ] Clean up the button dialog
+- [x] Two rows of buttons depending on width
+- [x] Place the ticker in the upper right (?)
+- [x] Clean up the button dialog
 - [ ] Don't allow placing interactables unless they're mostly visible
 - [x] Button for sharing hyperlink
 - [x] Button for loading from json

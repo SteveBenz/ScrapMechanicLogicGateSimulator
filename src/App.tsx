@@ -332,7 +332,7 @@ export class App extends React.Component<AppProps, AppState> {
             >
                 <Layer>
                     <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
-                    <TC.TickCounter simulator={this.props.simulator} />
+                    <TC.TickCounter simulator={this.props.simulator} right={canvasWidth - 20} top={5} />
                     {this.state.interactables.map((model: Interactable, index: number) =>
                         this.getViewModelForModel(model, index.toString())
                     )}

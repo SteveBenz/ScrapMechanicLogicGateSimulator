@@ -92,6 +92,9 @@ export class Simulator {
         for (const i of this.interactables) {
             i.reload();
         }
+
+        this.currentTick = 0;
+        this._emitTick();
     }
 
     public serializeToCompressedQueryStringFragment(): string {
@@ -177,7 +180,7 @@ export class Simulator {
 
     private _advanceOne(): void {
         ++this.currentTick;
-        this._events.emit(EventNames.tick, { simulator: this, tick: this.currentTick } as IEventArgsTick);
+        this._emitTick();
 
         for (const i of this.interactables) {
             i.apply();
@@ -193,6 +196,10 @@ export class Simulator {
 
     public offTick(handler: (eventArgs: IEventArgsTick) => void): void {
         this._events.off(EventNames.tick, handler);
+    }
+
+    private _emitTick() {
+        this._events.emit(EventNames.tick, { simulator: this, tick: this.currentTick } as IEventArgsTick);
     }
 
     public onInteractableAdded(handler: (EventTarget: IEventArgsInteractableAdded) => void): void {
