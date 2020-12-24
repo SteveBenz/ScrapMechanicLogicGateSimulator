@@ -288,11 +288,17 @@ export class App extends React.Component<AppProps, AppState> {
 
     render(): JSX.Element {
         let pointer: Array<JSX.Element> | JSX.Element = [];
+        const hSpaceBetweenButtons = 15; // the horizontal between each button (and the edges)
+        const vSpaceBetweenButtons = 8;
+        const buttonWidth = 64;
+        const buttonHeight = 64;
+        const maximumButtonsPerRow = 9;
         const canvasHeight = window.innerHeight*.7;
         const canvasWidth = window.innerWidth-40;
-        const buttonRowY: number = canvasHeight-80+(80-64)/2;
-        const buttonRowX = (n: number) => 15+(15+64)*n;
-        const buttonRowHeight = 75;
+        const numRows = canvasWidth < hSpaceBetweenButtons + 2*maximumButtonsPerRow*(buttonWidth+hSpaceBetweenButtons) ? 2 : 1;
+        const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
+        const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);
+        const buttonRowX = (n: number) => hSpaceBetweenButtons + (hSpaceBetweenButtons + buttonWidth) * (n >= maximumButtonsPerRow && numRows > 1 ? n - maximumButtonsPerRow : n);
         if (this.state.linkSource) {
             pointer = <Arrow
                 x={this.state.linkSource.x+32}
@@ -306,7 +312,7 @@ export class App extends React.Component<AppProps, AppState> {
         }
         return (
             <Stage
-                width={canvasWidth}
+                width={canvasWidth-4}
                 height={canvasHeight}
                 ref={(c: Konva.Stage) => {this.stage = c;}}
                 onMouseUp={this.handleMouseUpInStage.bind(this)}
@@ -325,26 +331,26 @@ export class App extends React.Component<AppProps, AppState> {
                     {this.state.links.map((link: IInteractableLink, index:number) => <ViewModel.LinkArrow key={index} source={link.source} target={link.target}/>)}
                 </Layer>
                 <Layer>
-                    <Rect x={0} y={canvasHeight-80} height={80} width={canvasWidth} fill='papayawhip' />
-                    <Line points={[0, canvasHeight-80, window.innerWidth-40, canvasHeight-80]} stroke='grey' strokeWidth={3}/>
-                    <StartStopButton x={buttonRowX(0)} y={buttonRowY} model={this.props.simulator}/>
-                    <SingleStepButton x={buttonRowX(1)} y={buttonRowY} model={this.props.simulator}/>
-                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY} selected={this.state.selected} kind='and' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY} selected={this.state.selected} kind='or' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY} selected={this.state.selected} kind='xor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY} selected={this.state.selected} kind='nand' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY} selected={this.state.selected} kind='nor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY} selected={this.state.selected} kind='xnor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(8)} y={buttonRowY} selected={this.state.selected} kind='input' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(9)} y={buttonRowY} selected={this.state.selected} kind='timer' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <PaintButton x={buttonRowX(10)} y={buttonRowY} selected={this.state.selected}/>
-                    <PutOnLiftButton x={buttonRowX(11)} y={buttonRowY} simulator={this.props.simulator}/>
-                    <TakeOffLiftButton x={buttonRowX(12)} y={buttonRowY} simulator={this.props.simulator}/>
-                    <DeleteButton x={buttonRowX(13)} y={buttonRowY} simulator={this.props.simulator} selected={this.state.selected}/>
-                    <CopyLinkButton x={buttonRowX(14)} y={buttonRowY} simulator={this.props.simulator}/>
-                    <LoadFromFileButton x={buttonRowX(15)} y={buttonRowY} simulator={this.props.simulator}/>
-                    <SaveToFileButton x={buttonRowX(16)} y={buttonRowY} simulator={this.props.simulator}/>
-                    <ReloadButton x={buttonRowX(17)} y={buttonRowY} simulator={this.props.simulator}/>
+                    <Rect x={0} y={canvasHeight-buttonRowHeight} height={buttonRowHeight} width={canvasWidth} fill='papayawhip' />
+                    <Line points={[0, canvasHeight-buttonRowHeight, canvasWidth, canvasHeight-buttonRowHeight]} stroke='grey' strokeWidth={3}/>
+                    <LogicGateButton x={buttonRowX(0)} y={buttonRowY(0)} selected={this.state.selected} kind='and' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(1)} y={buttonRowY(1)} selected={this.state.selected} kind='or' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY(2)} selected={this.state.selected} kind='xor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY(3)} selected={this.state.selected} kind='nand' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY(4)} selected={this.state.selected} kind='nor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY(5)} selected={this.state.selected} kind='xnor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY(6)} selected={this.state.selected} kind='input' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY(7)} selected={this.state.selected} kind='timer' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
+                    <DeleteButton x={buttonRowX(8)} y={buttonRowY(8)} simulator={this.props.simulator} selected={this.state.selected}/>
+                    <StartStopButton x={buttonRowX(9)} y={buttonRowY(9)} model={this.props.simulator}/>
+                    <SingleStepButton x={buttonRowX(10)} y={buttonRowY(10)} model={this.props.simulator}/>
+                    <ReloadButton x={buttonRowX(11)} y={buttonRowY(11)} simulator={this.props.simulator}/>
+                    <PaintButton x={buttonRowX(12)} y={buttonRowY(12)} selected={this.state.selected}/>
+                    <PutOnLiftButton x={buttonRowX(13)} y={buttonRowY(13)} simulator={this.props.simulator}/>
+                    <TakeOffLiftButton x={buttonRowX(14)} y={buttonRowY(14)} simulator={this.props.simulator}/>
+                    <CopyLinkButton x={buttonRowX(15)} y={buttonRowY(15)} simulator={this.props.simulator}/>
+                    <LoadFromFileButton x={buttonRowX(16)} y={buttonRowY(16)} simulator={this.props.simulator}/>
+                    <SaveToFileButton x={buttonRowX(17)} y={buttonRowY(17)} simulator={this.props.simulator}/>
                 </Layer>
             </Stage>
         );
@@ -359,7 +365,14 @@ export function makeItSo(): void {
         serialized = Simulator.decompressQueryStringFragment(queryString);
     }
 
-    ViewModel.loadAssets(() => {
+    function reRender()
+    {
         render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
+    }
+
+    ViewModel.loadAssets(() => {
+        reRender();
+
+        window.addEventListener('resize', reRender);
     });
 }
