@@ -90,7 +90,10 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     public componentDidMount(): void {
-        if (!this.stage) throw 'stage was not set';
+        if (!this.stage) {
+            throw new Error("stage was not set?");
+        }
+
         const container = this.stage.container();
         container.tabIndex = 1;
         container.focus();
@@ -100,7 +103,7 @@ export class App extends React.Component<AppProps, AppState> {
     handleKeyPress = (e: KeyboardEvent):void => {
         const xy: Vector2d | null | undefined = this.stage?.getPointerPosition();
         if (!xy) {
-            throw 'stage was not set?';
+            throw new Error("stage was not set?");
         }
 
         if (e.key === "g") {
@@ -279,7 +282,7 @@ export class App extends React.Component<AppProps, AppState> {
                 onClick={this.handleInteractableClicked.bind(this)}/>
         }
         else {
-            throw 'unexpected model object type';
+            throw new Error("unexpected model object type");
         }
     }
 

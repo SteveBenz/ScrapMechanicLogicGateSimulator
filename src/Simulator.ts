@@ -139,7 +139,7 @@ export class Simulator {
 
     public add(interactable: Interactable): void {
         this.interactables.push(interactable);
-        this._events.emit(EventNames.interactableAdded, <IEventArgsInteractableAdded>{ simulator: this, interactable: interactable });
+        this._events.emit(EventNames.interactableAdded, { simulator: this, interactable: interactable } as IEventArgsInteractableAdded);
     }
 
     public remove(interactable: Interactable): boolean {
@@ -156,7 +156,7 @@ export class Simulator {
 
         if (didRemove)
         {
-            this._events.emit(EventNames.interactableRemoved, <IEventArgsInteractableRemoved>{ simulator: this, interactable: interactable });
+            this._events.emit(EventNames.interactableRemoved, { simulator: this, interactable: interactable } as IEventArgsInteractableRemoved);
         }
 
         return didRemove;
@@ -171,7 +171,7 @@ export class Simulator {
 
     private _advanceOne(): void {
         ++this.currentTick;
-        this._events.emit(EventNames.tick, <IEventArgsTick>{ simulator: this, tick: this.currentTick });
+        this._events.emit(EventNames.tick, { simulator: this, tick: this.currentTick } as IEventArgsTick);
 
         for (const i of this.interactables) {
             i.apply();

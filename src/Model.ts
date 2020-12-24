@@ -38,7 +38,7 @@ export class Interactable {
             case 'input':
                 return new Input(serialized as ISerializedInput);
             case 'timer':
-                throw "not implemented";
+                return new Timer(serialized as ISerializedTimer);
             default:
                 return new LogicGate(serialized as ISerializedLogicGate);
         }
@@ -60,7 +60,7 @@ export class Interactable {
     public get currentState(): boolean { return this._currentState; }
 
     protected setCurrentState(newValue: boolean): void {
-        if (this._currentState != newValue) {
+        if (this._currentState !== newValue) {
             this._currentState = newValue;
             this._emitStateChanged();
         }
@@ -68,7 +68,7 @@ export class Interactable {
 
     public get prevState(): boolean { return this._prevState; }
     protected setPrevState(newValue: boolean): void {
-        if (this._prevState != newValue) {
+        if (this._prevState !== newValue) {
             this._prevState = newValue;
             this._emitStateChanged();
         }
@@ -83,7 +83,7 @@ export class Interactable {
     }
 
     addInput(newInput: Interactable): boolean {
-        if (this.inputLimit == 0) {
+        if (this.inputLimit === 0) {
             // Can't draw a connection *to* an input.
             return false;
         }
@@ -175,11 +175,11 @@ export class Interactable {
     }
 
     protected _emitMoved(x: number, y: number): void {
-        this.events.emit('moved', <IEventArgsInteractableMoved>{ source: this, x, y } );
+        this.events.emit('moved', { source: this, x, y } as IEventArgsInteractableMoved);
     }
 
     protected _emitStateChanged(): void {
-        this.events.emit('stateChanged', <IEventArgsInteractable>{ source: this } );
+        this.events.emit('stateChanged', { source: this } as IEventArgsInteractable);
     }
 }
 
@@ -233,7 +233,7 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
     constructor(props: ISerializedLogicGate) {
         super(props);
         if (props.kind === 'timer' || props.kind === 'input') {
-            throw "Caller should prevent this";
+            throw new Error("Caller should prevent this");
         }
 
         this._kind = props.kind;
@@ -309,13 +309,9 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
     }
 }
 
-type ISerializedInput = ISerializedInteractableWithSingleBitSavedState
+export type ISerializedInput = ISerializedInteractableWithSingleBitSavedState;
 
 export class Input extends InteractableWithSingleBitSavedState {
-    constructor(props: ISerializedInput) {
-        super(props);
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     twiddle(_direction: -1 | 1): void {
         this.setCurrentState(!this.currentState);
@@ -339,13 +335,13 @@ interface ISerializedTimer extends ISerializedInteractable {
 export class Timer extends Interactable {
     private readonly _tickStorage: Array<boolean>;
 
-    public constructor(props: ISerializedTimer) {
-        super(props);
-        this._tickStorage = [ ... props.tickStorage ];
+    public constructor(serialized: ISerializedTimer) {
+        super(serialized);
+        this._tickStorage = [ ...serialized.tickStorage ];
     }
 
     public get tickStorage(): Array<boolean> {
-        return [... this._tickStorage];
+        return [...this._tickStorage];
     }
 
     public export(): ISerializedTimer {

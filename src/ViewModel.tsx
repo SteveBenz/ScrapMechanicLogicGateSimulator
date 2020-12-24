@@ -43,10 +43,6 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
 
     private group: Konva.Group | null | undefined;
 
-    constructor(props: TProps) {
-        super(props);
-    }
-
     public componentDidMount(): void {
         // after this point, the model is drawn and is reacting to events.
         if (!this.attachedModel) {
@@ -84,7 +80,7 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         // help anymore from here, as we don't get useful events.
         if (!e.evt.shiftKey) {
             if (!this.group) {
-                throw 'group did not get set in render';
+                throw new Error('group did not get set in render');
             }
 
             this.group.stopDrag();
@@ -155,20 +151,17 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
 }
 
 export class InteractableWithSingleBitSavedState<TProps extends IInteractableProps, TState extends IInteractableState> extends Interactable<TProps, TState> {
-    constructor(props: TProps) {
-        super(props);
-    }
-
     protected groupContent(): Array<JSX.Element> {
         if (this.props.model instanceof Model.InteractableWithSingleBitSavedState) {
             const size=16;
             return super.groupContent()
                 .concat(
-                <Line points={[63-size, 0, 63, 0, 63, size]}
-                    fill={this.props.model.savedState ? 'blue' : 'transparent'}
-                    stroke='blue'
-                    strokeWidth={3}
-                    closed={true} />);
+                <Line key='saveStateIndicator'
+                      points={[63-size, 0, 63, 0, 63, size]}
+                      fill={this.props.model.savedState ? 'blue' : 'transparent'}
+                      stroke='blue'
+                      strokeWidth={3}
+                      closed={true} />);
         }
         else {
             return super.groupContent();

@@ -7,7 +7,6 @@ import { Interactable } from "./Model";
 import { KonvaEventObject } from "konva/types/Node";
 import FileSaver from 'file-saver';
 
-
 interface IToolBarButtonProps {
     x: number;
     y: number;
@@ -182,11 +181,11 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolB
             return;
         }
 
-        if (this.props.kind == 'input' && this.props.selected instanceof Model.Input) {
+        if (this.props.kind === 'input' && this.props.selected instanceof Model.Input) {
             this.props.selected.twiddle(1);
-        } else if (this.props.kind == 'timer' && this.props.selected instanceof Model.Timer) {
+        } else if (this.props.kind === 'timer' && this.props.selected instanceof Model.Timer) {
             // no action
-        } else if (this.props.kind != 'timer' && this.props.kind != 'input' && this.props.selected instanceof Model.LogicGate) {
+        } else if (this.props.kind !== 'timer' && this.props.kind !== 'input' && this.props.selected instanceof Model.LogicGate) {
             this.props.selected.kind = this.props.kind;
         } else {
             // TODO: Convert the interactable
@@ -360,7 +359,7 @@ export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBar
         // https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
         const box = document.createElement("textarea");
         if (!box) {
-            throw 'textarea is missing in index.html'
+            throw new Error("textarea is missing in index.html");
         }
 
         // Avoid scrolling to bottom
@@ -421,7 +420,7 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
 
         const fileElem = document.getElementById("fileElem") as HTMLInputElement;
         if (!fileElem) {
-            throw "index.html is busted - fileElem <input> is missing";
+            throw new Error("index.html is busted - fileElem <input> is missing");
         }
 
         this.fileInputElement = fileElem;
@@ -436,7 +435,7 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
     protected handleClick(): void {
         const fileElem = document.getElementById("fileElem");
         if (!fileElem) {
-            throw 'fileElem is missing in index.html';
+            throw new Error("fileElem is missing in index.html");
         }
         fileElem.click();
     }
