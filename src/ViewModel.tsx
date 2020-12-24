@@ -20,7 +20,7 @@ interface IInteractableProps {
     onClick?: (eventArgs: IEventArgsInteractable) => void;
     onLinkStart?: (eventArgs: IEventArgsInteractable) => void;
     onMouseUp?: (eventArgs: IEventArgsInteractable) => void;
-    id: string;
+    key: string;
     isSelected: boolean;
 }
 

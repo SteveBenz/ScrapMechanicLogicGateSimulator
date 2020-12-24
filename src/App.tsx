@@ -255,7 +255,7 @@ export class App extends React.Component<AppProps, AppState> {
             return (
                 <ViewModel.LogicGate
                     model={model}
-                    id={id}
+                    key={id}
                     isSelected={model === this.state.selected}
                     onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
@@ -266,7 +266,7 @@ export class App extends React.Component<AppProps, AppState> {
         else if (model instanceof Model.Input) {
                 return <ViewModel.Input
                     model={model}
-                    id={id}
+                    key={id}
                     isSelected={model === this.state.selected}
                     onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
@@ -275,7 +275,7 @@ export class App extends React.Component<AppProps, AppState> {
         else if (model instanceof Model.Timer) {
             return <ViewModel.Timer
                 model={model}
-                id={id}
+                key={id}
                 isSelected={model === this.state.selected}
                 onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                 onLinkStart={this.handleLinkStart.bind(this)}

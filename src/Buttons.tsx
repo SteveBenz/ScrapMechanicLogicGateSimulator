@@ -26,6 +26,7 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
         return <Group x={this.props.x} y={this.props.y}
                       draggable={this.isDraggable}
                       onDragStart={this._handleDragStart.bind(this)}
+                      onDragEnd={this._handleDragEnd.bind(this)}
                       onMouseEnter={() => {this.setState({ isHovering: true })}}
                       onMouseLeave={() => {this.setState({ isHovering: false })}}
                       onClick={this._handleClick.bind(this)}>
@@ -53,6 +54,11 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
     private _handleDragStart(eventArgs: KonvaEventObject<MouseEvent>): void {
         eventArgs.target.stopDrag(eventArgs);
         this.handleDragStart(eventArgs);
+    }
+
+    private _handleDragEnd(/*eventArgs: KonvaEventObject<MouseEvent>*/): void {
+        // This is only here to silence a warning from Konva about handling drag start without drag end.
+        // (It doesn't understand that we're cheezing the drag operation by aborting it immediately.)
     }
 }
 
