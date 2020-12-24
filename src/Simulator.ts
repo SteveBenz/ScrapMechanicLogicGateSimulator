@@ -88,6 +88,12 @@ export class Simulator {
         this.stopRunning();
     }
 
+    public gameReload(): void {
+        for (const i of this.interactables) {
+            i.reload();
+        }
+    }
+
     public serializeToCompressedQueryStringFragment(): string {
         const jsonSerialized: string = JSON.stringify(this.serialize());
         const compressed: Uint8Array = pako.deflate(jsonSerialized);

@@ -9,7 +9,7 @@ import * as Model from "./Model";
 import Konva from 'konva';
 import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
-import { CopyLinkButton, DeleteButton, IDragNewInteractableDragEventArgs, LoadFromFileButton, LogicGateButton, PaintButton, PutOnLiftButton, SaveToFileButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
+import { CopyLinkButton, DeleteButton, IDragNewInteractableDragEventArgs, LoadFromFileButton, LogicGateButton, PaintButton, PutOnLiftButton, ReloadButton, SaveToFileButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
 import { KonvaEventObject } from "konva/types/Node";
 
 interface AppProps {
@@ -344,6 +344,7 @@ export class App extends React.Component<AppProps, AppState> {
                     <CopyLinkButton x={buttonRowX(14)} y={buttonRowY} simulator={this.props.simulator}/>
                     <LoadFromFileButton x={buttonRowX(15)} y={buttonRowY} simulator={this.props.simulator}/>
                     <SaveToFileButton x={buttonRowX(16)} y={buttonRowY} simulator={this.props.simulator}/>
+                    <ReloadButton x={buttonRowX(17)} y={buttonRowY} simulator={this.props.simulator}/>
                 </Layer>
             </Stage>
         );

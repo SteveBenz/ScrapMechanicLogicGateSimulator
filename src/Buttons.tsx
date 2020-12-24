@@ -463,3 +463,25 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
     }
 }
 
+
+interface IReloadButtonProps extends IToolBarButtonProps {
+    simulator: Simulator;
+}
+
+export class ReloadButton extends ToolBarButton<IReloadButtonProps, IToolBarButtonState> {
+    constructor(props: IReloadButtonProps) {
+        super(props, false);
+        this.state = {
+            isEnabled: true,
+            isHovering: false
+        }
+    }
+
+    protected getContent(): JSX.Element | JSX.Element[] {
+        return <Text text="&#8645;" x={16} y={14} fontSize={42} fill='black'/>;
+    }
+
+    protected handleClick(): void {
+        this.props.simulator.gameReload();
+    }
+}
