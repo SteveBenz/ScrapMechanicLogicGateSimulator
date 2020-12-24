@@ -24,6 +24,8 @@ interface AppState {
     linkTargetX?: number;
     linkTargetY?: number;
     createByDragPrototype?: Interactable;
+    windowInnerHeight: number;
+    windowInnerWidth: number;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -36,6 +38,8 @@ export class App extends React.Component<AppProps, AppState> {
             links: props.simulator.getLinks(),
             selected: undefined,
             linkSource: undefined,
+            windowInnerHeight: window.innerHeight,
+            windowInnerWidth: window.innerWidth
         };
         // this.stageRef = React.useRef(undefined);
 
@@ -98,6 +102,14 @@ export class App extends React.Component<AppProps, AppState> {
         container.tabIndex = 1;
         container.focus();
         container.addEventListener("keypress", this.handleKeyPress);
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    handleResize = ():void => {
+        this.setState({
+            windowInnerWidth: window.innerWidth,
+            windowInnerHeight: window.innerHeight
+        });
     }
 
     handleKeyPress = (e: KeyboardEvent):void => {
@@ -365,14 +377,8 @@ export function makeItSo(): void {
         serialized = Simulator.decompressQueryStringFragment(queryString);
     }
 
-    function reRender()
-    {
-        render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
-    }
-
     ViewModel.loadAssets(() => {
-        reRender();
-
-        window.addEventListener('resize', reRender);
+        render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
     });
 }
+
