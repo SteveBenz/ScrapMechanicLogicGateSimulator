@@ -23,6 +23,8 @@ const buttonHeight = 64;
 const pressedScalingFactor = 1.05;
 
 abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends IToolBarButtonState> extends React.Component<TProps, TState> {
+    private timeoutHandle: NodeJS.Timeout | undefined;
+
     public constructor(props: TProps) {
         super(props);
     }
@@ -47,9 +49,60 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
     protected abstract handleClick(): void;
 
     protected handleDragStart: ((eventArgs: KonvaEventObject<MouseEvent>) => void) | undefined = undefined;
+    protected readonly toolTipId: string | undefined;
+
+    public componentWillUnmount() {
+        this.clearToolTipTimer();
+    }
+
+    private startToolTipTimer() {
+        if (!this.timeoutHandle && this.toolTipId && document.getElementById(this.toolTipId)) {
+            this.timeoutHandle = setTimeout(this._handleTimeout, 1000);
+        }        
+    }
+
+    private clearToolTipTimer() {
+        if (this.timeoutHandle) {
+            clearTimeout(this.timeoutHandle);
+            this.timeoutHandle = undefined;
+        }
+
+        if (!this.toolTipId) {
+            return;
+        }
+
+        const element: HTMLElement | null = document.getElementById(this.toolTipId);
+        if (!element) {
+            throw new Error("toolTipId is defined, but not in the docuemnt");
+        }
+
+        element.style.visibility = 'hidden';
+    }
+
+    private _handleTimeout: () => void = () => {
+        this.timeoutHandle = undefined;
+        if (!this.toolTipId) {
+            return;
+        }
+
+        const element: HTMLElement | null = document.getElementById(this.toolTipId);
+        if (!element) {
+            throw new Error("toolTipId is defined, but not in the docuemnt");
+        }
+
+        element.style.visibility = 'visible';
+        element.style.top = (this.props.y - element.clientHeight - 5) + 'px';
+        let left:number = this.props.x + buttonWidth/2 - element.clientWidth/2;
+        if (left < 0) {
+            left = 10;
+        }
+        element.style.top = (this.props.y - element.clientHeight - 5) + 'px';
+        element.style.left = left + 'px';
+    }
 
     private _handleMouseEnter: () => void = () => {
         this.setState({ isHovering: true });
+        this.startToolTipTimer();
     }
 
     private _handleMouseLeave: (_: KonvaEventObject<MouseEvent>) => void = (eventArgs) => {
@@ -59,15 +112,18 @@ abstract class ToolBarButton<TProps extends IToolBarButtonProps,TState extends I
         }
 
         this.setState({ isHovering: false, isPressed: false });
+        this.clearToolTipTimer();
     }
 
     private _handleMouseDown: () => void = () => {
         this.setState({ isPressed: true });
+        this.clearToolTipTimer();
     }
 
     private _handleMouseUp: () => void = () => {
         this.setState({ isPressed: false });
         this.handleClick();
+        this.startToolTipTimer();
     }
 }
 
@@ -91,6 +147,8 @@ export class StartStopButton extends ToolBarButton<IStartStopButtonProps, IStart
 
         this.props.model.onRunStateChanged(this.handleRunStateChanged.bind(this));
     }
+
+    toolTipId = "playPauseTip";
 
     private handleRunStateChanged(): void {
         this.setState({ isRunning: this.props.model.isRunning });
@@ -134,6 +192,8 @@ export class SingleStepButton extends ToolBarButton<ISingleStepButtonProps, IToo
         this.props.model.onRunStateChanged(() => this.setState({ isEnabled: !this.props.model.isRunning }));
     }
 
+    toolTipId = "singleStepTip";
+
     protected getContent(): JSX.Element | Array<JSX.Element> {
         return <Line points={[32+12, 32, 32-16, 32+16, 32-16, 32-16, 32+12, 32, 32+12, 32-16, 32+12, 32+16]}
         strokeWidth={4}
@@ -166,6 +226,12 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolB
             isPressed: false,
         };
     }
+
+    toolTipId = this.props.kind === 'input'
+        ? 'inputTip'
+        : (this.props.kind === 'timer' 
+            ? 'timerTip'
+            : 'logicGateTip');
 
     protected getContent(): JSX.Element | JSX.Element[] {
         switch(this.props.kind) {
@@ -243,6 +309,9 @@ export class PaintButton extends ToolBarButton<IPaintButtonProps, IToolBarButton
             isPressed: false,
         }
     }
+
+    toolTipId = 'paintTip';
+
     protected getContent(): JSX.Element | JSX.Element[] {
         return <Image x={0} y={0} image={ViewModel._assets['paint'].image()} />;
     }
@@ -267,6 +336,8 @@ export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarBut
             isPressed: false,
         }
     }
+
+    toolTipId = 'putOnLiftTip';
 
     protected getContent(): JSX.Element | JSX.Element[] {
         return [ <Line key='base'
@@ -314,6 +385,8 @@ export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarB
                         fill='blue'/>];
     }
 
+    toolTipId = 'takeOffLiftTip';
+
     protected handleClick(): void {
         for (const i of this.props.simulator.interactables) {
             i.paint();
@@ -336,6 +409,8 @@ export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButt
             isPressed: false
         }
     }
+
+    toolTipId = 'deleteTip';
 
     static getDerivedStateFromProps(props: IDeleteButtonProps, state: IToolBarButtonState): IToolBarButtonState {
         return {
@@ -373,6 +448,8 @@ export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBar
     protected getContent(): JSX.Element | JSX.Element[] {
         return <Text text="&#128279;" x={6} y={14} fontSize={42} fill='black'/>;
     }
+
+    toolTipId = 'shareLinkTip';
 
     protected handleClick(): void {
 
@@ -419,6 +496,8 @@ export class SaveToFileButton extends ToolBarButton<ISaveToFileButtonProps, IToo
         }
     }
 
+    toolTipId = 'saveTip';
+
     protected getContent(): JSX.Element | JSX.Element[] {
         return <Text text="&#128190;" x={6} y={14} fontSize={42} fill='black'/>;
     }
@@ -453,6 +532,8 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
 
         this.fileInputElement.addEventListener('change', this.handleFileGiven.bind(this), false)
     }
+   
+    toolTipId = 'loadTip';
 
     protected getContent(): JSX.Element | JSX.Element[] {
         return <Text text="&#128193;" x={6} y={14} fontSize={42} fill='black'/>;
@@ -497,6 +578,8 @@ export class ReloadButton extends ToolBarButton<IReloadButtonProps, IToolBarButt
             isPressed: false,
         }
     }
+
+    toolTipId = 'reloadTip';
 
     protected getContent(): JSX.Element | JSX.Element[] {
         return <Text text="&#8645;" x={16} y={14} fontSize={42} fill='black'/>;

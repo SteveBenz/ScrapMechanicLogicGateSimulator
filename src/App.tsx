@@ -152,9 +152,6 @@ export class App extends React.Component<AppProps, AppState> {
             this.state.selected.twiddle(-1);
         } else if (e.key === ']' && this.state.selected) {
             this.state.selected.twiddle(1);
-        } else if (e.key === 'c') {
-            const box: HTMLInputElement = document.getElementById('urlbox') as HTMLInputElement;
-            box.value = this.props.simulator.serializeToCompressedQueryStringFragment();
         } else if (e.key === 'x' && this.state.selected) {
             this.props.simulator.remove(this.state.selected);
         } else if (e.key === '4') {
@@ -299,8 +296,8 @@ export class App extends React.Component<AppProps, AppState> {
         const buttonWidth = 64;
         const buttonHeight = 64;
         const maximumButtonsPerRow = 9;
-        const canvasHeight = window.innerHeight*.7;
-        const canvasWidth = window.innerWidth-40;
+        const canvasHeight = window.innerHeight*.9;
+        const canvasWidth = window.innerWidth-17; // Would love to know where the 17 comes from...
         const numRows = canvasWidth < hSpaceBetweenButtons + 2*maximumButtonsPerRow*(buttonWidth+hSpaceBetweenButtons) ? 2 : 1;
         const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
         const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);

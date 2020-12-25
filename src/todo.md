@@ -32,9 +32,10 @@
 - [x] Button for exporting to json
 - [x] Clean up warnings
 - [x] Sized appropriately
+- [ ] putOnLift button does a reload, not a reset like it should.
 - [ ] Dragging a thing off the stage deletes it
 - [ ] Introductory text and help
-- [ ] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
+- [x] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [x] Clicking in the field should clear the selection
 - [ ] Error messages
 

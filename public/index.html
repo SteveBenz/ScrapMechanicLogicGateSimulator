@@ -25,18 +25,101 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Scrap Mechanic Logic Gate Simulator</title>
+    <link rel="stylesheet" href="https://stevebenz.github.com/ScrapMechanicLogicGateSimulator/assets/css/style.css?v=18d8d7fdfd13a6b12e4a4b6a3e01f9115b55afc9">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <input type="text" id="urlbox"/>
+    <h3 style="text-align: center;">Scrap Mechanic Logic Gate Simulator</h3>
     <input type="file" id="fileElem" style="display:none" change="handleFileGiven">
-    <div id="root" style="margin-left:20px; margin-right: 20px; border: 2px solid green"></div>
-    <H1>Quick-Start Guide</H1>
-    <p>This just gives a quick overview of the features of the simulator.
-      For in-depth help (and, in particular, a discussion of what we mean
-      by "saved state" and why putting something on the lift would make
-      any difference at all, see the main help page.)
+    <div id="logicGateTip" class='tooltip'>
+      <p>If you have a logic gate selected in the field above, clicking on this will convert it to this kind of logic gate.</p>
+      <p>Dragging this button into the field above will create a new logic gate of this type.</p>
+    </div>
+    <div id="playPauseTip" class='tooltip'>
+      <p>Stop/pause the simulation.</p>
+    </div>
+    <div id="singleStepTip" class='tooltip'>
+      <p>Advance the simulation by one tick.</p>
+      <p><i>Not active unless the simulation is paused!</i></p>
+    </div>
+    <div id="inputTip" class='tooltip'>
+      <p><i>"Inputs" represents switches, buttons, and sensors in the game.</i></p>
+      <p>If you have an input selected in the field above, clicking on this will toggle the input on/off.</p>
+      <p>Dragging this button into the field above will create a new input.</p>
+    </div>
+    <div id="timerTip" class='tooltip'>
+      <p><i>A 9-tick timer - currently that's the only kind of timer supported.</i></p>
+      <p>Dragging this into the field above will create a new timer.</p>
+    </div>
+    <div id="deleteTip" class='tooltip'>
+      <p>Delete the selected input, timer, or logic gate.</p>
+    </div>
+    <div id="reloadTip" class='tooltip'>
+      <p>Simulate what happens when reload the game or game chunk.</p>
+    </div>
+    <div id="paintTip" class='tooltip'>
+      <p>"Paint" the selected logic gate or input.  In the game, this causes the current state to be the state that it will reload with.</p>
+    </div>
+    <div id="putOnLiftTip" class='tooltip'>
+      <p>Simulates putting the build on a lift - all states are wiped.</p>
+    </div>
+    <div id="takeOffLiftTip" class='tooltip'>
+      <p>Simulates taking the build off of a lift - this causes the current state of the circuit to become the saved state.</p>
+      <p>Reloading will cause it to return to this state.</p>
+    </div>
+    <div id="shareLinkTip" class='tooltip'>
+      <p>Create a sharable link to the current design and copy it to your clipboard.</p>
+      <p><i>Note that really big designs might not be sharable like this because of URL length restrictions.</i></p>
+    </div>
+    <div id="loadTip" class='tooltip'>
+      <p>Load a previously saved JSON copy of a design from a file on your machine.</p>
+    </div>
+    <div id="saveTip" class='tooltip'>
+      <p>Save a JSON copy of a design to a file on your machine.</p>
+    </div>
+
+    <div id="root" style="border: 2px solid green"></div>
+    <H3 style="margin-top: 20px">Get Started</H3>
+    <p>Drag logic gates, inputs, and timers from the button row at the bottom into the field.
+      Wire them up by dragging from the source to the target.  Once you've got a circuit, click the
+      Pay button (green triangle) to set it in motion or the Single-Step button to watch it more
+      carefully.
     </p>
+    <p>
+      You can move gates around in the field by shift-dragging them.  Re-wiring is done much like
+      it is in the game - re-connecting an already-connected pair deletes the link.  Wiring in the
+      opposite direction reverses the link.
+    </p>
+    <p>
+      <em>Gates, Inputs and Timers</em> - In the game there are buttons, switches and sensors that can
+      feed into the game.  In the simulator, all the inputs are coalesced into the "Input" object --
+      the single circle.  Toggle this on and off by selecting it and then clicking the "Input" button.
+      Similarly you can change the type of logic gate by selecting it and clicking on the one you
+      want to change to in the toolbar.  There is only one kind of timer - it's a "9 tick" timer in
+      scrap mechanic parlance, but remember that in scrap mechanic, there's such a thing as a "0 tick"
+      timer - which actually has the same delay as an 'and' gate.
+    </p>
+    <p>
+      <em>State</em> - A white background indicates a "True" state for logic gates or "On" for inputs;
+      a darker background indicates False/Off.  For timers, the white background means that the last
+      stored tick of the delay is currently "True".  The connections change colors with state as well.
+      Darker arrows come from sources that were on/true in the last tick.  The state-at-last-tick
+      is the basis for how logic gates work:  At each tick of the clock, a new state is calculated
+      for every element of the circuit based on the current state.  Once that is done for all elements,
+      that new value becomes the new "current" state of the component.  The color of the arrows can
+      show you which source caused your gate to be in the state it's currently in, even if the
+      sources have changed.
+    </p>
+    <p>
+      <em>Saved State</em> - It seems logical that if you exited and reloaded scrap mechanic, your
+      creation would be as you left it.  But that's not how it is with switches and logic gates.
+      They will return to the condition they were in when they were last changed in some way,
+      where "changed" means either being taken off of a lift, a wiring change, a type change
+      (for logic gates), or being painted.  The triangle in the upper-right corner indicates
+      the saved state - if it's empty, that means its saved state is "false".
+    </p>
+
+    <h3>Keyboard Shortcuts</h3>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -47,5 +130,13 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <p><em>l</em> - Add a logic gate at the current mouse position.</p>
+    <p><em>i</em> - Add an input at the current mouse position.</p>
+    <p><em>t</em> - Add a timer at the current mouse position.</p>
+    <p><em>g</em> - Start the simulator.</p>
+    <p><em>s</em> - Pause the simulator.</p>
+    <p><em>n</em> - Run the simulator for a single tick (not enabled when the simulator is running).</p>
+    <p><em>[</em> and <em>]</em> - Twiddle the selected logic gate or input.</p>
+    <p><em>x</em> - Delete the selected input, logic gate or timer.</p>
   </body>
 </html>
