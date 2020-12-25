@@ -190,8 +190,8 @@ export class App extends React.Component<AppProps, AppState> {
             let target = undefined;
             for (const i of this.state.interactables) {
                 // TODO: the Interactable viewmodel should decide the in-bounds calculation
-                if (i.x <= e.evt.x && e.evt.x < i.x+64
-                 && i.y <= e.evt.y && e.evt.y < i.y+64) {
+                if (i.x <= e.evt.offsetX && e.evt.offsetX < i.x+64
+                 && i.y <= e.evt.offsetY && e.evt.offsetY < i.y+64) {
                      target = i;
                      break;
                  }

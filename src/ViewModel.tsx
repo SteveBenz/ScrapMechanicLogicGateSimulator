@@ -310,7 +310,9 @@ export class LinkArrow extends React.Component<ILinkArrowProps> {
 export function loadAssets(onComplete: () => void): void
 {
     for (const kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor', 'paint']) {
-        Konva.Image.fromURL('/' + kind + '-black.png', (img: string) => {
+        // This whole thing is bad and this element is also bad...
+        const prefix = document.URL.indexOf('localhost') >= 0 ? '/' : '/ScrapMechanicLogicGateSimulator/';
+        Konva.Image.fromURL(prefix + kind + '-black.png', (img: string) => {
             _assets[kind] = img;
             if (Object.keys(_assets).length === 7) {
                 onComplete();
