@@ -451,32 +451,18 @@ export class CopyLinkButton extends ToolBarButton<ICopyLinkButtonProps, IToolBar
 
     toolTipId = 'shareLinkTip';
 
-    protected handleClick(): void {
-
-        // TODO: Doing this for-real seems to require being served by HTTPS, so re-test it then.  This is certainly
-        //   bad because it keeps recreating the textarea.  But it also is probably useless as there's a
-        //   navigator.clipboard function that would do this more easily.
-        //
-        // https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-        const box = document.createElement("textarea");
-        if (!box) {
-            throw new Error("textarea is missing in index.html");
+    protected async handleClick(): Promise<void> {
+        if (!navigator.clipboard) {
+            alert("Can't copy to clipboard - navigator.clipboard doesn't exist.  Perhaps you're using an older browser?");
+            return;
         }
 
-        // Avoid scrolling to bottom
-        box.style.top = "0";
-        box.style.left = "0";
-        box.style.position = "fixed";
-
-        box.value = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
-        box.focus();
-        box.select();
+        const url: string = window.location.origin + window.location.pathname + '?' + this.props.simulator.serializeToCompressedQueryStringFragment();
         try {
-            const successful = document.execCommand('copy');
-            const msg = successful ? 'successful' : 'unsuccessful';
-            alert('Fallback: Copying text command was ' + msg);
+            await navigator.clipboard.writeText(url);
+            alert("Copied the following URL to the clipboard:\n\n" + url);
         } catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
+            alert('navigator.clipboard.writeText failed!\n\n' + err);
         }
     }
 }

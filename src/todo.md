@@ -42,7 +42,7 @@
 ## Deploy to GitHub
 
 - [ ] Checked in to repo
-- [ ] Figure out how to deploy
+- [x] Figure out how to deploy
 - [ ] Revisit copy to clipboard
 
 ## Cut ideas
