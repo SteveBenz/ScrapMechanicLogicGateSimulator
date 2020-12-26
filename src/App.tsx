@@ -203,21 +203,6 @@ export class App extends React.Component<AppProps, AppState> {
         this.setState({linkSource: undefined, createByDragPrototype: undefined});
     }
 
-    handleMouseUpInInteractable(): void {
-        // TODO: Why am I here??
-        // // This handles mouseUp events from the field, 
-        // if (this.state.linkSource) {
-        //     const source = this.state.linkSource;
-        //     const target = e.model;
-        //     this.setState({linkSource: undefined});
-        //     if (source !== target) {
-        //         const wasChanged = target.addInput(source);
-        //         this.setState({links: this.props.simulator.getLinks()});
-        //     }
-        // }
-        console.debug("App.handleMouseUpInInteractable");
-    }
-
     handleMouseMove(e: KonvaEventObject<MouseEvent>): void {
         // console.debug("mouseMove: x=" + e.evt.x + " pageX=" + e.evt.pageX + " clientX=" + e.evt.clientX + " offsetX=" + e.evt.offsetX + " screenX=" + e.evt.screenX + " movementX=" + e.evt.movementX);
         if (this.state.linkSource) {
@@ -256,7 +241,6 @@ export class App extends React.Component<AppProps, AppState> {
                     model={model}
                     key={id}
                     isSelected={model === this.state.selected}
-                    onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}
                 />
@@ -267,7 +251,6 @@ export class App extends React.Component<AppProps, AppState> {
                     model={model}
                     key={id}
                     isSelected={model === this.state.selected}
-                    onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}/>
         }
@@ -276,7 +259,6 @@ export class App extends React.Component<AppProps, AppState> {
                 model={model}
                 key={id}
                 isSelected={model === this.state.selected}
-                onMouseUp={this.handleMouseUpInInteractable.bind(this)}
                 onLinkStart={this.handleLinkStart.bind(this)}
                 onClick={this.handleInteractableClicked.bind(this)}/>
         }
