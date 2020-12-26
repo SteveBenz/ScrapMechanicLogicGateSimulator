@@ -1,9 +1,22 @@
 import { EventEmitter } from 'events';
+import { isTemplateMiddleOrTemplateTail } from 'typescript';
+import { serialize } from 'v8';
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function hasOwnProperty<X extends {}, Y extends PropertyKey>
+  (obj: X, prop: Y): obj is X & Record<Y, unknown> {
+    // source: https://fettblog.eu/typescript-hasownproperty/
+    //
+    // Seems okay except for having to use the eslint rule on it.
+    return obj.hasOwnProperty(prop)
+}
+
 
 export interface ISerializedInteractable {
     x: number;
     y: number;
     kind: LogicGateTypes | 'input' | 'timer';
+    inputs: Array<number>;
 }
 
 export interface IEventArgsInteractable {
@@ -15,6 +28,23 @@ export interface IEventArgsInteractableMoved extends IEventArgsInteractable {
     y: number;
 }
 
+function deserializeInteractable(serialized: Record<string,unknown>, kind: LogicGateTypes | 'input' | 'timer'): ISerializedInteractable {
+    if (!hasOwnProperty(serialized, 'x') || typeof(serialized.x) !== 'number') {
+        throw new Error("Missing 'x' property or 'x' is not a number");
+    }
+
+    if (!hasOwnProperty(serialized, 'y') || typeof(serialized.y) !== 'number') {
+        throw new Error("Missing 'x' property or 'x' is not a number");
+    }
+
+    return {
+        kind: kind,
+        x: serialized.x,
+        y: serialized.y,
+        inputs: []
+    }
+}
+
 export class Interactable {
     private _x: number;
     private _y: number;
@@ -24,7 +54,7 @@ export class Interactable {
     private _prevState: boolean;
     private _currentState: boolean;
 
-    constructor(props: ISerializedInteractable) {
+    constructor(props: Omit<ISerializedInteractable, 'inputs'>) {
         this.events = new EventEmitter();
         this._prevState = false;
         this._currentState = false;
@@ -33,14 +63,32 @@ export class Interactable {
         this._y = props.y;
     }
 
-    static deserialize(serialized: ISerializedInteractable): Interactable {
+    public static validateAndDeserialize(serialized: unknown): Interactable {
+        if (typeof(serialized) !== 'object' || serialized === null) {
+            throw new Error("Bad format - expected an array of objects at the top level");
+        }
+
+        if (!hasOwnProperty(serialized, 'kind')) {
+            throw new Error("Interactable is missing an 'inputs' array");
+        }
+
         switch (serialized.kind) {
             case 'input':
-                return new Input(serialized as ISerializedInput);
+            case 'input-on':
+            case 'input-off':
+                return new Input(validateAndNormalizeInput(serialized, serialized.kind));
             case 'timer':
-                return new Timer(serialized as ISerializedTimer);
+            case 'timer10':
+                    return new Timer(validateAndNormalizeTimer(serialized));
+            case 'and':
+            case 'or':
+            case 'xor':
+            case 'nand':
+            case 'nor':
+            case 'xnor':
+                return new LogicGate(deserializeLogicGate(serialized, serialized.kind));
             default:
-                return new LogicGate(serialized as ISerializedLogicGate);
+                throw new Error("Interactable has unknown 'kind': " + serialized.kind);
         }
     }
 
@@ -78,7 +126,8 @@ export class Interactable {
         return {
             x: this._x,
             y: this._y,
-            kind: 'input'
+            kind: 'input', // base classes will overwrite this.
+            inputs: []
         }
     }
 
@@ -187,11 +236,27 @@ export interface ISerializedInteractableWithSingleBitSavedState extends ISeriali
     savedState: boolean;
 }
 
+function validateAndDeserializeInteractableWithSavedState(serialized: Record<string,unknown>, kind: LogicGateTypes | 'input', defaultSavedState: boolean): ISerializedInteractableWithSingleBitSavedState {
+    let savedState: boolean = defaultSavedState;
+
+    if (hasOwnProperty(serialized, 'savedState')) {
+        if (typeof(serialized.savedState) !== 'boolean') {
+            throw new Error("Interactables of kind '" + kind + "' should have a 'savedState' property of type boolean");
+        }
+        savedState = serialized.savedState;
+    }
+
+    return {
+        ...deserializeInteractable(serialized, kind),
+        savedState: savedState
+    };
+}
+
 
 export class InteractableWithSingleBitSavedState extends Interactable {
     private _savedState: boolean;
 
-    constructor(props: ISerializedInteractableWithSingleBitSavedState) {
+    constructor(props: Omit<ISerializedInteractableWithSingleBitSavedState, 'inputs'>) {
         super(props);
 
         this._savedState = props.savedState;
@@ -227,10 +292,14 @@ const LogicGateKindSequence: Array<LogicGateTypes> = ['and', 'or', 'xor', 'nand'
 
 export type ISerializedLogicGate = ISerializedInteractableWithSingleBitSavedState
 
+function deserializeLogicGate(serialized: Record<string,unknown>, kind: LogicGateTypes): ISerializedLogicGate {
+    return validateAndDeserializeInteractableWithSavedState(serialized, kind, false);
+}
+
 export class LogicGate extends InteractableWithSingleBitSavedState {
     private _kind: LogicGateTypes;
 
-    constructor(props: ISerializedLogicGate) {
+    constructor(props: Omit<ISerializedLogicGate, 'inputs'>) {
         super(props);
         if (props.kind === 'timer' || props.kind === 'input') {
             throw new Error("Caller should prevent this");
@@ -311,6 +380,11 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
 
 export type ISerializedInput = ISerializedInteractableWithSingleBitSavedState;
 
+function validateAndNormalizeInput(serialized: Record<string,unknown>, kind: 'input' | 'input-on' | 'input-off'): ISerializedLogicGate {
+    return validateAndDeserializeInteractableWithSavedState(serialized, 'input', kind === 'input-on');
+}
+
+
 export class Input extends InteractableWithSingleBitSavedState {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     twiddle(_direction: -1 | 1): void {
@@ -328,14 +402,34 @@ export class Input extends InteractableWithSingleBitSavedState {
     }
 }
 
-interface ISerializedTimer extends ISerializedInteractable {
+export interface ISerializedTimer extends ISerializedInteractable {
     tickStorage: Array<boolean>;
+}
+
+function validateAndNormalizeTimer(serialized: Record<string,unknown>): ISerializedTimer {
+    let rawTickStorage: unknown;
+    if (hasOwnProperty(serialized, 'tickStorage')) {
+        rawTickStorage = serialized.tickStorage;
+    }
+
+    if (hasOwnProperty(serialized, 'timerTickStorage')) {
+        rawTickStorage = serialized.timerTickStorage;
+    }
+
+    if (rawTickStorage === undefined || !Array.isArray(rawTickStorage) || !rawTickStorage.every(i => typeof(i) === 'boolean')) {
+        throw new Error("Timer interactables should have a boolean array named 'tickStorage'");
+    }
+
+    return {
+        ...deserializeInteractable(serialized, 'timer'),
+        tickStorage: rawTickStorage
+    };
 }
 
 export class Timer extends Interactable {
     private readonly _tickStorage: Array<boolean>;
 
-    public constructor(serialized: ISerializedTimer) {
+    public constructor(serialized: Omit<ISerializedTimer, 'inputs'>) {
         super(serialized);
         this._tickStorage = [ ...serialized.tickStorage ];
     }

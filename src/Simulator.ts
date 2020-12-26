@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import pako from 'pako';
-import { Interactable, ISerializedInteractable } from './Model';
+import { hasOwnProperty, Interactable, ISerializedInteractable } from './Model';
 
 
 export interface IEventArgsSimulator {
@@ -32,10 +32,7 @@ export interface IInteractableLink {
     target: Interactable;
 }
 
-export interface ISerializedSimulator {
-    interactables: Array<ISerializedInteractable>;
-    links: Array<{source: number, target: number}>;
-}
+export type ISerializedSimulator = Array<ISerializedInteractable>
 
 export class Simulator {
     private _nextTickTimeoutId: NodeJS.Timeout | undefined;
@@ -46,43 +43,65 @@ export class Simulator {
     public isRunning: boolean; // TODO: make it readonly to outside callers
     public interactables: Array<Interactable>;
 
-    constructor(serialized?: ISerializedSimulator | undefined) {
+    constructor(serialized?: unknown | undefined) {
         this._events = new EventEmitter();
         this.currentTick = 0;
         this.isRunning = false;
         this._nextTickTimeoutId = undefined;
         this._pauseInterval = 250;
         this.interactables = [];
-        if (serialized) {
+        if (serialized !== undefined && serialized !== null) {
             this.load(serialized);
         }
     }
 
     public serialize(): ISerializedSimulator {
-        const links: Array<IInteractableLink> = this.getLinks();
-        return {
-            interactables: this.interactables.map(i => i.export()),
-            links: links.map(i => { return {
-                source: this.interactables.indexOf(i.source),
-                target: this.interactables.indexOf(i.target)
-            }})
+        function buildSerializedWithInputs(interactable: Interactable, allInteractables: Array<Interactable>): ISerializedInteractable {
+            const serialized: ISerializedInteractable = interactable.export();
+            serialized.inputs = interactable.inputs.map(i => allInteractables.indexOf(i));
+            return serialized;
         }
+        return this.interactables.map(i => buildSerializedWithInputs(i, this.interactables));
     }
 
-    public load(serialized: ISerializedSimulator): void {
-        const oldInteractables = this.interactables;
-        this.interactables = serialized.interactables.map(i => Interactable.deserialize(i));
-        const interactablesInputs = new Array<Array<Interactable>>(this.interactables.length);
-        for (let i = 0; i < this.interactables.length; ++i) {
-            interactablesInputs[i] = new Array<Interactable>();
-        }
-        for (const pair of serialized.links) {
-            interactablesInputs[pair.target].push(this.interactables[pair.source]);
-        }
-        for (let i = 0; i < this.interactables.length; ++i) {
-            this.interactables[i].setInputs(interactablesInputs[i]);
+    public load(serialized: unknown): void {
+        if (!Array.isArray(serialized)) {
+            throw new Error("Bad format - expected an array at the top level");
         }
 
+        // interactables that we get here have empty input lists
+        const interactables: Array<Interactable> = serialized.map(i => Interactable.validateAndDeserialize(i));
+        for (let i = 0; i < interactables.length; ++i) {
+            const serializedInteractable:unknown = serialized[i];
+            const deserializedInteractable: Interactable = interactables[i];
+
+            if (typeof(serializedInteractable) !== 'object' || serializedInteractable === null) {
+                throw new Error("Bad format - expected an array of objects at the top level");
+            }
+
+            if (!hasOwnProperty(serializedInteractable, 'inputs')) {
+                throw new Error("Interactable is missing an 'inputs' array");
+            }
+
+            if (!Array.isArray(serializedInteractable.inputs)) {
+                throw new Error("Interactable 'inputs' field should be an array of indices");
+            }
+
+            for (const serializedInputIndex of serializedInteractable.inputs) {
+                if (typeof(serializedInputIndex) !== 'number') {
+                    throw new Error("'inputs' should consist of numbers");
+                }
+
+                if (serializedInputIndex < 0 || serializedInputIndex >= interactables.length) {
+                    throw new Error("'inputs' has an index that is out of range");
+                }
+
+                deserializedInteractable.addInput(interactables[serializedInputIndex]);
+            }
+        }
+
+        const oldInteractables = this.interactables;
+        this.interactables = interactables;
         this._emitInteractablesReset( { simulator: this, oldInteractables: oldInteractables });
 
         this.stopRunning();
@@ -116,7 +135,7 @@ export class Simulator {
         return encodeURIComponent(sharableString);
     }
 
-    public static decompressQueryStringFragment(queryString: string): ISerializedSimulator {
+    public static decompressQueryStringFragment(queryString: string): unknown {
         const base64: string = decodeURIComponent(queryString);
         const compressedData: Uint8Array = Buffer.from(base64, 'base64');
 

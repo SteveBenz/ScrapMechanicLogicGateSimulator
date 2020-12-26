@@ -32,13 +32,13 @@
 - [x] Button for exporting to json
 - [x] Clean up warnings
 - [x] Sized appropriately
-- [ ] putOnLift button does a reload, not a reset like it should.
+- [x] putOnLift button does a reload, not a reset like it should.
 - [ ] Dragging a thing off the stage deletes it
-- [ ] Introductory text and help
+- [x] Introductory text and help
 - [x] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [x] Clicking in the field should clear the selection
 - [ ] Error messages
-- [ ] Ensure it can read the python json
+- [x] Ensure it can read the python json
 - [ ] Add some premade widgets
 - [ ] On ReSize or load, check and see if any interactables are outside the visible area and reformat if so.
 

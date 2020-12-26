@@ -538,9 +538,24 @@ export class LoadFromFileButton extends ToolBarButton<ILoadFromFileButtonProps, 
         // hacky - no message when file load fails.
         const reader = new FileReader();
         reader.onload = () => {
-            const json: string = reader.result as string;
-            const serialized: ISerializedSimulator = JSON.parse(json) as ISerializedSimulator;
-            this.props.simulator.load(serialized);
+            const fileContents: string = reader.result as string;
+            let jsonContent: unknown;
+            try
+            {
+                jsonContent = JSON.parse(fileContents);
+            }
+            catch(err) {
+                alert("Failed to load the file - are you sure this is a file generated from this app?  " + err);
+                return;
+            }
+
+            try
+            {
+                this.props.simulator.load(jsonContent);
+            }
+            catch(err) {
+                alert(err);
+            }
         };
         reader.readAsText(this.fileInputElement.files[0]);
     }

@@ -363,13 +363,27 @@ export class App extends React.Component<AppProps, AppState> {
 export function makeItSo(): void {
     // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
     const queryString: string | undefined = window.location.search;
-    let serialized: ISerializedSimulator | undefined = undefined;
+    let serialized: unknown | undefined = undefined;
     if (queryString) {
-        serialized = Simulator.decompressQueryStringFragment(queryString);
+        try
+        {
+            serialized = Simulator.decompressQueryStringFragment(queryString);
+        }
+        catch {
+            alert("The query string doesn't seem to be something created by this app - was it perhaps truncated?");
+        }
     }
 
     ViewModel.loadAssets(() => {
-        render(<App simulator={new Simulator(serialized)} />, document.getElementById("root"));
+        let simulator: Simulator | undefined;
+        try {
+            simulator = new Simulator(serialized);
+        }
+        catch (err) {
+            alert(err);
+            simulator = new Simulator();
+        }
+        render(<App simulator={simulator} />, document.getElementById("root"));
     });
 }
 
