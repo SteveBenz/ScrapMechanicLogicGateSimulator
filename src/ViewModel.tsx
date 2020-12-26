@@ -20,6 +20,7 @@ interface IInteractableProps {
     onClick?: (eventArgs: IEventArgsInteractable) => void;
     onLinkStart?: (eventArgs: IEventArgsInteractable) => void;
     onMouseUp?: (eventArgs: IEventArgsInteractable) => void;
+    onMoveCompleted?: (eventArgs: IEventArgsInteractable) => void;
     key: string;
     isSelected: boolean;
 }
@@ -104,9 +105,10 @@ export class Interactable<TProps extends IInteractableProps, TState extends IInt
         }
     }
 
-    private handleDragEnd(): void {
-        // Since we change the model during the dragMove, we don't really need
-        // this event, but if we don't have it, Konva gets nervous.
+    private handleDragEnd(e: KonvaEventObject<MouseEvent>): void {
+        if (this.props.onMoveCompleted) {
+            this.props.onMoveCompleted({ evt: e.evt, model: this.props.model});
+        }
     }
 
     private handleDragMove(e: KonvaEventObject<MouseEvent>) {

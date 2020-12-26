@@ -33,7 +33,7 @@
 - [x] Clean up warnings
 - [x] Sized appropriately
 - [x] putOnLift button does a reload, not a reset like it should.
-- [ ] Dragging a thing off the stage deletes it
+- [x] Dragging a thing off the stage deletes it
 - [x] Introductory text and help
 - [x] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [x] Clicking in the field should clear the selection

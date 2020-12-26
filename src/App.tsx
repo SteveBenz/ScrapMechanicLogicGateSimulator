@@ -31,6 +31,7 @@ interface AppState {
 export class App extends React.Component<AppProps, AppState> {
     private stage: Konva.Stage | undefined;
     private maxSensibleDropY = 0; // Set in render
+    private maxSensibleDropX = 0;
 
     constructor(props: AppProps) {
         super(props);
@@ -234,6 +235,14 @@ export class App extends React.Component<AppProps, AppState> {
         this.setState({linkSource: undefined, createByDragPrototype: undefined});
     }
 
+    private handleMoveCompleted = (e: ViewModel.IEventArgsInteractable):void => {
+        const buttonWidth = 64;
+        const buttonHeight = 64;
+        if (e.model.x < - buttonWidth*.75 || e.model.y < -buttonHeight*.75 || e.model.x > this.maxSensibleDropX || e.model.y > this.maxSensibleDropY) {
+            this.props.simulator.remove(e.model);
+        }
+    }
+
     getViewModelForModel(model: Model.Interactable, id: string): JSX.Element {
         if (model instanceof Model.LogicGate) {
             return (
@@ -243,6 +252,7 @@ export class App extends React.Component<AppProps, AppState> {
                     isSelected={model === this.state.selected}
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}
+                    onMoveCompleted={this.handleMoveCompleted.bind(this)}
                 />
             );
         }
@@ -251,6 +261,7 @@ export class App extends React.Component<AppProps, AppState> {
                     model={model}
                     key={id}
                     isSelected={model === this.state.selected}
+                    onMoveCompleted={this.handleMoveCompleted.bind(this)}
                     onLinkStart={this.handleLinkStart.bind(this)}
                     onClick={this.handleInteractableClicked.bind(this)}/>
         }
@@ -259,6 +270,7 @@ export class App extends React.Component<AppProps, AppState> {
                 model={model}
                 key={id}
                 isSelected={model === this.state.selected}
+                onMoveCompleted={this.handleMoveCompleted.bind(this)}
                 onLinkStart={this.handleLinkStart.bind(this)}
                 onClick={this.handleInteractableClicked.bind(this)}/>
         }
@@ -282,6 +294,7 @@ export class App extends React.Component<AppProps, AppState> {
         const buttonRowX = (n: number) => hSpaceBetweenButtons + (hSpaceBetweenButtons + buttonWidth) * (n >= maximumButtonsPerRow && numRows > 1 ? n - maximumButtonsPerRow : n);
 
         this.maxSensibleDropY = buttonRowY(0)-32;
+        this.maxSensibleDropX = canvasWidth - buttonWidth * .25;
 
         if (this.state.linkSource) {
             pointer = <Arrow
