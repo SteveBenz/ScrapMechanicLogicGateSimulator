@@ -297,7 +297,7 @@ export class App extends React.Component<AppProps, AppState> {
         const buttonHeight = 64;
         const maximumButtonsPerRow = 9;
         const canvasHeight = window.innerHeight*.9;
-        const canvasWidth = window.innerWidth-17; // Would love to know where the 17 comes from...
+        const canvasWidth = window.innerWidth-57; // Would love to know where the 57 comes from, but with the current styles, it seems to work.
         const numRows = canvasWidth < hSpaceBetweenButtons + 2*maximumButtonsPerRow*(buttonWidth+hSpaceBetweenButtons) ? 2 : 1;
         const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
         const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);
