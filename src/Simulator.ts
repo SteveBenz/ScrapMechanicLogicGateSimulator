@@ -97,6 +97,18 @@ export class Simulator {
         this._emitTick();
     }
 
+    public putOnLift(): void {
+        for (const i of this.interactables) {
+            i.putOnLift();
+        }
+    }
+
+    public takeOffLift(): void {
+        for (const i of this.interactables) {
+            i.paint();
+        }
+    }
+
     public serializeToCompressedQueryStringFragment(): string {
         const jsonSerialized: string = JSON.stringify(this.serialize());
         const compressed: Uint8Array = pako.deflate(jsonSerialized);

@@ -155,13 +155,9 @@ export class App extends React.Component<AppProps, AppState> {
         } else if (e.key === 'x' && this.state.selected) {
             this.props.simulator.remove(this.state.selected);
         } else if (e.key === '4') {
-            for (const i of this.state.interactables) {
-                i.reload();
-            }
+            this.props.simulator.gameReload();
         } else if (e.key === '$') {
-            for (const i of this.state.interactables) {
-                i.putOnLift();
-            }
+            this.props.simulator.putOnLift();
         } else if (e.key === 'p' && this.state.selected) {
             this.state.selected.paint();
         }

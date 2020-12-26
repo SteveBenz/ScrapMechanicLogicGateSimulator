@@ -354,9 +354,7 @@ export class PutOnLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarBut
     }
 
     protected handleClick(): void {
-        for (const i of this.props.simulator.interactables) {
-            i.reload();
-        }
+        this.props.simulator.putOnLift();
     }
 }
 
@@ -388,9 +386,7 @@ export class TakeOffLiftButton extends ToolBarButton<ILiftButtonProps, IToolBarB
     toolTipId = 'takeOffLiftTip';
 
     protected handleClick(): void {
-        for (const i of this.props.simulator.interactables) {
-            i.paint();
-        }
+        this.props.simulator.takeOffLift();
     }
 }
 
