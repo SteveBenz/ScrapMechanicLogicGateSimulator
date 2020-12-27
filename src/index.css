@@ -29,17 +29,15 @@ div:focus {
     position: absolute;
     padding-left: 10px;
     z-index: +1;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 2s ease-in, visibility 2s ease-in;
 }
 
 .visible {
+    opacity: 100;
     visibility: visible;
-}
-
-.hide {
-    visibility: hidden;
-
-    /* Doesn't seem to work as advertised. */
-    transition: visibility 1s;
+    transition: opacity .25s, visibility .25s;
 }
 
 
