@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Image, Line, Rect, Group, Circle, Text } from "react-konva";
-import { Simulator, ISerializedSimulator } from "./Simulator";
+import { Simulator } from "./Simulator";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
 import { Interactable } from "./Model";

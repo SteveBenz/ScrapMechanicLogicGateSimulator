@@ -1,6 +1,4 @@
 import { EventEmitter } from 'events';
-import { isTemplateMiddleOrTemplateTail } from 'typescript';
-import { serialize } from 'v8';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function hasOwnProperty<X extends {}, Y extends PropertyKey>

@@ -2,7 +2,7 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { Stage, Layer, Arrow, Line, Rect } from "react-konva";
-import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, ISerializedSimulator, IEventArgsInteractablesReset } from "./Simulator";
+import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, IEventArgsInteractablesReset } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
