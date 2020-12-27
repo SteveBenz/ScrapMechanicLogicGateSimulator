@@ -33,7 +33,7 @@
 - [x] Introductory text and help
 - [x] Buttons have tooltips see [https://konvajs.org/docs/sandbox/Shape_Tooltips.html]
 - [x] Clicking in the field should clear the selection
-- [ ] Error messages
+- [x] Error messages
 - [x] Ensure it can read the python json
 - [x] Add some premade widgets
 - [x] On ReSize or load, check and see if any interactables are outside the visible area and reformat if so.
@@ -49,8 +49,8 @@
 - [ ] Rename App
 - [ ] Convert to React Hooks
 - [ ] Make it not do a full redraw on move
+- [ ] Fix up how images are loaded
 
 ## Cut ideas
 
-- [ ] Make imported drawings resize
 - [ ] All Input/Timer/LogicGate buttons can work on any interactable
