@@ -1,6 +1,6 @@
 # Todo List
 
-## Get it working comparably to python
+## Get it working nicely
 
 - [x] Limits on number of inputs
 - [x] Add timers
@@ -8,10 +8,6 @@
 - [x] Implement saved state
 - [x] Delete
 - [x] Colored arrows
-- [ ] Make it not do a full redraw on move
-
-## Make it more presentable
-
 - [x] Pause/Restart button
 - [x] Single Step button
 - [x] Logic gate buttons that can change the kind of a logic gate
@@ -39,8 +35,8 @@
 - [x] Clicking in the field should clear the selection
 - [ ] Error messages
 - [x] Ensure it can read the python json
-- [ ] Add some premade widgets
-- [ ] On ReSize or load, check and see if any interactables are outside the visible area and reformat if so.
+- [x] Add some premade widgets
+- [x] On ReSize or load, check and see if any interactables are outside the visible area and reformat if so.
 
 ## Deploy to GitHub
 
@@ -52,6 +48,7 @@
 
 - [ ] Rename App
 - [ ] Convert to React Hooks
+- [ ] Make it not do a full redraw on move
 
 ## Cut ideas
 

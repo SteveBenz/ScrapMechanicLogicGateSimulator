@@ -6,6 +6,7 @@ import * as Model from "./Model";
 import { Interactable } from "./Model";
 import { KonvaEventObject } from "konva/types/Node";
 import FileSaver from 'file-saver';
+import * as FloatingErrorMessage from "./FloatingErrorMessage";
 
 interface IToolBarButtonProps {
     x: number;
@@ -262,17 +263,19 @@ export class LogicGateButton extends ToolBarButton<ILogicGateButtonProps, IToolB
 
     protected handleClick(): void {
         if (!this.props.selected) {
+            FloatingErrorMessage.show("No logic gate is selected (click on one in the field).")
             return;
         }
 
         if (this.props.kind === 'input' && this.props.selected instanceof Model.Input) {
             this.props.selected.twiddle(1);
         } else if (this.props.kind === 'timer' && this.props.selected instanceof Model.Timer) {
+            FloatingErrorMessage.show("Timers can't be changed like this.");
             // no action
         } else if (this.props.kind !== 'timer' && this.props.kind !== 'input' && this.props.selected instanceof Model.LogicGate) {
             this.props.selected.kind = this.props.kind;
         } else {
-            // TODO: Convert the interactable
+            FloatingErrorMessage.show("Can't convert between inputs, timers and gates.  (You have to delete and recreate them).");
         }
     }
 
@@ -421,9 +424,12 @@ export class DeleteButton extends ToolBarButton<IDeleteButtonProps, IToolBarButt
     }
 
     protected handleClick(): void {
-        if (this.props.selected) {
-            this.props.simulator.remove(this.props.selected);
+        if (!this.props.selected) {
+            FloatingErrorMessage.show("Nothing is selected (click on a logic gate in the field to specify what should be deleted).")
+            return;
         }
+
+        this.props.simulator.remove(this.props.selected);
     }
 }
 
