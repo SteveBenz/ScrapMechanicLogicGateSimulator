@@ -37,12 +37,13 @@
 - [x] Ensure it can read the python json
 - [x] Add some premade widgets
 - [x] On ReSize or load, check and see if any interactables are outside the visible area and reformat if so.
+- [x] Tick counter not updating reliably
 
 ## Deploy to GitHub
 
-- [ ] Checked in to repo
+- [x] Checked in to repo
 - [x] Figure out how to deploy
-- [ ] Revisit copy to clipboard
+- [x] Revisit copy to clipboard
 
 ## Code Cleanup
 

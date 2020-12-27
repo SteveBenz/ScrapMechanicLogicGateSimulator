@@ -49,6 +49,10 @@ export class TickCounter extends React.Component<TickCounterProps> {
             this.textRef.text(this.props.simulator.currentTick.toString());
             this.lastWidthUsed = this.textRef.width();
             this.textRef.x(this.props.right - this.textRef.width());
+
+            // In theory, this shouldn't be necessary, but somehow the text only seems to get updated
+            // during render.
+            this.setState({ currentTick: this.props.simulator.currentTick })
         }
     }
 
@@ -58,6 +62,7 @@ export class TickCounter extends React.Component<TickCounterProps> {
                   x={this.props.right - this.lastWidthUsed}
                   ref={(t: Konva.Text): void => { this.textRef = t; }}
                   fill='red'
+                  text={this.props.simulator.currentTick.toString()}
                   fontSize={30}/>
         );
     }
