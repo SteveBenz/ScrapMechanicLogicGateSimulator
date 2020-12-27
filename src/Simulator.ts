@@ -107,6 +107,24 @@ export class Simulator {
         this.stopRunning();
     }
 
+    public fitToSize(width: number, height: number, padX: number, padY: number): void {
+        if (this.interactables.every(i => i.x >= 0 && i.x < width-64 && i.y >= 0 && i.y < height-64)) {
+            // Seems to fit reasonably well already
+            return;
+        }
+
+        const maxX: number = this.interactables.reduce((previousValue, currentValue) => Math.max(previousValue, currentValue.x), 0);
+        const maxY: number = this.interactables.reduce((previousValue, currentValue) => Math.max(previousValue, currentValue.y), 0);
+        const minX: number = this.interactables.reduce((previousValue, currentValue) => Math.min(previousValue, currentValue.x), 999999);
+        const minY: number = this.interactables.reduce((previousValue, currentValue) => Math.min(previousValue, currentValue.y), 999999);
+
+        for (const i of this.interactables) {
+            const newX = padX + (i.x - minX) * (width - 2*padX - 64) / maxX;
+            const newY = padY + (i.y - minY) * (height - 2*padY - 64) / maxY;
+            i.setPosition(newX, newY);
+        }
+    }
+
     public gameReload(): void {
         for (const i of this.interactables) {
             i.reload();

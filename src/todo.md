@@ -48,6 +48,11 @@
 - [x] Figure out how to deploy
 - [ ] Revisit copy to clipboard
 
+## Code Cleanup
+
+- [ ] Rename App
+- [ ] Convert to React Hooks
+
 ## Cut ideas
 
 - [ ] Make imported drawings resize

@@ -32,6 +32,7 @@ export class App extends React.Component<AppProps, AppState> {
     private stage: Konva.Stage | undefined;
     private maxSensibleDropY = 0; // Set in render
     private maxSensibleDropX = 0;
+    private considerResizeOnNextRender = true;
 
     constructor(props: AppProps) {
         super(props);
@@ -71,6 +72,7 @@ export class App extends React.Component<AppProps, AppState> {
             selected: undefined,
             links: links
         });
+        this.considerResizeOnNextRender = true;
     }
 
     handleInteractableAdded = (e: IEventArgsInteractableAdded): void => {
@@ -111,6 +113,7 @@ export class App extends React.Component<AppProps, AppState> {
             windowInnerWidth: window.innerWidth,
             windowInnerHeight: window.innerHeight
         });
+        this.considerResizeOnNextRender = true;
     }
 
     handleKeyPress = (e: KeyboardEvent):void => {
@@ -295,6 +298,11 @@ export class App extends React.Component<AppProps, AppState> {
 
         this.maxSensibleDropY = buttonRowY(0)-32;
         this.maxSensibleDropX = canvasWidth - buttonWidth * .25;
+
+        if (this.considerResizeOnNextRender) {
+            this.props.simulator.fitToSize(canvasWidth, buttonRowY(0), 20, 20);
+            this.considerResizeOnNextRender = false;
+        }
 
         if (this.state.linkSource) {
             pointer = <Arrow
