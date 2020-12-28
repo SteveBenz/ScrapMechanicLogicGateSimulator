@@ -16,54 +16,48 @@ export interface TickCounterProps {
  * want, in any case, is a text element that's right-aligned, and that's just not in Konva as far as I
  * can see.  Probably because Konva can do it easily enough.  See the code in @see _handleTick.
  */
-export class TickCounter extends React.Component<TickCounterProps> {
-    private textRef: Konva.Text | undefined;
-    private lastWidthUsed: number;
+export function TickCounter(props: TickCounterProps): JSX.Element {
+    const [currentTick, setCurrentTick] = React.useState(0);
+    const [width, setWidth] = React.useState(20);;
+    const textRef: React.RefObject<Konva.Text> = React.useRef<Konva.Text>(null);
 
-    constructor(props: TickCounterProps) {
-        super(props);
-
-        this.state = {
-            currentTick: props.simulator.currentTick,
-        };
-
-        // This value really doesn't matter, if it's ever visible, it's for a blink and no more.
-        // The property itself is here to handle resize when the simulator is not ticking.
-        // In that case, props.right gets updated by React, causing a render to happen, but
-        // in that case, componentDidMount does not get called -- it only gets called once when
-        // the object gets first drawn, not every time it renders.
-        this.lastWidthUsed = 20;
-    }
-
-    componentDidMount(): void {
-        this.props.simulator.onTick(this._handleTick);
-        this._handleTick();
-    }
-
-    componentWillUnmount(): void {
-        this.props.simulator.offTick(this._handleTick);
-    }
-
-    private _handleTick = (): void => {
-        if (this.textRef) {
-            this.textRef.text(this.props.simulator.currentTick.toString());
-            this.lastWidthUsed = this.textRef.width();
-            this.textRef.x(this.props.right - this.textRef.width());
-
-            // In theory, this shouldn't be necessary, but somehow the text only seems to get updated
-            // during render.
-            this.setState({ currentTick: this.props.simulator.currentTick })
+    // Set up the tick listener
+    React.useEffect(() => {
+        function handleTick() {
+            setCurrentTick(props.simulator.currentTick);
         }
-    }
+    
+        props.simulator.onTick(handleTick);
+        handleTick();
 
-    render(): JSX.Element {
-        return (
-            <Text y={this.props.top}
-                  x={this.props.right - this.lastWidthUsed}
-                  ref={(t: Konva.Text): void => { this.textRef = t; }}
-                  fill='red'
-                  text={this.props.simulator.currentTick.toString()}
-                  fontSize={30}/>
-        );
-    }
+        return () => {props.simulator.offTick(handleTick);}
+    }, []); // <- empty dependency chain means this effect gets run once, not every render.
+
+    // Ensure the text is right-justified
+    React.useEffect(() => {
+        if (textRef.current === null) {
+            // Shouldn't happen?
+            return;
+        }
+
+        // while I would have thought we could just set textRef.current.x() in here, it turns
+        // out that it doesn't actually take effect until render.  So instead we'll go ahead
+        // and make width a part of state.  That means that (in theory) we could go through
+        // two render passes on each tick - once to set the text and once to fix the position.
+        // We'll moderate that a bit by ensuring we only re-adjust if there's been a substantial
+        // change in the width.
+        const w = textRef.current.width();
+        if (w > width + 3 || w < width - 3) {
+            setWidth(w);
+        }
+    });
+
+    return (
+        <Text y={props.top}
+              x={props.right - width}
+              ref={textRef}
+              fill='red'
+              text={currentTick.toString()}
+              fontSize={30}/>
+    );
 }
