@@ -52,6 +52,10 @@ export class Interactable {
     private _prevState: boolean;
     private _currentState: boolean;
 
+    public readonly id: number;
+
+    static idCounter = 0;
+
     constructor(props: Omit<ISerializedInteractable, 'inputs'>) {
         this.events = new EventEmitter();
         this._prevState = false;
@@ -59,6 +63,8 @@ export class Interactable {
         this._inputs = [];
         this._x = props.x;
         this._y = props.y;
+
+        this.id = ++Interactable.idCounter;
     }
 
     public static validateAndDeserialize(serialized: unknown): Interactable {

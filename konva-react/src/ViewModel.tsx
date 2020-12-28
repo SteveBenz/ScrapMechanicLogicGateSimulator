@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/types/Node';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import * as Model from './Model';
 
@@ -241,43 +241,15 @@ export interface ILinkArrowProps {
     target: Model.Interactable;
 }
 
-export class LinkArrow extends React.Component<ILinkArrowProps> {
-    private attachedModel: Model.Interactable | undefined;
+export function LinkArrow(props: ILinkArrowProps): JSX.Element {
+    const [isLit, setIsLit] = React.useState(false);
+    const [[sourceX, sourceY, targetX, targetY], setPositions] = React.useState(getPositions());
 
-    public constructor(props: ILinkArrowProps) {
-        super(props);
-        this.state = {};
-    }
-
-    public componentDidMount(): void {
-        // after this point, the model is drawn and is reacting to events.
-        if (!this.attachedModel) {
-            this.attachedModel = this.props.source;
-            this.attachedModel.onStateChanged(this._handleStateChanged);
-        }
-    }
-
-    public componentWillUnmount(): void {
-        this.props.source.offStateChanged(this._handleStateChanged);
-        this.attachedModel = undefined;
-    }
-
-    private _handleStateChanged = (): void => {
-        this.setState({});
-    }
-
-    public render(): JSX.Element {
-        if (this.props.source !== this.attachedModel && this.attachedModel !== undefined) {
-            // the property has changed and this isn't the first time we're redering (so the DOM exists)
-            this.attachedModel.offStateChanged(this._handleStateChanged);
-            this.attachedModel = this.props.source;
-            this.attachedModel.onStateChanged(this._handleStateChanged);
-        }
-
-        let sourceX = this.props.source.x+32;
-        let sourceY = this.props.source.y+32;
-        let targetX = this.props.target.x+32;
-        let targetY = this.props.target.y+32;
+    function getPositions(): Array<number> {
+        let sourceX = props.source.x+32;
+        let sourceY = props.source.y+32;
+        let targetX = props.target.x+32;
+        let targetY = props.target.y+32;
 
         if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
             // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
@@ -297,16 +269,36 @@ export class LinkArrow extends React.Component<ILinkArrowProps> {
             targetY -= sign*32;
         }
 
-        return <Arrow
-            x={sourceX}
-            y={sourceY}
-            points={[0,0, targetX-sourceX, targetY-sourceY]}
-            fill={this.props.source.prevState ? 'darkblue' : 'teal'}
-            stroke={this.props.source.prevState ? 'darkblue' : 'teal'}
-            strokeWidth={4}
-            pointerLength={10}
-            pointerWidth={10}/>;
+        return [sourceX, sourceY, targetX, targetY];
     }
+
+    function handleStateChanged(): void {
+        setIsLit(props.source.prevState);
+    }
+    function handleSourceOrTargetMoved(): void {
+        setPositions(getPositions());
+    }
+
+    useEffect(() => {
+        props.source.onStateChanged(handleStateChanged);
+        props.source.onMoved(handleSourceOrTargetMoved);
+        props.target.onMoved(handleSourceOrTargetMoved);
+
+        return () => {
+            props.source.offStateChanged(handleStateChanged);
+            props.source.offMoved(handleSourceOrTargetMoved);
+            props.target.offMoved(handleSourceOrTargetMoved);
+        };
+    }, []);
+
+    return <Arrow x={sourceX}
+                  y={sourceY}
+                  points={[0,0, targetX-sourceX, targetY-sourceY]}
+                  fill={isLit ? 'darkblue' : 'teal'}
+                  stroke={isLit ? 'darkblue' : 'teal'}
+                  strokeWidth={4}
+                  pointerLength={10}
+                  pointerWidth={10}/>;
 }
 
 export function loadAssets(onComplete: () => void): void
