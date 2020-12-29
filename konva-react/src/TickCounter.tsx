@@ -50,7 +50,7 @@ export function TickCounter(props: TickCounterProps): JSX.Element {
         if (w > width + 3 || w < width - 3) {
             setWidth(w);
         }
-    });
+    }, [width]);
 
     return (
         <Text y={props.top}
