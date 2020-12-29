@@ -246,42 +246,6 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
-    getViewModelForModel(model: Model.Interactable): JSX.Element {
-        if (model instanceof Model.LogicGate) {
-            return (
-                <ViewModel.LogicGate
-                    model={model}
-                    key={model.id.toString()}
-                    isSelected={model === this.state.selected}
-                    onLinkStart={this.handleLinkStart.bind(this)}
-                    onClick={this.handleInteractableClicked.bind(this)}
-                    onMoveCompleted={this.handleMoveCompleted.bind(this)}
-                />
-            );
-        }
-        else if (model instanceof Model.Input) {
-                return <ViewModel.Input
-                    model={model}
-                    key={model.id.toString()}
-                    isSelected={model === this.state.selected}
-                    onMoveCompleted={this.handleMoveCompleted.bind(this)}
-                    onLinkStart={this.handleLinkStart.bind(this)}
-                    onClick={this.handleInteractableClicked.bind(this)}/>
-        }
-        else if (model instanceof Model.Timer) {
-            return <ViewModel.Timer
-                model={model}
-                key={model.id.toString()}
-                isSelected={model === this.state.selected}
-                onMoveCompleted={this.handleMoveCompleted.bind(this)}
-                onLinkStart={this.handleLinkStart.bind(this)}
-                onClick={this.handleInteractableClicked.bind(this)}/>
-        }
-        else {
-            throw new Error("unexpected model object type");
-        }
-    }
-
     render(): JSX.Element {
         let pointer: Array<JSX.Element> | JSX.Element = [];
         const hSpaceBetweenButtons = 15; // the horizontal between each button (and the edges)
@@ -328,10 +292,17 @@ export class App extends React.Component<AppProps, AppState> {
                     <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
                     <TC.TickCounter simulator={this.props.simulator} right={canvasWidth - 20} top={5} />
                     {this.state.interactables.map((model: Interactable) =>
-                        this.getViewModelForModel(model)
+                        <ViewModel.Interactable
+                        model={model}
+                        key={model.id.toString()}
+                        isSelected={model === this.state.selected}
+                        onLinkStart={this.handleLinkStart.bind(this)}
+                        onClick={this.handleInteractableClicked.bind(this)}
+                        onMoveCompleted={this.handleMoveCompleted.bind(this)}
+                    />
                     )}
                     {this.state.createByDragPrototype
-                        ? this.getViewModelForModel(this.state.createByDragPrototype)
+                        ? <ViewModel.Interactable model={this.state.createByDragPrototype} key={this.state.createByDragPrototype.id.toString()} isSelected={false}/>
                         : []}
                     {pointer}
                     {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow key={link.source.id.toString()+ "-" + link.target.id.toString()} source={link.source} target={link.target}/>)}
