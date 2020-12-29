@@ -141,8 +141,9 @@ export function App(props: AppProps): JSX.Element {
                 props.simulator.add(newInteractable);
             } else if (e.key === '[' && selected) {
                 selected.twiddle(-1);
-            } else if (e.key === ']' && selected) {
+            } else if ((e.key === ']' || e.key === ' ') && selected) {
                 selected.twiddle(1);
+                e.preventDefault();
             } else if (e.key === 'x' && selected) {
                 props.simulator.remove(selected);
             } else if (e.key === '4') {
