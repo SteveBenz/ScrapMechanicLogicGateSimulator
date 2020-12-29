@@ -2,7 +2,7 @@
 import * as React from "react";
 import { render } from "react-dom";
 import { Stage, Layer, Arrow, Line, Rect } from "react-konva";
-import { Simulator, IEventArgsInteractableAdded, IEventArgsInteractableRemoved, IInteractableLink, IEventArgsInteractablesReset } from "./Simulator";
+import { Simulator, IInteractableLink } from "./Simulator";
 import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
@@ -16,179 +16,169 @@ interface AppProps {
     simulator: Simulator;
 }
 
-interface AppState {
-    interactables: Array<Interactable>;
-    links: Array<IInteractableLink>;
-    selected?: Interactable;
-    linkSource?: Interactable;
-    linkTargetX?: number;
-    linkTargetY?: number;
-    createByDragPrototype?: Interactable;
-    windowInnerHeight: number;
-    windowInnerWidth: number;
+interface IScreenLayout {
+    canvasWidth: number;
+    canvasHeight: number;
+    buttonRowHeight: number;
+    maxSensibleDropX: number;
+    maxSensibleDropY: number;
+    buttonRowX: (n: number) => number;
+    buttonRowY: (n: number) => number;
 }
 
-export class App extends React.Component<AppProps, AppState> {
-    private stage: Konva.Stage | undefined;
-    private maxSensibleDropY = 0; // Set in render
-    private maxSensibleDropX = 0;
-    private considerResizeOnNextRender = true;
+function getScreenLayout(): IScreenLayout {
+    const hSpaceBetweenButtons = 15; // the horizontal between each button (and the edges)
+    const vSpaceBetweenButtons = 8;
+    const buttonWidth = 64;
+    const buttonHeight = 64;
+    const maximumButtonsPerRow = 9;
+    const canvasHeight = window.innerHeight*.9;
+    const canvasWidth = window.innerWidth-57; // Would love to know where the 57 comes from, but with the current styles, it seems to work.
+    const numRows = canvasWidth < hSpaceBetweenButtons + 2*maximumButtonsPerRow*(buttonWidth+hSpaceBetweenButtons) ? 2 : 1;
+    const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
+    const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);
+    const buttonRowX = (n: number) => hSpaceBetweenButtons + (hSpaceBetweenButtons + buttonWidth) * (n >= maximumButtonsPerRow && numRows > 1 ? n - maximumButtonsPerRow : n);
 
-    constructor(props: AppProps) {
-        super(props);
-        this.state = {
-            interactables: props.simulator.interactables,
-            links: props.simulator.getLinks(),
-            selected: undefined,
-            linkSource: undefined,
-            windowInnerHeight: window.innerHeight,
-            windowInnerWidth: window.innerWidth
+    return {
+        canvasWidth: canvasWidth,
+        canvasHeight: canvasHeight,
+        buttonRowHeight: buttonRowHeight,
+        maxSensibleDropX: canvasWidth - buttonWidth * .25,
+        maxSensibleDropY: buttonRowY(0)-32,
+        buttonRowX: buttonRowX,
+        buttonRowY: buttonRowY
+    };
+}
+
+export function App(props: AppProps): JSX.Element {
+    const [interactables, setInteractables] = React.useState(props.simulator.interactables);
+    const [links, setLinks] = React.useState(props.simulator.getLinks());
+    const [selected, setSelected] = React.useState<Interactable | undefined>(undefined);
+    const [linkSource, setLinkSource] = React.useState<Interactable | undefined>(undefined);
+    const [[linkTargetX, linkTargetY], setLinkTarget] = React.useState<Array<number | undefined>>([undefined, undefined]);
+    const [createByDragPrototype, setCreateByDragPrototype] = React.useState<Interactable | undefined>(undefined);
+    const [screenLayout, setScreenLayout] = React.useState(getScreenLayout());
+    const [considerResizeOnNextRender, setConsiderResizeOnNextRender] = React.useState(false);
+
+    const stageRef: React.RefObject<Konva.Stage> = React.useRef<Konva.Stage>(null);
+
+
+    // Track changes in the model's list of interactables
+    React.useEffect(() => {
+        function handleInteractablesChanged(): void {
+            if (selected && props.simulator.interactables.indexOf(selected) < 0 ) {
+                setSelected(undefined);
+            }
+            setInteractables([...props.simulator.interactables]);
+            setLinks(props.simulator.getLinks());
+            setLinkSource(undefined);
+            setCreateByDragPrototype(undefined);
+        };
+        function handleInteractablesReset(): void {
+            handleInteractablesChanged();
+            setConsiderResizeOnNextRender(true);
+        };
+        // Perhaps onInteractableAdded should make that interactable selected?
+
+        props.simulator.onInteractableAdded(handleInteractablesChanged);
+        props.simulator.onInteractableRemoved(handleInteractablesChanged);
+        props.simulator.onInteractablesReset(handleInteractablesReset);
+
+        return () => {
+            props.simulator.offInteractableAdded(handleInteractablesChanged);
+            props.simulator.offInteractableRemoved(handleInteractablesChanged);
+            props.simulator.offInteractablesReset(handleInteractablesReset)
         };
 
-        for (const i of this.props.simulator.interactables) {
-            i.onMoved(this.handleInteractableMoved);
-        }
+    }, [props.simulator, selected]);
 
-        this.props.simulator.onInteractableAdded( this.handleInteractableAdded );
-        this.props.simulator.onInteractableRemoved( this.handleInteractableRemoved );
-        this.props.simulator.onInteractablesReset( this.handleInteractablesReset );
-    }
+    // Track window resize
+    React.useEffect(() => {
+        function handleResize(): void {
+            setScreenLayout(getScreenLayout());
+            setConsiderResizeOnNextRender(true);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-    handleInteractablesReset = (e: IEventArgsInteractablesReset): void => {
-        for (const i of e.oldInteractables) {
-            i.offMoved(this.handleInteractableMoved);
-        }
-
-        const links: Array<IInteractableLink> = [];
-        for (const i of this.props.simulator.interactables) {
-            i.onMoved(this.handleInteractableMoved);
-            for (const j of i.inputs) {
-                links.push({source: j, target: i});
+    React.useEffect(() => {
+        function handleKeyPress(e: KeyboardEvent): void {
+            const xy: Vector2d | null | undefined = stageRef.current?.getPointerPosition();
+            if (!xy) {
+                throw new Error("stage was not set?");
             }
-        }        
+    
+            if (e.key === "g") {
+                props.simulator.startRunning();
+            } else if (e.key === "s") {
+                props.simulator.stopRunning();
+            } else if (e.key === "n") {
+                props.simulator.advanceOne();
+            } else if (e.key === "l") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'and',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+            } else if (e.key === "i") {
+                const newInteractable = new Model.Input({
+                    kind: 'input',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+            } else if (e.key === "t") {
+                const newInteractable = new Model.Timer({
+                    kind: 'timer',
+                    x: xy.x,
+                    y: xy.y,
+                    tickStorage: new Array<boolean>(10).fill(false)
+                });
+                props.simulator.add(newInteractable);
+            } else if (e.key === '[' && selected) {
+                selected.twiddle(-1);
+            } else if (e.key === ']' && selected) {
+                selected.twiddle(1);
+            } else if (e.key === 'x' && selected) {
+                props.simulator.remove(selected);
+            } else if (e.key === '4') {
+                props.simulator.gameReload();
+            } else if (e.key === '$') {
+                props.simulator.putOnLift();
+            } else if (e.key === 'p' && selected) {
+                selected.paint();
+            }
+    
+            console.debug("App.handleKeyPress(" + e.key + ")");
+        };
 
-        this.setState({
-            interactables: this.props.simulator.interactables,
-            selected: undefined,
-            links: links
-        });
-        this.considerResizeOnNextRender = true;
-    }
-
-    handleInteractableAdded = (e: IEventArgsInteractableAdded): void => {
-        e.interactable.onMoved(this.handleInteractableMoved.bind(this));
-        this.setState({
-            interactables: this.props.simulator.interactables,
-            selected: e.interactable,
-        });
-    };
-
-    handleInteractableRemoved = (e: IEventArgsInteractableRemoved): void => {
-        e.interactable.offMoved(this.handleInteractableMoved.bind(this));
-        this.setState({
-            interactables: this.props.simulator.interactables,
-            selected: undefined,
-            links: this.state.links.filter(l => l.target !== e.interactable && l.source !== e.interactable)
-        });
-    };
-
-    handleInteractableMoved = (): void => {
-        this.setState({interactables: this.props.simulator.interactables});
-    }
-
-    public componentDidMount(): void {
-        if (!this.stage) {
-            throw new Error("stage was not set?");
+        if (stageRef.current) {
+            const container = stageRef.current.container();
+            container.tabIndex = 1;
+            container.focus();
         }
-
-        const container = this.stage.container();
-        container.tabIndex = 1;
-        container.focus();
-        container.addEventListener("keypress", this.handleKeyPress);
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('keypress', handleKeyPress);
+        return () => window.removeEventListener('keypress', handleKeyPress);
+    }, [props.simulator, selected]);
+    
+    function handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
+        setSelected( e.model );
     }
 
-    handleResize = ():void => {
-        this.setState({
-            windowInnerWidth: window.innerWidth,
-            windowInnerHeight: window.innerHeight
-        });
-        this.considerResizeOnNextRender = true;
+    function handleLinkStart(e: ViewModel.IEventArgsInteractable): void {
+        setLinkSource(e.model);
+        setLinkTarget([e.evt.x, e.evt.y]);
     }
 
-    handleKeyPress = (e: KeyboardEvent):void => {
-        const xy: Vector2d | null | undefined = this.stage?.getPointerPosition();
-        if (!xy) {
-            throw new Error("stage was not set?");
-        }
-
-        if (e.key === "g") {
-            this.props.simulator.startRunning();
-        } else if (e.key === "s") {
-            this.props.simulator.stopRunning();
-        } else if (e.key === "n") {
-            this.props.simulator.advanceOne();
-        } else if (e.key === "l") {
-            const newInteractable = new Model.LogicGate({
-                kind: 'and',
-                x: xy.x,
-                y: xy.y,
-                savedState: false
-            });
-            this.props.simulator.add(newInteractable);
-        } else if (e.key === "i") {
-            const newInteractable = new Model.Input({
-                kind: 'input',
-                x: xy.x,
-                y: xy.y,
-                savedState: false
-            });
-            this.props.simulator.add(newInteractable);
-        } else if (e.key === "t") {
-            const newInteractable = new Model.Timer({
-                kind: 'timer',
-                x: xy.x,
-                y: xy.y,
-                tickStorage: new Array<boolean>(10).fill(false)
-            });
-            this.props.simulator.add(newInteractable);
-        } else if (e.key === '[' && this.state.selected) {
-            this.state.selected.twiddle(-1);
-        } else if (e.key === ']' && this.state.selected) {
-            this.state.selected.twiddle(1);
-        } else if (e.key === 'x' && this.state.selected) {
-            this.props.simulator.remove(this.state.selected);
-        } else if (e.key === '4') {
-            this.props.simulator.gameReload();
-        } else if (e.key === '$') {
-            this.props.simulator.putOnLift();
-        } else if (e.key === 'p' && this.state.selected) {
-            this.state.selected.paint();
-        }
-
-        console.debug("App.handleKeyPress(" + e.key + ")");
-    };
-
-    handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
-        this.setState({
-            selected: e.model,
-        });
-    }
-
-    handleLinkStart(e: ViewModel.IEventArgsInteractable): void {
-        const model = e.model;
-        this.setState({
-            linkSource: model,
-            linkTargetX: e.evt.x,
-            linkTargetY: e.evt.y
-        })
-    }
-
-    handleMouseUpInStage(e: KonvaEventObject<MouseEvent>): void {
+    function handleMouseUpInStage(e: KonvaEventObject<MouseEvent>): void {
         // This handles mouseUp events from the field, 
-        if (this.state.linkSource) {
+        if (linkSource) {
             let target = undefined;
-            for (const i of this.state.interactables) {
+            for (const i of interactables) {
                 // TODO: the Interactable viewmodel should decide the in-bounds calculation
                 if (i.x <= e.evt.offsetX && e.evt.offsetX < i.x+64
                  && i.y <= e.evt.offsetY && e.evt.offsetY < i.y+64) {
@@ -197,142 +187,132 @@ export class App extends React.Component<AppProps, AppState> {
                  }
             }
 
-            if (target && target !== this.state.linkSource && target.addInput(this.state.linkSource)) {
-                this.setState({links: this.props.simulator.getLinks(), linkSource: undefined, createByDragPrototype: undefined});
+            if (target && target !== linkSource && target.addInput(linkSource)) {
+                setLinks(props.simulator.getLinks());
+                setLinkSource(undefined);
+                setCreateByDragPrototype(undefined);
             }
         }
-        else if (this.state.createByDragPrototype && this.state.createByDragPrototype.y < this.maxSensibleDropY) {
-            this.props.simulator.add(this.state.createByDragPrototype);
+        else if (createByDragPrototype && createByDragPrototype.y < screenLayout.maxSensibleDropY) {
+            props.simulator.add(createByDragPrototype);
         }
-        this.setState({linkSource: undefined, createByDragPrototype: undefined});
+
+        setLinkSource(undefined);
+        setCreateByDragPrototype(undefined);
     }
 
-    handleMouseMove(e: KonvaEventObject<MouseEvent>): void {
+    function handleMouseMove(e: KonvaEventObject<MouseEvent>): void {
         // console.debug("mouseMove: x=" + e.evt.x + " pageX=" + e.evt.pageX + " clientX=" + e.evt.clientX + " offsetX=" + e.evt.offsetX + " screenX=" + e.evt.screenX + " movementX=" + e.evt.movementX);
-        if (this.state.linkSource) {
-            this.setState({
-                linkTargetX: e.evt.offsetX,
-                linkTargetY: e.evt.offsetY
-            })
+        if (linkSource) {
+            setLinkTarget([e.evt.offsetX, e.evt.offsetY]);
         }
-        else if (this.state.createByDragPrototype) {
-            this.state.createByDragPrototype.setPosition(e.evt.offsetX, e.evt.offsetY);
-
-            this.setState({ createByDragPrototype: this.state.createByDragPrototype });
+        else if (createByDragPrototype) {
+            createByDragPrototype.setPosition(e.evt.offsetX, e.evt.offsetY);
         }
     }
 
-    handleMouseDown(e: KonvaEventObject<MouseEvent>): void {
-        if (!(e.target instanceof ViewModel.Interactable) && this.state.selected) {
-            this.setState({selected: undefined});
+    function handleMouseDown(e: KonvaEventObject<MouseEvent>): void {
+        if (!(e.target instanceof ViewModel.Interactable) && selected) {
+            setSelected(undefined);
         }
     }
 
-    handleNewInteractableDrag(e: IDragNewInteractableDragEventArgs): void {
-        this.setState({
-            createByDragPrototype: e.prototype
-        })
+    function handleNewInteractableDrag(e: IDragNewInteractableDragEventArgs): void {
+        setCreateByDragPrototype(e.prototype);
     }
 
-    private handleMouseLeave(): void {
-        this.setState({linkSource: undefined, createByDragPrototype: undefined});
+    function handleMouseLeave(): void {
+        setLinkSource(undefined);
+        setCreateByDragPrototype(undefined);
     }
 
-    private handleMoveCompleted = (e: ViewModel.IEventArgsInteractable):void => {
+    function handleMoveCompleted(e: ViewModel.IEventArgsInteractable): void {
         const buttonWidth = 64;
         const buttonHeight = 64;
-        if (e.model.x < - buttonWidth*.75 || e.model.y < -buttonHeight*.75 || e.model.x > this.maxSensibleDropX || e.model.y > this.maxSensibleDropY) {
-            this.props.simulator.remove(e.model);
+        if (e.model.x < - buttonWidth*.75 || e.model.y < -buttonHeight*.75 || e.model.x > screenLayout.maxSensibleDropX || e.model.y > screenLayout.maxSensibleDropY) {
+            props.simulator.remove(e.model);
         }
     }
 
-    render(): JSX.Element {
-        let pointer: Array<JSX.Element> | JSX.Element = [];
-        const hSpaceBetweenButtons = 15; // the horizontal between each button (and the edges)
-        const vSpaceBetweenButtons = 8;
-        const buttonWidth = 64;
-        const buttonHeight = 64;
-        const maximumButtonsPerRow = 9;
-        const canvasHeight = window.innerHeight*.9;
-        const canvasWidth = window.innerWidth-57; // Would love to know where the 57 comes from, but with the current styles, it seems to work.
-        const numRows = canvasWidth < hSpaceBetweenButtons + 2*maximumButtonsPerRow*(buttonWidth+hSpaceBetweenButtons) ? 2 : 1;
-        const buttonRowHeight = numRows*(buttonWidth+vSpaceBetweenButtons) + vSpaceBetweenButtons;
-        const buttonRowY = (n: number) => canvasHeight - buttonRowHeight + vSpaceBetweenButtons + (n >= maximumButtonsPerRow && numRows > 1 ? (vSpaceBetweenButtons + buttonHeight) : 0);
-        const buttonRowX = (n: number) => hSpaceBetweenButtons + (hSpaceBetweenButtons + buttonWidth) * (n >= maximumButtonsPerRow && numRows > 1 ? n - maximumButtonsPerRow : n);
+    let pointer: Array<JSX.Element> | JSX.Element = [];
 
-        this.maxSensibleDropY = buttonRowY(0)-32;
-        this.maxSensibleDropX = canvasWidth - buttonWidth * .25;
-
-        if (this.considerResizeOnNextRender) {
-            this.props.simulator.fitToSize(canvasWidth, buttonRowY(0), 20, 20);
-            this.considerResizeOnNextRender = false;
-        }
-
-        if (this.state.linkSource) {
-            pointer = <Arrow
-                x={this.state.linkSource.x+32}
-                y={this.state.linkSource.y+32}
-                points={[0,0, this.state.linkTargetX!-(this.state.linkSource.x+32), this.state.linkTargetY!-(this.state.linkSource.y+32)]}
-                fill='lightgrey'
-                stroke='lightgrey'
-                strokeWidth={4}
-                pointerLength={10}
-                pointerWidth={10}/>;
-        }
-        return (
-            <Stage
-                width={canvasWidth-4}
-                height={canvasHeight}
-                ref={(c: Konva.Stage) => {this.stage = c;}}
-                onMouseUp={this.handleMouseUpInStage.bind(this)}
-                onMouseMove={this.handleMouseMove.bind(this)}
-                onMouseLeave={this.handleMouseLeave.bind(this)}
-            >
-                <Layer>
-                    <Rect id='background' x={0} y={0} width={canvasWidth} height={canvasHeight - buttonRowHeight} onMouseDown={this.handleMouseDown.bind(this)} strokeWidth={0} fill='GhostWhite' />
-                    <TC.TickCounter simulator={this.props.simulator} right={canvasWidth - 20} top={5} />
-                    {this.state.interactables.map((model: Interactable) =>
-                        <ViewModel.Interactable
-                        model={model}
-                        key={model.id.toString()}
-                        isSelected={model === this.state.selected}
-                        onLinkStart={this.handleLinkStart.bind(this)}
-                        onClick={this.handleInteractableClicked.bind(this)}
-                        onMoveCompleted={this.handleMoveCompleted.bind(this)}
-                    />
-                    )}
-                    {this.state.createByDragPrototype
-                        ? <ViewModel.Interactable model={this.state.createByDragPrototype} key={this.state.createByDragPrototype.id.toString()} isSelected={false}/>
-                        : []}
-                    {pointer}
-                    {this.state.links.map((link: IInteractableLink) => <ViewModel.LinkArrow key={link.source.id.toString()+ "-" + link.target.id.toString()} source={link.source} target={link.target}/>)}
-                </Layer>
-                <Layer>
-                    <Rect x={0} y={canvasHeight-buttonRowHeight} height={buttonRowHeight} width={canvasWidth} fill='papayawhip' />
-                    <Line points={[0, canvasHeight-buttonRowHeight, canvasWidth, canvasHeight-buttonRowHeight]} stroke='grey' strokeWidth={3}/>
-                    <LogicGateButton x={buttonRowX(0)} y={buttonRowY(0)} selected={this.state.selected} kind='and' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(1)} y={buttonRowY(1)} selected={this.state.selected} kind='or' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(2)} y={buttonRowY(2)} selected={this.state.selected} kind='xor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(3)} y={buttonRowY(3)} selected={this.state.selected} kind='nand' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(4)} y={buttonRowY(4)} selected={this.state.selected} kind='nor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(5)} y={buttonRowY(5)} selected={this.state.selected} kind='xnor' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(6)} y={buttonRowY(6)} selected={this.state.selected} kind='input' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <LogicGateButton x={buttonRowX(7)} y={buttonRowY(7)} selected={this.state.selected} kind='timer' onBeginDrag={this.handleNewInteractableDrag.bind(this)}/>
-                    <DeleteButton x={buttonRowX(8)} y={buttonRowY(8)} simulator={this.props.simulator} selected={this.state.selected}/>
-                    <StartStopButton x={buttonRowX(9)} y={buttonRowY(9)} model={this.props.simulator}/>
-                    <SingleStepButton x={buttonRowX(10)} y={buttonRowY(10)} model={this.props.simulator}/>
-                    <ReloadButton x={buttonRowX(11)} y={buttonRowY(11)} simulator={this.props.simulator}/>
-                    <PaintButton x={buttonRowX(12)} y={buttonRowY(12)} selected={this.state.selected}/>
-                    <PutOnLiftButton x={buttonRowX(13)} y={buttonRowY(13)} simulator={this.props.simulator}/>
-                    <TakeOffLiftButton x={buttonRowX(14)} y={buttonRowY(14)} simulator={this.props.simulator}/>
-                    <CopyLinkButton x={buttonRowX(15)} y={buttonRowY(15)} simulator={this.props.simulator}/>
-                    <LoadFromFileButton x={buttonRowX(16)} y={buttonRowY(16)} simulator={this.props.simulator}/>
-                    <SaveToFileButton x={buttonRowX(17)} y={buttonRowY(17)} simulator={this.props.simulator}/>
-                </Layer>
-            </Stage>
-        );
+    if (considerResizeOnNextRender) {
+        props.simulator.fitToSize(screenLayout.canvasWidth, screenLayout.buttonRowY(0), 20, 20);
+        setConsiderResizeOnNextRender(false);
     }
+
+    if (linkSource) {
+        pointer = <Arrow
+            x={linkSource.x+32}
+            y={linkSource.y+32}
+            points={[0,0, linkTargetX!-(linkSource.x+32), linkTargetY!-(linkSource.y+32)]}
+            fill='lightgrey'
+            stroke='lightgrey'
+            strokeWidth={4}
+            pointerLength={10}
+            pointerWidth={10}/>;
+    }
+    
+    return (
+        <Stage
+            width={screenLayout.canvasWidth-4}
+            height={screenLayout.canvasHeight}
+            ref={stageRef}
+            onMouseUp={handleMouseUpInStage}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+        >
+            <Layer>
+                <Rect id='background'
+                      x={0} y={0}
+                      width={screenLayout.canvasWidth}
+                      height={screenLayout.canvasHeight - screenLayout.buttonRowHeight}
+                      onMouseDown={handleMouseDown}
+                      strokeWidth={0}
+                      fill='GhostWhite' />
+                <TC.TickCounter simulator={props.simulator} right={screenLayout.canvasWidth - 20} top={5} />
+                {interactables.map((model: Interactable) =>
+                    <ViewModel.Interactable
+                    model={model}
+                    key={model.id.toString()}
+                    isSelected={model === selected}
+                    onLinkStart={handleLinkStart}
+                    onClick={handleInteractableClicked}
+                    onMoveCompleted={handleMoveCompleted}
+                />
+                )}
+                {createByDragPrototype
+                    ? <ViewModel.Interactable model={createByDragPrototype} key={createByDragPrototype.id.toString()} isSelected={false}/>
+                    : []}
+                {pointer}
+                {links.map((link: IInteractableLink) => <ViewModel.LinkArrow key={link.source.id.toString()+ "-" + link.target.id.toString()} source={link.source} target={link.target}/>)}
+            </Layer>
+            <Layer>
+                <Rect x={0} y={screenLayout.canvasHeight-screenLayout.buttonRowHeight} height={screenLayout.buttonRowHeight} width={screenLayout.canvasWidth} fill='papayawhip' />
+                <Line points={[0, screenLayout.canvasHeight-screenLayout.buttonRowHeight, screenLayout.canvasWidth, screenLayout.canvasHeight-screenLayout.buttonRowHeight]} stroke='grey' strokeWidth={3}/>
+                <LogicGateButton x={screenLayout.buttonRowX(0)} y={screenLayout.buttonRowY(0)} selected={selected} kind='and' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(1)} y={screenLayout.buttonRowY(1)} selected={selected} kind='or' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(2)} y={screenLayout.buttonRowY(2)} selected={selected} kind='xor' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(3)} y={screenLayout.buttonRowY(3)} selected={selected} kind='nand' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(4)} y={screenLayout.buttonRowY(4)} selected={selected} kind='nor' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(5)} y={screenLayout.buttonRowY(5)} selected={selected} kind='xnor' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(6)} y={screenLayout.buttonRowY(6)} selected={selected} kind='input' onBeginDrag={handleNewInteractableDrag}/>
+                <LogicGateButton x={screenLayout.buttonRowX(7)} y={screenLayout.buttonRowY(7)} selected={selected} kind='timer' onBeginDrag={handleNewInteractableDrag}/>
+                <DeleteButton x={screenLayout.buttonRowX(8)} y={screenLayout.buttonRowY(8)} simulator={props.simulator} selected={selected}/>
+                <StartStopButton x={screenLayout.buttonRowX(9)} y={screenLayout.buttonRowY(9)} model={props.simulator}/>
+                <SingleStepButton x={screenLayout.buttonRowX(10)} y={screenLayout.buttonRowY(10)} model={props.simulator}/>
+                <ReloadButton x={screenLayout.buttonRowX(11)} y={screenLayout.buttonRowY(11)} simulator={props.simulator}/>
+                <PaintButton x={screenLayout.buttonRowX(12)} y={screenLayout.buttonRowY(12)} selected={selected}/>
+                <PutOnLiftButton x={screenLayout.buttonRowX(13)} y={screenLayout.buttonRowY(13)} simulator={props.simulator}/>
+                <TakeOffLiftButton x={screenLayout.buttonRowX(14)} y={screenLayout.buttonRowY(14)} simulator={props.simulator}/>
+                <CopyLinkButton x={screenLayout.buttonRowX(15)} y={screenLayout.buttonRowY(15)} simulator={props.simulator}/>
+                <LoadFromFileButton x={screenLayout.buttonRowX(16)} y={screenLayout.buttonRowY(16)} simulator={props.simulator}/>
+                <SaveToFileButton x={screenLayout.buttonRowX(17)} y={screenLayout.buttonRowY(17)} simulator={props.simulator}/>
+            </Layer>
+        </Stage>
+    );
 }
+
 
 export function makeItSo(): void {
     // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
