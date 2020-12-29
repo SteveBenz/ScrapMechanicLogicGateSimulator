@@ -31,12 +31,12 @@ export function TickCounter(props: TickCounterProps): JSX.Element {
         handleTick();
 
         return () => {props.simulator.offTick(handleTick);}
-    }, []); // <- empty dependency chain means this effect gets run once, not every render.
+    }, [props.simulator]);
 
     // Ensure the text is right-justified
     React.useEffect(() => {
         if (textRef.current === null) {
-            // Shouldn't happen?
+            // Shouldn't happen
             return;
         }
 
