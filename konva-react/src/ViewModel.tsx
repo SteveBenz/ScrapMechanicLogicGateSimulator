@@ -215,45 +215,42 @@ export interface ILinkArrowProps {
     target: Model.Interactable;
 }
 
+/** @summary Given two points, both of which are at the center of 64x64 squares, it returns a pair of endpoints
+ * that start and end at the borders of those boxes. */
+function getEndpointsOutsideOfBox(sourceX: number, sourceY: number, targetX: number, targetY: number): Array<number> {
+    if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
+        // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
+        const sign = (targetX > sourceX) ? 1 : -1;
+        const yTrim = 32*(targetY - sourceY)/(targetX-sourceX);
+        sourceX += sign*32;
+        targetX -= sign*32;
+        sourceY += sign*yTrim;
+        targetY -= sign*yTrim;
+    }
+    else {
+        const sign = (targetY > sourceY) ? 1 : -1;
+        const xTrim = 32*(targetX - sourceX)/(targetY-sourceY);
+        sourceX += sign*xTrim;
+        targetX -= sign*xTrim;
+        sourceY += sign*32;
+        targetY -= sign*32;
+    }
+
+    return [sourceX, sourceY, targetX, targetY];
+}
+
 export function LinkArrow(props: ILinkArrowProps): JSX.Element {
     const [isLit, setIsLit] = React.useState(props.source.prevState);
-    const [[sourceX, sourceY, targetX, targetY], setPositions] = React.useState(getPositions());
-
-    function getPositions(): Array<number> {
-        let sourceX = props.source.x+32;
-        let sourceY = props.source.y+32;
-        let targetX = props.target.x+32;
-        let targetY = props.target.y+32;
-
-        if (Math.abs(targetY-sourceY) < Math.abs(targetX-sourceX)) {
-            // The line is less than 45 degrees up, so we'll trim the x's and scale the y's
-            const sign = (targetX > sourceX) ? 1 : -1;
-            const yTrim = 32*(targetY - sourceY)/(targetX-sourceX);
-            sourceX += sign*32;
-            targetX -= sign*32;
-            sourceY += sign*yTrim;
-            targetY -= sign*yTrim;
-        }
-        else {
-            const sign = (targetY > sourceY) ? 1 : -1;
-            const xTrim = 32*(targetX - sourceX)/(targetY-sourceY);
-            sourceX += sign*xTrim;
-            targetX -= sign*xTrim;
-            sourceY += sign*32;
-            targetY -= sign*32;
-        }
-
-        return [sourceX, sourceY, targetX, targetY];
-    }
-
-    function handleStateChanged(): void {
-        setIsLit(props.source.prevState);
-    }
-    function handleSourceOrTargetMoved(): void {
-        setPositions(getPositions());
-    }
+    const [[sourceX, sourceY, targetX, targetY], setPositions] = React.useState(getEndpointsOutsideOfBox(props.source.x+32, props.source.y+32, props.target.x+32, props.target.y+32));
 
     useEffect(() => {
+        function handleStateChanged(): void {
+            setIsLit(props.source.prevState);
+        }
+        function handleSourceOrTargetMoved(): void {
+            setPositions(getEndpointsOutsideOfBox(props.source.x+32, props.source.y+32, props.target.x+32, props.target.y+32));
+        }
+    
         props.source.onStateChanged(handleStateChanged);
         props.source.onMoved(handleSourceOrTargetMoved);
         props.target.onMoved(handleSourceOrTargetMoved);
