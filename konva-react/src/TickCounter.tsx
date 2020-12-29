@@ -25,6 +25,17 @@ export function TickCounter(props: TickCounterProps): JSX.Element {
     React.useEffect(() => {
         function handleTick() {
             setCurrentTick(props.simulator.currentTick);
+
+            if (textRef.current === null) {
+                // Shouldn't happen
+                return;
+            }
+    
+            // Somehow, setting the text changes width(), but somehow actually
+            // doesn't change the screen.  (That is, without setting the text
+            // in the render, it has no effect).
+            textRef.current.text(props.simulator.currentTick.toString());
+            setWidth(textRef.current.width());
         }
     
         props.simulator.onTick(handleTick);
@@ -32,25 +43,6 @@ export function TickCounter(props: TickCounterProps): JSX.Element {
 
         return () => {props.simulator.offTick(handleTick);}
     }, [props.simulator]);
-
-    // Ensure the text is right-justified
-    React.useEffect(() => {
-        if (textRef.current === null) {
-            // Shouldn't happen
-            return;
-        }
-
-        // while I would have thought we could just set textRef.current.x() in here, it turns
-        // out that it doesn't actually take effect until render.  So instead we'll go ahead
-        // and make width a part of state.  That means that (in theory) we could go through
-        // two render passes on each tick - once to set the text and once to fix the position.
-        // We'll moderate that a bit by ensuring we only re-adjust if there's been a substantial
-        // change in the width.
-        const w = textRef.current.width();
-        if (w > width + 3 || w < width - 3) {
-            setWidth(w);
-        }
-    }, [width, currentTick]);
 
     return (
         <Text y={props.top}
