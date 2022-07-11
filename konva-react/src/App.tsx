@@ -189,7 +189,10 @@ export function App(props: AppProps): JSX.Element {
             }
 
             if (target && target !== linkSource && target.addInput(linkSource)) {
+                // TODO: This line breaks the model/viewmodel pattern really an event
+                // should come out of the model that tells us that stuff has changed.
                 setLinks(props.simulator.getLinks());
+
                 setLinkSource(undefined);
                 setCreateByDragPrototype(undefined);
             }

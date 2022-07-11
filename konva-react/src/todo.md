@@ -1,3 +1,8 @@
+# Debugging
+
+Run 'code .' in the 'konva-react' folder.  Then run 'npm start' in a powershell window.  That will run the "Development Server"
+and it'll stay running.  Recall that the 'start' verb is defined in ..\package.json.
+
 # Todo List
 
 ## Get it working nicely
