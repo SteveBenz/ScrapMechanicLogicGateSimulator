@@ -106,7 +106,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
 
     const groupContent: Array<JSX.Element> = [];
     groupContent.push(
-        <Rect key='surround' height={64} width={64} strokeWidth={3} stroke={props.isSelected ? 'green' : 'blue'} fill={isOn ? 'white' : 'grey'} />
+        <Rect key='surround' height={64} width={64} strokeWidth={5} stroke={props.isSelected ? 'green' : '#ffb341'} fill={isOn ? '#26D0F9' : '#283a40'} />
     )
     if (props.model instanceof Model.InteractableWithSingleBitSavedState) {
         groupContent.push(<SavedStateIndicator key='savedStateIndicator' model={props.model}/>)
@@ -114,7 +114,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     if (props.model instanceof Model.LogicGate) {
         groupContent.push(<LogicGate key='logicGate' model={props.model}/>)
     } else if (props.model instanceof Model.Input) {
-        groupContent.push(<Input key='input'/>)
+        groupContent.push(<Input key='input' model={props.model}/>)
     } else if (props.model instanceof Model.Timer) {
         groupContent.push(<Timer key='input' model={props.model}/>)
     }
@@ -170,11 +170,36 @@ function LogicGate(props: ILogicGateProps): JSX.Element {
         props.model.onStateChanged(handleStateChanged)
         return () => props.model.offStateChanged(handleStateChanged);
     }, [props.model]);
-    return <Image x={0} y={0} image={_assets[kind].image()} />;
+    
+    const [isOn, setIsOn] = useState(props.model.currentState);
+    useEffect(() => {
+        function handleStateChanged() {
+            setIsOn(props.model.currentState);
+        }
+        props.model.onStateChanged(handleStateChanged);
+        return () => props.model.offStateChanged(handleStateChanged);
+    }, [props.model]);
+
+    // ISSUE: underscore is 'setIsOn' - not sure if really needed?
+    const k = kind  + (isOn ? '-white' : '')
+    return <Image x={0} y={0} image={_assets[k].image()} />;
 }
 
-function Input(): JSX.Element {
-    return <Circle key='image' radius={22} x={32} y={32} strokeWidth={8} stroke='black' />;
+interface IInputProps {
+    model: Model.Input;
+}
+
+function Input(props: IInputProps): JSX.Element {
+    const [isOn, setIsOn] = useState(props.model.currentState);
+    useEffect(() => {
+        function handleStateChanged() {
+            setIsOn(props.model.currentState);
+        }
+        props.model.onStateChanged(handleStateChanged);
+        return () => props.model.offStateChanged(handleStateChanged);
+    }, [props.model]);
+
+    return <Circle key='image' radius={22} x={32} y={32} strokeWidth={8} stroke={isOn ? 'white' : 'black'} />;
 }
 
 interface ITimerProps {
@@ -274,11 +299,18 @@ export function LinkArrow(props: ILinkArrowProps): JSX.Element {
 
 export function loadAssets(onComplete: () => void): void
 {
-    for (const kind of ['and', 'or', 'xor', 'nand', 'nor', 'xnor', 'paint']) {
+    const assetKeys = ['and-grey', 'and-white', 'and-black',
+        'or-grey', 'or-white', 'or-black',
+        'xor-grey', 'xor-white', 'xor-black',
+        'nand-grey', 'nand-white', 'nand-black',
+        'nor-grey', 'nor-white', 'nor-black',
+        'xnor-grey', 'xnor-white', 'xnor-black',
+        'paint-black']
+    for (const kind of assetKeys) {
         // This whole thing is bad and this element is also bad...
-        Konva.Image.fromURL('/ScrapMechanicLogicGateSimulator/' + kind + '-black.png', (img: string) => {
-            _assets[kind] = img;
-            if (Object.keys(_assets).length === 7) {
+        Konva.Image.fromURL('/ScrapMechanicLogicGateSimulator/' + kind + '.png', (img: string) => {
+            _assets[kind.replace('-black', '')] = img;
+            if (Object.keys(_assets).length === assetKeys.length) {
                 onComplete();
             }
           });

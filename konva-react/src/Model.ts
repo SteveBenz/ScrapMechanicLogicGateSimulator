@@ -83,7 +83,7 @@ export class Interactable {
                 return new Input(validateAndNormalizeInput(serialized, serialized.kind));
             case 'timer':
             case 'timer10':
-                    return new Timer(validateAndNormalizeTimer(serialized));
+                return new Timer(validateAndNormalizeTimer(serialized));
             case 'and':
             case 'or':
             case 'xor':
