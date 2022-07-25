@@ -221,12 +221,13 @@ export function Timer(props: ITimerProps): JSX.Element {
     const horizontalOffset = 12;
     const verticalOffset = 6;
     const rectHeight = (drawingHeight - 2*verticalOffset) / tickStorage.length;
+    const hourglassDeltas = [0, 0, 2, 4, 6, 6, 4, 2, 0, 0];
 
     return <Group>
             {tickStorage.map((tickValue, index) =>
                 <Rect key={index.toString()}
-                    x={horizontalOffset}
-                    width={drawingWidth - 2*horizontalOffset}
+                    x={horizontalOffset + hourglassDeltas[index] }
+                    width={drawingWidth - 2*horizontalOffset - 2*hourglassDeltas[index]}
                     y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
                     height={rectHeight}
                     strokeWidth={1}
@@ -299,12 +300,12 @@ export function LinkArrow(props: ILinkArrowProps): JSX.Element {
 
 export function loadAssets(onComplete: () => void): void
 {
-    const assetKeys = ['and-grey', 'and-white', 'and-black',
-        'or-grey', 'or-white', 'or-black',
-        'xor-grey', 'xor-white', 'xor-black',
-        'nand-grey', 'nand-white', 'nand-black',
-        'nor-grey', 'nor-white', 'nor-black',
-        'xnor-grey', 'xnor-white', 'xnor-black',
+    const assetKeys = ['and-white', 'and-black',
+        'or-white', 'or-black',
+        'xor-white', 'xor-black',
+        'nand-white', 'nand-black',
+        'nor-white', 'nor-black',
+        'xnor-white', 'xnor-black',
         'paint-black']
     for (const kind of assetKeys) {
         // This whole thing is bad and this element is also bad...
