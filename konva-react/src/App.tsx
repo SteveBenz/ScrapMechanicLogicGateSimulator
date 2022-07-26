@@ -115,7 +115,7 @@ export function App(props: AppProps): JSX.Element {
                 props.simulator.stopRunning();
             } else if (e.key === "n") {
                 props.simulator.advanceOne();
-            } else if (e.key === "l") {
+            } else if (e.key === "a") {
                 const newInteractable = new Model.LogicGate({
                     kind: 'and',
                     x: xy.x,
@@ -123,6 +123,52 @@ export function App(props: AppProps): JSX.Element {
                     savedState: false
                 });
                 props.simulator.add(newInteractable);
+                setSelected(newInteractable);
+            } else if (e.key === "o") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'or',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
+            } else if (e.key === "x") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'xor',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
+            } else if (e.key === "A") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'nand',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
+            } else if (e.key === "O") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'nor',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
+            } else if (e.key === "X") {
+                const newInteractable = new Model.LogicGate({
+                    kind: 'xnor',
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
             } else if (e.key === "i") {
                 const newInteractable = new Model.Input({
                     kind: 'input',
@@ -131,6 +177,7 @@ export function App(props: AppProps): JSX.Element {
                     savedState: false
                 });
                 props.simulator.add(newInteractable);
+                setSelected(newInteractable);
             } else if (e.key === "t") {
                 const newInteractable = new Model.Timer({
                     kind: 'timer',
@@ -139,17 +186,18 @@ export function App(props: AppProps): JSX.Element {
                     tickStorage: new Array<boolean>(10).fill(false)
                 });
                 props.simulator.add(newInteractable);
+                setSelected(newInteractable);
             } else if (e.key === '[' && selected) {
                 selected.twiddle(-1);
             } else if ((e.key === ']' || e.key === ' ') && selected) {
                 selected.twiddle(1);
                 e.preventDefault();
-            } else if (e.key === 'x'  && selected) {
-                props.simulator.remove(selected);
             } else if (e.key === '4') {
                 props.simulator.gameReload();
-            } else if (e.key === '$') {
+            } else if (e.key === 'l') {
                 props.simulator.putOnLift();
+            } else if (e.key === 'L') {
+                props.simulator.takeOffLift();
             } else if (e.key === 'p' && selected) {
                 selected.paint();
             }
