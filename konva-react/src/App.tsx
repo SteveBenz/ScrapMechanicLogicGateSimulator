@@ -144,7 +144,7 @@ export function App(props: AppProps): JSX.Element {
             } else if ((e.key === ']' || e.key === ' ') && selected) {
                 selected.twiddle(1);
                 e.preventDefault();
-            } else if (e.key === 'x' && selected) {
+            } else if (e.key === 'x'  && selected) {
                 props.simulator.remove(selected);
             } else if (e.key === '4') {
                 props.simulator.gameReload();
@@ -166,6 +166,40 @@ export function App(props: AppProps): JSX.Element {
         return () => window.removeEventListener('keypress', handleKeyPress);
     }, [props.simulator, selected]);
     
+    React.useEffect(() => {
+        function handleRemoveMenuItem(): void {
+            if (selected) {
+                props.simulator.remove(selected);
+            }
+        };
+
+        const menuItemDelete = document.getElementById('menuItemDelete');
+        menuItemDelete!.onclick = handleRemoveMenuItem;
+        return () => { menuItemDelete!.onclick = null };
+    }, [props.simulator, selected]);
+
+    
+    React.useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent): void {
+            const xy: Vector2d | null | undefined = stageRef.current?.getPointerPosition();
+            if (!xy) {
+                throw new Error("stage was not set?");
+            }
+    
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
+                props.simulator.remove(selected);
+            }
+        };
+
+        if (stageRef.current) {
+            const container = stageRef.current.container();
+            container.tabIndex = 1;
+            container.focus();
+        }
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [props.simulator, selected]);
+
     function handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
         setSelected( e.model );
     }
@@ -317,8 +351,16 @@ export function App(props: AppProps): JSX.Element {
     );
 }
 
+function onWindowClick(): void {
+    const menu = document.getElementById("interactableMenu");
+    if (!menu) {
+        throw(Error("Missing div with id: interactableMenu"));
+    }
+    menu.style.display = 'none'
+}
 
 export function makeItSo(): void {
+    window.addEventListener('click', onWindowClick)
     // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
     const queryString: string | undefined = window.location.search;
     let serialized: unknown | undefined = undefined;

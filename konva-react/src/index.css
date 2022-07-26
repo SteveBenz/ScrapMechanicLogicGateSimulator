@@ -45,6 +45,82 @@ body {
     padding-left: 20px;
 }
 
+/* lifted and modified from the contextMenu npm package
+ */
+/* containers */
+.menu {
+    position: absolute;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 5px 0 gray;
+    padding: 3px 0;
+    font-size: 14px;
+    color: black;
+    z-index: 9;
+    display: none
+}
+
+.menu hr {
+    margin: 10px 0;
+    border-style: ridge;
+}
+
+.submenu {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    margin-left: 100%;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 5px 0 gray;
+    padding: 3px 0;
+    color: black;
+}
+
+.menuInput {
+    padding: 0 10px;
+}
+
+/* components */
+.menuItem {
+    padding: 3px 16px;
+    cursor: default;
+    position: relative;
+    white-space: nowrap;
+}
+
+.menuItem:hover:not(.disabled), .menuItem.highlight {
+    background-color: rgb(53,142,254);
+    color: white;
+}
+
+.menuItem.disabled {
+    color: gray;
+}
+
+.menuItem.rightShift {
+    padding-right: 4px;
+}
+
+.menuItem .showOnHover {
+    opacity: 0;
+}
+
+.menuItem:hover .showOnHover {
+    opacity: 1;
+}
+
+.singleInput {
+    margin: 0;
+    font-size: inherit;
+}
+
+/* adjectives */
+.flex {
+    display: flex;
+    justify-content: space-between;
+}
+
 /* This mess all comes from https://stevebenz.github.io/ScrapMechanicLogicGateSimulator/assets/css/style.css?v=18d8d7fdfd13a6b12e4a4b6a3e01f9115b55afc9
  * which is a theme that github provides.
  */

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { assert } from 'console';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/types/Node';
 import React, { useEffect, useState } from 'react';
@@ -88,6 +90,59 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         }
     }
 
+    function handleChangeType(newKind: Model.LogicGateTypes): void {
+        if (props.model instanceof Model.LogicGate) {
+            props.model.kind = newKind
+        }
+        else {
+            throw Error("Expected a logic gate")
+        }
+    }
+
+    function handleToggleValue(): void {
+        if (props.model instanceof Model.Input) {
+            props.model.twiddle(1)
+        }
+        else {
+            throw Error("Expected a logic gate")
+        }
+    }
+
+    function handleContextMenu(eventArgs: KonvaEventObject<MouseEvent>): void {
+        eventArgs.evt.preventDefault();
+        const menu = document.getElementById('interactableMenu')!;
+        menu.style.display = 'initial';
+        menu.style.top = eventArgs.evt.pageY + 'px';
+        menu.style.left = eventArgs.evt.pageX + 'px';
+
+        document.getElementById('menuItemToAnd')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'and') ? '' : 'none';
+        document.getElementById('menuItemToNand')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'nand') ? '' : 'none';
+        document.getElementById('menuItemToOr')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'or') ? '' : 'none';
+        document.getElementById('menuItemToNor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'nor') ? '' : 'none';
+        document.getElementById('menuItemToXor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'xor') ? '' : 'none';
+        document.getElementById('menuItemToXnor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'xnor') ? '' : 'none';
+
+        // Not implemented yet:
+        document.getElementById('menuItemAddOneTick')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
+        document.getElementById('menuItemAddFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
+        document.getElementById('menuItemMinusOneTick')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
+        document.getElementById('menuItemMinusFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
+        
+        document.getElementById('menuItemToggle')!.style.display = (props.model instanceof Model.Input) ? '' : 'none';
+        document.getElementById('menuItemPaint')!.style.display = (props.model instanceof Model.Timer) ? 'none' : '';
+        if (props.model instanceof Model.Input) {
+            document.getElementById('menuItemToggle')!.innerText = props.model.currentState ? 'Toggle off' : 'Toggle on';
+        }
+        document.getElementById('menuItemToAnd')!.onclick = () => handleChangeType('and');
+        document.getElementById('menuItemToNand')!.onclick = () => handleChangeType('nand');
+        document.getElementById('menuItemToOr')!.onclick = () => handleChangeType('or');
+        document.getElementById('menuItemToNor')!.onclick = () => handleChangeType('nor');
+        document.getElementById('menuItemToXor')!.onclick = () => handleChangeType('xor');
+        document.getElementById('menuItemToXnor')!.onclick = () => handleChangeType('xnor');
+        document.getElementById('menuItemToggle')!.onclick = () => handleToggleValue();
+        document.getElementById('menuItemPaint')!.onclick = () => props.model.paint();
+    }
+
     useEffect(() => {
         function handleMoved() {
             setPosition([props.model.x, props.model.y]);
@@ -125,6 +180,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
                   draggable
                   x={x}
                   y={y}
+                  onContextMenu={handleContextMenu}
                   onDragStart={handleDragStart}
                   onDragMove={handleDragMove}
                   onDragEnd={handleDragEnd}>

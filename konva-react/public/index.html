@@ -30,6 +30,23 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <h3 style="text-align: center;">Scrap Mechanic Logic Gate Simulator</h3>
     <input type="file" id="fileElem" style="display:none" change="handleFileGiven">
+    <div id="interactableMenu" class='menu'>
+      <div id="menuItemToAnd" class='menuItem'>Change to AND</div>
+      <div id="menuItemToNand" class='menuItem'>Change to NAND</div>
+      <div id="menuItemToOr" class='menuItem'>Change to OR</div>
+      <div id="menuItemToNor" class='menuItem'>Change to NOR</div>
+      <div id="menuItemToXor" class='menuItem'>Change to XOR</div>
+      <div id="menuItemToXnor" class='menuItem'>Change to XNOR</div>
+      <div id="menuItemAddOneTick" class='menuItem'>Add 1 tick</div>
+      <div id="menuItemMinusOneTick" class='menuItem'>Subtract 1 tick</div>
+      <div id="menuItemAddFiveTicks" class='menuItem'>Add 5 ticks</div>
+      <div id="menuItemMinusFiveTicks" class='menuItem'>Subtract 5 ticks</div>
+      <div id="menuItemToggle" class='menuItem'>Toggle Value</div>
+      <div id="menuItemPaint" class='menuItem'>Paint</div>
+      <!-- Nice to have, but don't know how to implement: -->
+      <!-- <div id="menuItemMove" class='menuItem'>Move</div> -->
+      <div id="menuItemDelete" class='menuItem'>Delete</div>
+    </div>
     <div id="logicGateTip" class='tooltip'>
       <p>If you have a logic gate selected in the field above, clicking on this will convert it to this kind of logic gate.</p>
       <p>Dragging this button into the field above will create a new logic gate of this type.</p>
