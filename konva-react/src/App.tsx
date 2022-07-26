@@ -201,6 +201,9 @@ export function App(props: AppProps): JSX.Element {
     }, [props.simulator, selected]);
 
     function handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
+        if (e.evt.ctrlKey && e.model instanceof Model.Input) {
+            e.model.twiddle(1)
+        }
         setSelected( e.model );
     }
 
