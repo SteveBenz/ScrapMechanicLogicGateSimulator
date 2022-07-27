@@ -6,6 +6,7 @@
       "dom.iterable",
       "esnext"
     ],
+    "types": ["resize-observer-browser"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

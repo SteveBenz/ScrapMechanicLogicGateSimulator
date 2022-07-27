@@ -99,8 +99,10 @@ export function App(props: AppProps): JSX.Element {
             setScreenLayout(getScreenLayout());
             setConsiderResizeOnNextRender(true);
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        const contentDiv = document.getElementById('content')!;
+        const o = new ResizeObserver(handleResize);
+        o.observe(contentDiv)
+        return () => o.disconnect();
     }, []);
 
     React.useEffect(() => {
@@ -411,8 +413,27 @@ function onWindowClick(): void {
     menu.style.display = 'none'
 }
 
+function toggleHelp(): void {
+    const helpButton = document.getElementById('helpButton')!;
+    const contentDiv = document.getElementById('content')!;
+    const sidebarDiv = document.getElementById('sidebar')!;
+    if (helpButton.innerText === "Help >>") {
+        helpButton.innerText = "Help <<";
+        contentDiv.classList.add('content-full');
+        sidebarDiv.classList.add('sidebar-none');
+    }
+    else {
+        helpButton.innerText = "Help >>";
+        contentDiv.classList.remove('content-full');
+        sidebarDiv.classList.remove('sidebar-none');
+    }
+}
+
 export function makeItSo(): void {
-    window.addEventListener('click', onWindowClick)
+    window.addEventListener('click', onWindowClick);
+    const helpButton = document.getElementById('helpButton')!;
+    helpButton.onclick = toggleHelp;
+
     // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
     const queryString: string | undefined = window.location.search;
     let serialized: unknown | undefined = undefined;

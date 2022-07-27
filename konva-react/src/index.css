@@ -45,8 +45,6 @@ body {
     padding-left: 20px;
 }
 
-/* Lifted from this tutorial: https://bootstrapious.com/p/bootstrap-sidebar
- */
 .wrapper {
 /*  display: flex; */
 /*    align-items: stretch; */
@@ -57,12 +55,22 @@ body {
     width: 60%;
 }
 
+.content-full {
+    width: 100%;
+    transition: width .25s;
+}
+
 .sidebar {
     display:unset;
     float: left;
     width: 40%;
     height: 90vh;
     overflow-y: scroll;
+}
+
+.sidebar-none {
+    width: 0px;
+    transition: width .25s;
 }
 
 .active {
