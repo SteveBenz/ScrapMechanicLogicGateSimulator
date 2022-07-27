@@ -57,7 +57,7 @@ body {
 }
 
 .content-full {
-    width: 100%;
+    width: 99%;
     transition: width .25s;
 }
 
@@ -74,6 +74,8 @@ body {
 .sidebar-none {
     width: 0px;
     transition: width .25s;
+    visibility: collapse;
+    height: 0;
 }
 
 .active {
