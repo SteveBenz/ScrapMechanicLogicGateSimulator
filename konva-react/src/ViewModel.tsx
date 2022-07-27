@@ -206,9 +206,9 @@ function SavedStateIndicator(props: ISavedStateIndicatorProps): JSX.Element | nu
     const size=16;
     return <Line key='saveStateIndicator'
                 points={[63-size, 0, 63, 0, 63, size]}
-                fill={savedState ? 'blue' : 'transparent'}
-                stroke='blue'
-                strokeWidth={3}
+                fill={savedState ? 'orange' : 'transparent'}
+                stroke='orange'
+                strokeWidth={4}
                 closed={true} />;
 }
 
