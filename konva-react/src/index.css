@@ -12,7 +12,7 @@ div:focus {
     top: 0px;
     left: 200px;
     z-index: +1;
-    visibility: hidden;
+    visibility: collapse;
 }
 
 .error {
@@ -43,6 +43,30 @@ div:focus {
 
 body {
     padding-left: 20px;
+}
+
+/* Lifted from this tutorial: https://bootstrapious.com/p/bootstrap-sidebar
+ */
+.wrapper {
+/*  display: flex; */
+/*    align-items: stretch; */
+}
+
+.content {
+    float: left;
+    width: 60%;
+}
+
+.sidebar {
+    display:unset;
+    float: left;
+    width: 40%;
+    height: 90vh;
+    overflow-y: scroll;
+}
+
+.active {
+    display: visible
 }
 
 /* lifted and modified from the contextMenu npm package
