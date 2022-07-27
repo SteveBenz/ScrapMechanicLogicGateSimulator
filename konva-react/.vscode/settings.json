@@ -3,6 +3,7 @@
         "Interactable",
         "interactables",
         "Nand",
+        "viewmodel",
         "Xnor"
     ]
 }
