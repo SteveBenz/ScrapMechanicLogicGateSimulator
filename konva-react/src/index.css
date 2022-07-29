@@ -5043,31 +5043,6 @@ pre {
     font-size: 0.85em;
     color: #6a737d;
 }
-.markdown-body ul,
-.markdown-body ol {
-    padding-left: 2em;
-}
-.markdown-body ul.no-list,
-.markdown-body ol.no-list {
-    padding: 0;
-    list-style-type: none;
-}
-.markdown-body ul ul,
-.markdown-body ul ol,
-.markdown-body ol ol,
-.markdown-body ol ul {
-    margin-top: 0;
-    margin-bottom: 0;
-}
-.markdown-body li {
-    word-wrap: break-all;
-}
-.markdown-body li > p {
-    margin-top: 16px;
-}
-.markdown-body li + li {
-    margin-top: 0.25em;
-}
 .markdown-body dl {
     padding: 0;
 }

@@ -109,17 +109,54 @@
         <div id="error" class='error hide'></div>
       </div>
       <div id="sidebar" class="sidebar">
-        <H3>Get Started</H3>
-        <p>Drag logic gates, inputs, and timers from the button row at the bottom into the field.
-          Wire them up by dragging from the source to the target.  Once you've got a circuit, click the
-          Play button (green triangle) to set it in motion or the Single-Step button to watch it more
-          carefully.
+        <H4>Quick Start:</H3>
+        <ol style="margin-left: 20px">
+          <li>Drag logic gates, inputs, and timers from the button row at the bottom into the field.</li>
+          <li>Wire them up by dragging from the source to the target.  As in the game, re-wiring the same connection deletes the connection.</li>
+          <li>Adjust their positions by shift-dragging.</li>
+          <li>Click the Play button (green triangle) to start the simulation.</li>
+          <li>Ctrl+click inputs to change their state.</li>
+          <li>Pause the simulation (press the play button again, now a pair of red lines).</li>
+          <li>Single step with the button next to the play button.</li>
+          <li>Save the state either as a link or as a json file.</li>
+        </ol>
+
+        <h4>Legend</h4>
+        <p>
+          The foreground and background colors are like what they are in the game - a white foreground
+          on a light blue background indicates that the gate or input is currently "On" and a black foreground
+          on a grey background means "Off".
         </p>
         <p>
-          You can move gates around in the field by shift-dragging them.  Re-wiring is done much like
-          it is in the game - re-connecting an already-connected pair deletes the link.  Wiring in the
-          opposite direction reverses the link.
+          The color of the arrows shows the state of the source of the connection at last tick.  This
+          will only really matter when the simulation is paused, as only then are you likely to be in
+          a place where, say, both of the inputs to
+          an "And" gate are true and yet the and gate itself is not true.  This is because computation of
+          state is not instantaneous.  Every "tick" (1/40th of a second in the game), the state of each logic
+          gate is evaluated.  An easy way to think about it is to divide each "tick" into two - one step where
+          you figure out what all the new values should be based on the current values, and in the next half
+          of the tick copy that computed value into the real value of the gate.  To help visualize that,
+          the arrows are drawn with different colors - a dark blue arrow means that, when the tick started,
+          the source of the connection was true and a teal colored arrow means it was false.  So, for example,
+          you can toggle an input and you'll notice that none of the connected gates changes at all and neither
+          do the connection colors.  But after you advance the simulation by one tick, you'll see your change
+          start to impact your circuit.
         </p>
+        <p>
+          Finally, on switches and logic gates, you'll see a triangle in the upper right corner that's either
+          filled in or not.  This reflects the <em>Saved State</em>.  It seems logical that if you exited and
+          reloaded scrap mechanic, your creation would be as you left it.  But that's not how it is with switches
+          and logic gates.  They will return to the condition they were in when they were last changed in some way,
+          where "changed" means either being taken off of a lift, a wiring change, a type change
+          (for logic gates), or being painted.  The triangle in the upper-right corner indicates
+          the saved state - if it's empty, that means its saved state is "false".  That also explains
+          why this circuit simulator has such a strange fascination with painting and the lift - because
+          those things all have impacts on the "save state" for a gate and can adversely impact how it works
+          on reload.
+        </p>
+
+
+        <h4>Nitty Gritties</h4>
         <p>
           <em>Gates, Inputs and Timers</em> - In the game there are buttons, switches and sensors that can
           feed into the game.  In the simulator, all the inputs are coalesced into the "Input" object --
@@ -130,8 +167,8 @@
           timer - which actually has the same delay as an 'and' gate.
         </p>
         <p>
-          <em>State</em> - A white background indicates a "True" state for logic gates or "On" for inputs;
-          a darker background indicates False/Off.  For timers, the white background means that the last
+          <em>State</em> - A light blue background indicates a "True" state for logic gates or "On" for inputs;
+          a dark background indicates False/Off.  For timers, the white background in each cell means that the last
           stored tick of the delay is currently "True".  The connections change colors with state as well.
           Darker arrows come from sources that were on/true in the last tick.  The state-at-last-tick
           is the basis for how logic gates work:  At each tick of the clock, a new state is calculated
