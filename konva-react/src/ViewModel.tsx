@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import * as Model from './Model';
 import { ToolTip } from './Buttons';
+import { Marked } from '@ts-stack/markdown';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const _assets: any = {};
@@ -173,7 +174,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
 
     function handleMouseEnter(): void {
         if (props.model.description) {
-            document.getElementById('interactableTip')!.innerText = props.model.description;
+            document.getElementById('interactableTip')!.innerHTML = Marked.parse(props.model.description ?? '');
             tooltip.startTimer();
         }
     }

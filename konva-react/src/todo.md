@@ -10,7 +10,7 @@ and it'll stay running.  Recall that the 'start' verb is defined in ..\package.j
   [ ] Add a way for people to enter tooltip information for interactables
     [x] Need to intercept keyboard events from the popups
     [ ] Fix positioning
-    [ ] Tooltip data is not persisted (?)
+    [x] Tooltip data is not persisted
     [ ] Tooltips should be markdown
   [x] There should be an introduction page instead of the garbage on the bottom.
      [ ] Update the help with information on tooltips and saved button states
