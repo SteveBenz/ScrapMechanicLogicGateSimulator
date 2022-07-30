@@ -179,7 +179,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         }
     }
 
-    function handleMouseLeave(eventArgs: KonvaEventObject<MouseEvent>): void {
+    function handleMouseLeave(): void {
         tooltip.clearTimer();
     }
 
