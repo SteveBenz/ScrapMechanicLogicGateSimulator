@@ -204,7 +204,7 @@ export class Interactable {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     twiddle(_direction: -1 | 1): void {
-        // No actio for twiddle in a timer.
+        // No action by default
     }
 
     /** Causes the calculated state to become the state that other interactables will see. */
@@ -402,11 +402,29 @@ function validateAndNormalizeInput(serialized: Record<string,unknown>, kind: 'in
     return validateAndDeserializeInteractableWithSavedState(serialized, 'input', kind === 'input-on');
 }
 
-
 export class Input extends InteractableWithSingleBitSavedState {
+    _savedToggles: number[] = [];
+    _tickCount = 0;
+
+    public constructor(props: Omit<ISerializedInteractableWithSingleBitSavedState, 'inputs'>) {
+        // Note that we intentionally don't serialize _savedToggles, as it's a debugging aid, not really
+        // a part of the model.
+        super(props);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     twiddle(_direction: -1 | 1): void {
         this.setCurrentState(!this.currentState);
+        while (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] > this._tickCount) {
+            this._savedToggles.splice(this._savedToggles.length-1, 1);
+        }
+
+        if (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] === this._tickCount) {
+            this._savedToggles.splice(this._savedToggles.length-1, 1);
+        }
+        else {
+            this._savedToggles.push(this._tickCount);
+        }
     }
 
     protected get inputLimit(): 1 | 0 | 'unlimited' {
@@ -417,6 +435,25 @@ export class Input extends InteractableWithSingleBitSavedState {
         this.setCurrentState(false);
         this.setPrevState(false);
         this.paint();
+    }
+
+    public apply(): void {
+        super.apply();
+        this._tickCount += 1;
+    }
+
+    public calculate(): void {
+        if (this._savedToggles.indexOf(this._tickCount) >= 0) {
+            this.setCurrentState(!this.currentState);
+        }
+    }
+
+    public reload(): void {
+        this._tickCount = 0;
+        super.reload();
+        if (this._savedToggles.length > 0 && this._savedToggles[0] === 0) {
+            this.setCurrentState(!this.currentState);
+        }
     }
 }
 
