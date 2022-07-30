@@ -429,6 +429,11 @@ function toggleHelp(): void {
     }
 }
 
+function autoSave(simulator: Simulator): void {
+    simulator.storeInCookie();
+    setTimeout(autoSave, 3, simulator);
+}
+
 export function makeItSo(): void {
     window.addEventListener('click', onWindowClick);
     const helpButton = document.getElementById('helpButton')!;
@@ -451,11 +456,15 @@ export function makeItSo(): void {
         let simulator: Simulator | undefined;
         try {
             simulator = new Simulator(serialized);
+            if (!serialized) {
+                simulator.loadFromCookie();
+            }
         }
         catch (err) {
             alert(err);
             simulator = new Simulator();
         }
+        setTimeout(autoSave, 3, simulator);
         render(<App simulator={simulator} />, document.getElementById("root"));
     });
 }

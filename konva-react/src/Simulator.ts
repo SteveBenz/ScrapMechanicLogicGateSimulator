@@ -107,6 +107,28 @@ export class Simulator {
         this.stopRunning();
     }
 
+    public loadFromCookie(): void {
+        const ca = document.cookie.split(';');
+        let state = '';
+        for(let i = 0; i < ca.length; i++) {
+            const c = ca[i].trimStart();
+            if (c.startsWith("state=")) {
+                state = c.substring(6, c.length);
+            }
+        }
+    
+        if (state !== '') {
+            this.load(Simulator.decompressQueryStringFragment(state))
+        }
+    }
+
+    public storeInCookie(): void {
+        const d = new Date();
+        d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+        const expires = "expires="+d.toUTCString();
+        document.cookie = "state=" + this.serializeToCompressedQueryStringFragment() + ";" + expires + ";path=/";
+    }
+
     public fitToSize(width: number, height: number, padX: number, padY: number): void {
         if (this.interactables.every(i => i.x >= 0 && i.x < width-64 && i.y >= 0 && i.y < height-64)) {
             // Seems to fit reasonably well already
