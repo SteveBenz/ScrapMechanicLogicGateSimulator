@@ -328,16 +328,16 @@ export function App(props: AppProps): JSX.Element {
         }
     }
 
+    const toolTipEditor = document.getElementById('tooltipEditor')!;
+
     function handleOkInToolTipEditor() {
-        const tte: any = document.getElementById('tooltipEditor');
-        const m: Model.Interactable = tte.model;
+        const m: Model.Interactable = (toolTipEditor as any).model;
         m.tooltip = (document.getElementById('tooltipText') as HTMLTextAreaElement)!.value ?? undefined;
-        tte.classList.remove('visible');
+        toolTipEditor.classList.remove('visible');
     }
 
     function handleCancelInToolTipEditor() {
-        const tte = document.getElementById('tooltipEditor')!;
-        tte.classList.remove('visible');
+        toolTipEditor.classList.remove('visible');
     }
 
     function handleKeyDownInTooltipEditor(e: KeyboardEvent) {
@@ -354,6 +354,11 @@ export function App(props: AppProps): JSX.Element {
     document.getElementById('tooltipEditorOk')!.onclick = handleOkInToolTipEditor;
     document.getElementById('tooltipEditorCancel')!.onclick = handleCancelInToolTipEditor;
 
+    toolTipEditor.onkeydown = (e) => {
+        e.stopPropagation();
+    };
+    toolTipEditor.onkeyup = (e) => { e.stopPropagation(); };
+    toolTipEditor.onkeypress = (e) => { e.stopPropagation(); };
 
     let pointer: Array<JSX.Element> | JSX.Element = [];
 
