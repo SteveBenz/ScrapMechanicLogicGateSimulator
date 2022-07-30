@@ -115,6 +115,11 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         const textArea = (document.getElementById('tooltipText') as HTMLTextAreaElement)!;
         textArea.value = props.model.description ?? '';
         tooltipEditor.classList.add('visible');
+
+        // Can't just set the focus, because something about the remaining event propagation ends up setting focus
+        setTimeout(() => {
+            textArea.focus();
+        }, 100);
     }
 
     function handleContextMenu(eventArgs: KonvaEventObject<MouseEvent>): void {

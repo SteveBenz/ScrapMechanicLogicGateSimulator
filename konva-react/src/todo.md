@@ -12,7 +12,8 @@ and it'll stay running.  Recall that the 'start' verb is defined in ..\package.j
     [ ] Fix positioning
     [x] Tooltip data is not persisted
     [x] Tooltips should be markdown
-    [ ] Add a little text to the description editor explaining that it's markdown.  And Shift+enter is 'ok'
+    [x] Add a little text to the description editor explaining that it's markdown.  And Shift+enter is 'ok'
+  [ ] Space when typed with a logic gate selected causes it to change 'kind'
   [x] There should be an introduction page instead of the garbage on the bottom.
      [ ] Update the help with information on tooltips and saved button states
   [x] Ctrl+Click on input should toggle inputs
