@@ -48,6 +48,7 @@ export class Interactable {
     private _y: number;
     private readonly events: EventEmitter;
     private _inputs: Array<Interactable>;
+    private _tooltip: string | undefined;
 
     private _prevState: boolean;
     private _currentState: boolean;
@@ -102,6 +103,9 @@ export class Interactable {
 
     public get x(): number { return this._x; }
     public get y(): number { return this._y; }
+
+    public get tooltip(): string | undefined { return this._tooltip; }
+    public set tooltip(tooltipText: string | undefined) { this._tooltip = tooltipText; }
 
     public setPosition(x: number, y: number): void {
         this._x = x;

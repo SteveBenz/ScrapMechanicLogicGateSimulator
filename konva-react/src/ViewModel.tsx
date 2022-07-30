@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { assert } from 'console';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/types/Node';
 import React, { useEffect, useState } from 'react';
@@ -108,6 +107,12 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         }
     }
 
+    function handleEditDescription(): void {
+        const tooltipEditor: any = document.getElementById('tooltipEditor')!;
+        tooltipEditor.model = props.model;
+        tooltipEditor.classList.add('visible');
+    }
+
     function handleContextMenu(eventArgs: KonvaEventObject<MouseEvent>): void {
         eventArgs.evt.preventDefault();
         const menu = document.getElementById('interactableMenu')!;
@@ -140,6 +145,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         document.getElementById('menuItemToXor')!.onclick = () => handleChangeType('xor');
         document.getElementById('menuItemToXnor')!.onclick = () => handleChangeType('xnor');
         document.getElementById('menuItemToggle')!.onclick = () => handleToggleValue();
+        document.getElementById('menuItemDescribe')!.onclick = () => handleEditDescription();
         document.getElementById('menuItemPaint')!.onclick = () => props.model.paint();
     }
 

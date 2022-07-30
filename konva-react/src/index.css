@@ -15,6 +15,24 @@ div:focus {
     visibility: collapse;
 }
 
+.tooltipEditor {
+    top: 40px; /* TODO:  What we want to say is that it's relative to the root div.  Right now it's relative to the top right. */
+
+    /* Inexplicable mojo to center it:  https://css-tricks.com/forums/topic/horizontal-centering-of-an-absolute-element/ */
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+
+    background-color: bisque;
+    border: 2px solid darkgrey;
+    position: absolute;
+    padding-left: 10px;
+    z-index: +1;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease-in, visibility .25s ease-in;
+}
+
 .error {
     top: 40px; /* TODO:  What we want to say is that it's relative to the root div.  Right now it's relative to the top right. */
 

@@ -51,6 +51,8 @@ function getScreenLayout(): IScreenLayout {
     };
 }
 
+
+
 export function App(props: AppProps): JSX.Element {
     const [interactables, setInteractables] = React.useState(props.simulator.interactables);
     const [links, setLinks] = React.useState(props.simulator.getLinks());
@@ -325,6 +327,33 @@ export function App(props: AppProps): JSX.Element {
             props.simulator.remove(e.model);
         }
     }
+
+    function handleOkInToolTipEditor() {
+        const tte: any = document.getElementById('tooltipEditor');
+        const m: Model.Interactable = tte.model;
+        m.tooltip = document.getElementById('tooltipText')!.textContent ?? undefined;
+        tte.classList.remove('visible');
+    }
+
+    function handleCancelInToolTipEditor() {
+        const tte = document.getElementById('tooltipEditor')!;
+        tte.classList.remove('visible');
+    }
+
+    function handleKeyDownInTooltipEditor(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+            handleCancelInToolTipEditor();
+        }
+        else if (e.key === 'Enter' && !e.shiftKey) {
+            handleOkInToolTipEditor();
+        }
+    }
+
+    const tooltipText = document.getElementById('tooltipText')!;
+    tooltipText.onkeydown = handleKeyDownInTooltipEditor;
+    document.getElementById('tooltipEditorOk')!.onclick = handleOkInToolTipEditor;
+    document.getElementById('tooltipEditorCancel')!.onclick = handleCancelInToolTipEditor;
+
 
     let pointer: Array<JSX.Element> | JSX.Element = [];
 

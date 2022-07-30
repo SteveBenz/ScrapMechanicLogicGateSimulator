@@ -30,6 +30,7 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <input type="file" id="fileElem" style="display:none" change="handleFileGiven">
     <div id="interactableMenu" class='menu'>
+      <div id="menuItemDescribe" class="menuItem">Edit Description</div>
       <div id="menuItemToAnd" class='menuItem'>Change to AND</div>
       <div id="menuItemToNand" class='menuItem'>Change to NAND</div>
       <div id="menuItemToOr" class='menuItem'>Change to OR</div>
@@ -104,9 +105,18 @@
     </div>
     <p>&nbsp;</p> <!-- Otherwise the floats in the above div get mixed up with the ones in the following div. -->
     <div class="wrapper">
-      <div class="content" id="content">
+      <div class="content" id="content" style="position: relative">
         <div id="root"></div>
-        <div id="error" class='error hide'></div>
+        <div>
+          <div id="error" class='error hide'></div>
+          <div id="tooltipEditor" style="width: 80%" class='tooltipEditor hide'>
+            <textarea id="tooltipText" style="width: 100%;line-height: 1em; height: 5em;" on></textarea>
+            <div style="text-align: center;">
+              <button id="tooltipEditorOk">OK</button>
+              <button id="tooltipEditorCancel">Cancel</button>
+            </div>
+          </div>
+          </div>
       </div>
       <div id="sidebar" class="sidebar">
         <H4>Quick Start:</H3>

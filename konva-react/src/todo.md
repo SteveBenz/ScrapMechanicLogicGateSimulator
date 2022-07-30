@@ -7,14 +7,16 @@ and it'll stay running.  Recall that the 'start' verb is defined in ..\package.j
 
 ## Make it friendlier
 
-  [ ] There should be an introduction page instead of the garbage on the bottom.
+  [ ] Add a way for people to enter tooltip information for interactables
+  [x] There should be an introduction page instead of the garbage on the bottom.
+     [ ] Update the help with information on tooltips and saved button states
   [x] Ctrl+Click on input should toggle inputs
   [x] 'a' should create an 'and' gate and 'shift-a' should create a nand gate.  Similarly for 'o' and 'x'
   [x] Tooltips should show keyboard shortcuts
-  [=] Create a setting that shows/hides the save state
-  [ ] Add a way for people to enter tooltip information for interactables
   [ ] Inputs could remember their on/off state, pressing a "Reload" could cause them to play back
   [ ] A context menu could be used to make the timer configurable?
+  [x] Save state to a cookie?
+    [ ] Make the autosave feature work with graphs loaded with a query string
 
 ## Code Cleanup
 
