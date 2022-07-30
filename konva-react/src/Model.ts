@@ -15,6 +15,7 @@ export interface ISerializedInteractable {
     y: number;
     kind: LogicGateTypes | 'input' | 'timer';
     inputs: Array<number>;
+    description?: string | undefined;
 }
 
 export interface IEventArgsInteractable {
@@ -35,10 +36,17 @@ function deserializeInteractable(serialized: Record<string,unknown>, kind: Logic
         throw new Error("Missing 'x' property or 'x' is not a number");
     }
 
+    if (!hasOwnProperty(serialized, 'y') || typeof(serialized.y) !== 'number') {
+        throw new Error("Missing 'x' property or 'x' is not a number");
+    }
+
+    const description = (hasOwnProperty(serialized, 'description') && typeof(serialized.description) === 'string') ? serialized.description : undefined;
+
     return {
         kind: kind,
         x: serialized.x,
         y: serialized.y,
+        description: description,
         inputs: []
     }
 }
@@ -48,7 +56,7 @@ export class Interactable {
     private _y: number;
     private readonly events: EventEmitter;
     private _inputs: Array<Interactable>;
-    private _tooltip: string | undefined;
+    private _description: string | undefined;
 
     private _prevState: boolean;
     private _currentState: boolean;
@@ -64,6 +72,7 @@ export class Interactable {
         this._inputs = [];
         this._x = props.x;
         this._y = props.y;
+        this._description = props.description;
 
         this.id = ++Interactable.idCounter;
     }
@@ -104,8 +113,8 @@ export class Interactable {
     public get x(): number { return this._x; }
     public get y(): number { return this._y; }
 
-    public get tooltip(): string | undefined { return this._tooltip; }
-    public set tooltip(tooltipText: string | undefined) { this._tooltip = tooltipText; }
+    public get description(): string | undefined { return this._description; }
+    public set description(text: string | undefined) { this._description = text; }
 
     public setPosition(x: number, y: number): void {
         this._x = x;
@@ -135,6 +144,7 @@ export class Interactable {
             x: this._x,
             y: this._y,
             kind: 'input', // base classes will overwrite this.
+            description: this._description,
             inputs: []
         }
     }

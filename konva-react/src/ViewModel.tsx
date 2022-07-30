@@ -112,7 +112,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         const tooltipEditor: any = document.getElementById('tooltipEditor')!;
         tooltipEditor.model = props.model;
         const textArea = (document.getElementById('tooltipText') as HTMLTextAreaElement)!;
-        textArea.value = props.model.tooltip ?? '';
+        textArea.value = props.model.description ?? '';
         tooltipEditor.classList.add('visible');
     }
 
@@ -172,8 +172,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     const [tooltip] = React.useState(new ToolTip('interactableTip', props.model.x, props.model.y));
 
     function handleMouseEnter(): void {
-        if (props.model.tooltip) {
-            document.getElementById('interactableTip')!.innerText = props.model.tooltip;
+        if (props.model.description) {
+            document.getElementById('interactableTip')!.innerText = props.model.description;
             tooltip.startTimer();
         }
     }
