@@ -22,7 +22,7 @@ const buttonWidth = 64;
 const buttonHeight = 64;
 const pressedScalingFactor = 1.05;
 
-class ToolTip {
+export class ToolTip {
     private timeoutHandle: NodeJS.Timeout | undefined;
 
     constructor(private readonly toolTipId: string, public x: number, public y: number)
@@ -61,12 +61,9 @@ class ToolTip {
         }
 
         element.style.visibility = 'visible';
-        element.style.top = (this.y - element.clientHeight - 5) + 'px';
-        let left:number = this.x + buttonWidth/2 - element.clientWidth/2;
-        if (left < 0) {
-            left = 10;
-        }
-        element.style.top = (this.y - element.clientHeight - 5) + 'px';
+        const left:number = Math.max(10, this.x + buttonWidth/2 - element.clientWidth/2);
+        const top: number = Math.max(10, this.y - element.clientHeight);
+        element.style.top = top + 'px';
         element.style.left = left + 'px';
     }
 }

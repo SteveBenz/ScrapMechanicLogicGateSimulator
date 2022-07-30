@@ -331,7 +331,7 @@ export function App(props: AppProps): JSX.Element {
     function handleOkInToolTipEditor() {
         const tte: any = document.getElementById('tooltipEditor');
         const m: Model.Interactable = tte.model;
-        m.tooltip = document.getElementById('tooltipText')!.textContent ?? undefined;
+        m.tooltip = (document.getElementById('tooltipText') as HTMLTextAreaElement)!.value ?? undefined;
         tte.classList.remove('visible');
     }
 

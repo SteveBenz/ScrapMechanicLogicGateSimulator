@@ -4,6 +4,7 @@ import { KonvaEventObject } from 'konva/types/Node';
 import React, { useEffect, useState } from 'react';
 import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import * as Model from './Model';
+import { ToolTip } from './Buttons';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const _assets: any = {};
@@ -110,6 +111,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     function handleEditDescription(): void {
         const tooltipEditor: any = document.getElementById('tooltipEditor')!;
         tooltipEditor.model = props.model;
+        const textArea = (document.getElementById('tooltipText') as HTMLTextAreaElement)!;
+        textArea.value = props.model.tooltip ?? '';
         tooltipEditor.classList.add('visible');
     }
 
@@ -165,6 +168,21 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         return () => props.model.offStateChanged(handleStateChanged);
     }, [props.model]);
 
+
+    const [tooltip] = React.useState(new ToolTip('interactableTip', props.model.x, props.model.y));
+
+    function handleMouseEnter(): void {
+        if (props.model.tooltip) {
+            document.getElementById('interactableTip')!.innerText = props.model.tooltip;
+            tooltip.startTimer();
+        }
+    }
+
+    function handleMouseLeave(eventArgs: KonvaEventObject<MouseEvent>): void {
+        tooltip.clearTimer();
+    }
+
+
     const groupContent: Array<JSX.Element> = [];
     groupContent.push(
         <Rect key='surround' height={64} width={64} strokeWidth={5} stroke={props.isSelected ? 'green' : '#ffb341'} fill={isOn ? '#26D0F9' : '#283a40'} />
@@ -182,6 +200,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
 
     return <Group onClick={handleClick}
                   onMouseUp={handleOnMouseUp}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
                   ref={groupRef}
                   draggable
                   x={x}
