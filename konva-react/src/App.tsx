@@ -120,7 +120,7 @@ export function App(props: AppProps): JSX.Element {
                 }
                 else {
                     const newInteractable = new Model.LogicGate({
-                        kind: 'and',
+                        kind: kind,
                         x: xy.x,
                         y: xy.y,
                         savedState: false
