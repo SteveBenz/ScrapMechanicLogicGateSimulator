@@ -61,8 +61,8 @@ export class ToolTip {
         }
 
         element.style.visibility = 'visible';
-        const left:number = Math.max(10, this.x + buttonWidth/2 - element.clientWidth/2);
-        const top: number = Math.max(10, this.y - element.clientHeight);
+        const left:number = Math.max(0, this.x + buttonWidth/2 - element.clientWidth/2);
+        const top: number = Math.max(0, this.y - element.clientHeight - 5);
         element.style.top = top + 'px';
         element.style.left = left + 'px';
     }

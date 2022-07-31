@@ -47,68 +47,69 @@
       <!-- <div id="menuItemMove" class='menuItem'>Move</div> -->
       <div id="menuItemDelete" class='menuItem'>Delete</div>
     </div>
-    <div id="logicGateTip" class='tooltip'>
-      <p>If you have a logic gate selected in the field above, clicking on this will convert it to this kind of logic gate.</p>
-      <p>Dragging this button into the field above will create a new logic gate of this type.</p>
-      <p>You also create logic gates by putting your mouse cursor where you want the new gate to be and pressing 'a' (and), 'A' (nand), 'o' (or), 'O' (nor), 'x' (xor) or 'X' (xnor).</p>
-    </div>
-    <div id="playPauseTip" class='tooltip'>
-      <p>Stop/pause the simulation.  'g' is the keyboard shortcut to start the simulator, 's' pauses it.</p>
-    </div>
-    <div id="singleStepTip" class='tooltip'>
-      <p>Advance the simulation by one tick.  'n' is the keyboard shortcut.</p>
-      <p><i>Not active unless the simulation is paused!</i></p>
-    </div>
-    <div id="inputTip" class='tooltip'>
-      <p><i>"Inputs" represents switches, buttons, and sensors in the game.</i></p>
-      <p>If you have an input selected in the field above, clicking on this (or pressing space) will toggle the input on/off.</p>
-      <p>Dragging this button into the field above will create a new input.  You can also create an input by putting your mouse at the place where you want it and pressing 'i'.</p>
-      <p>Inputs can be toggled by Ctrl+Clicking on them.</p>
-    </div>
-    <div id="timerTip" class='tooltip'>
-      <p><i>A 9-tick timer - currently that's the only kind of timer supported.</i></p>
-      <p>Dragging this into the field above will create a new timer.  You can also create a timer by putting your mouse at the place where you want it and pressing 't'.</p>
-    </div>
-    <div id="deleteTip" class='tooltip'>
-      <p>Delete the selected input, timer, or logic gate.  (DEL or BACKSPACE are keyboard shortcuts.)</p>
-    </div>
-    <div id="reloadTip" class='tooltip'>
-      <p>Simulate what happens when reload the game or game chunk. '4' is the keyboard shortcut.</p>
-    </div>
-    <div id="paintTip" class='tooltip'>
-      <p>"Paint" the selected logic gate or input.  In the game, this causes the current state to be the state that it will reload with.  'p' is the keyboard shortcut.</p>
-      <p>Note that any alteration to a control (e.g. making a connection, changing its logic type, etc) will update the saved state, just as it does in the game.</p>
-    </div>
-    <div id="putOnLiftTip" class='tooltip'>
-      <p>Simulates putting the build on a lift - all states are wiped.</p>
-      <p>The keyboard shortcut is 'l'.</p>
-    </div>
-    <div id="takeOffLiftTip" class='tooltip'>
-      <p>Simulates taking the build off of a lift - this causes the current state of the circuit to become the saved state.</p>
-      <p>Reloading will cause it to return to this state.</p>
-      <p>The keyboard shortcut is SHIFT+L.</p>
-    </div>
-    <div id="shareLinkTip" class='tooltip'>
-      <p>Create a sharable link to the current design and copy it to your clipboard.</p>
-      <p><i>Note that really big designs might not be sharable like this because of URL length restrictions.</i></p>
-    </div>
-    <div id="loadTip" class='tooltip'>
-      <p>Load a previously saved JSON copy of a design from a file on your machine.</p>
-    </div>
-    <div id="saveTip" class='tooltip'>
-      <p>Save a JSON copy of a design to a file on your machine.</p>
-    </div>
-    <div id="interactableTip" class='tooltip'>
-      <p>Fill this in with stuff.</p>
-    </div>
 
     <div id="banner" style="width: 100%; margin-top: 5px">
       <h3 style="float:left">Scrap Mechanic Logic Gate Simulator <span style="font-size: small;">(<a href="https://github.com/SteveBenz/ScrapMechanicLogicGateSimulator">Source</a>)</span></h3>
       <div style="float:right; margin-right: 20px; border: 1px solid lightgrey; cursor: pointer;" class="menuItem" id="helpButton">Help &gt;&gt;</div>
     </div>
     <p>&nbsp;</p> <!-- Otherwise the floats in the above div get mixed up with the ones in the following div. -->
-    <div class="wrapper">
-      <div class="content" id="content" style="position: relative">
+    <div class="wrapper" style="position: relative">
+      <div id="interactableTip" class='tooltip'>
+        <p>Fill this in with stuff.</p>
+      </div>
+      <div id="logicGateTip" class='tooltip'>
+        <p>If you have a logic gate selected in the field above, clicking on this will convert it to this kind of logic gate.</p>
+        <p>Dragging this button into the field above will create a new logic gate of this type.</p>
+        <p>You also create logic gates by putting your mouse cursor where you want the new gate to be and pressing 'a' (and), 'A' (nand), 'o' (or), 'O' (nor), 'x' (xor) or 'X' (xnor).</p>
+      </div>
+      <div id="playPauseTip" class='tooltip'>
+        <p>Stop/pause the simulation.  'g' is the keyboard shortcut to start the simulator, 's' pauses it.</p>
+      </div>
+      <div id="singleStepTip" class='tooltip'>
+        <p>Advance the simulation by one tick.  'n' is the keyboard shortcut.</p>
+        <p><i>Not active unless the simulation is paused!</i></p>
+      </div>
+      <div id="inputTip" class='tooltip'>
+        <p><i>"Inputs" represents switches, buttons, and sensors in the game.</i></p>
+        <p>If you have an input selected in the field above, clicking on this (or pressing space) will toggle the input on/off.</p>
+        <p>Dragging this button into the field above will create a new input.  You can also create an input by putting your mouse at the place where you want it and pressing 'i'.</p>
+        <p>Inputs can be toggled by Ctrl+Clicking on them.</p>
+      </div>
+      <div id="timerTip" class='tooltip'>
+        <p><i>A 9-tick timer - currently that's the only kind of timer supported.</i></p>
+        <p>Dragging this into the field above will create a new timer.  You can also create a timer by putting your mouse at the place where you want it and pressing 't'.</p>
+      </div>
+      <div id="deleteTip" class='tooltip'>
+        <p>Delete the selected input, timer, or logic gate.  (DEL or BACKSPACE are keyboard shortcuts.)</p>
+      </div>
+      <div id="reloadTip" class='tooltip'>
+        <p>Simulate what happens when reload the game or game chunk. '4' is the keyboard shortcut.</p>
+      </div>
+      <div id="paintTip" class='tooltip'>
+        <p>"Paint" the selected logic gate or input.  In the game, this causes the current state to be the state that it will reload with.  'p' is the keyboard shortcut.</p>
+        <p>Note that any alteration to a control (e.g. making a connection, changing its logic type, etc) will update the saved state, just as it does in the game.</p>
+      </div>
+      <div id="putOnLiftTip" class='tooltip'>
+        <p>Simulates putting the build on a lift - all states are wiped.</p>
+        <p>The keyboard shortcut is 'l'.</p>
+      </div>
+      <div id="takeOffLiftTip" class='tooltip'>
+        <p>Simulates taking the build off of a lift - this causes the current state of the circuit to become the saved state.</p>
+        <p>Reloading will cause it to return to this state.</p>
+        <p>The keyboard shortcut is SHIFT+L.</p>
+      </div>
+      <div id="shareLinkTip" class='tooltip'>
+        <p>Create a sharable link to the current design and copy it to your clipboard.</p>
+        <p><i>Note that really big designs might not be sharable like this because of URL length restrictions.</i></p>
+      </div>
+      <div id="loadTip" class='tooltip'>
+        <p>Load a previously saved JSON copy of a design from a file on your machine.</p>
+      </div>
+      <div id="saveTip" class='tooltip'>
+        <p>Save a JSON copy of a design to a file on your machine.</p>
+      </div>
+  
+      <div class="content" id="content">
         <div id="root"></div>
         <div>
           <div id="error" class='error hide'></div>
