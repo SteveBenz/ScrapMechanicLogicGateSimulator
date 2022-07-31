@@ -342,7 +342,7 @@ export function App(props: AppProps): JSX.Element {
         if (e.key === 'Escape') {
             handleCancelInToolTipEditor();
         }
-        else if (e.key === 'Enter' && !e.shiftKey) {
+        else if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey)) {
             handleOkInToolTipEditor();
         }
     }
