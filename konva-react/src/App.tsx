@@ -113,6 +113,22 @@ export function App(props: AppProps): JSX.Element {
             if (!xy) {
                 throw new Error("stage was not set?");
             }
+
+            function doLogicGateKey(kind: Model.LogicGateTypes, xy: Vector2d): void {
+                if (selected instanceof Model.LogicGate) {
+                    selected.kind = kind;
+                }
+                else {
+                    const newInteractable = new Model.LogicGate({
+                        kind: 'and',
+                        x: xy.x,
+                        y: xy.y,
+                        savedState: false
+                    });
+                    props.simulator.add(newInteractable);
+                    setSelected(newInteractable);
+                }
+            }
     
             if (e.key === "g") {
                 props.simulator.startRunning();
@@ -121,59 +137,17 @@ export function App(props: AppProps): JSX.Element {
             } else if (e.key === "n") {
                 props.simulator.advanceOne();
             } else if (e.key === "a") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'and',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('and', xy);
             } else if (e.key === "o") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'or',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('or', xy);
             } else if (e.key === "x") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'xor',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('xor', xy);
             } else if (e.key === "A") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'nand',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('nand', xy);
             } else if (e.key === "O") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'nor',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('nor', xy);
             } else if (e.key === "X") {
-                const newInteractable = new Model.LogicGate({
-                    kind: 'xnor',
-                    x: xy.x,
-                    y: xy.y,
-                    savedState: false
-                });
-                props.simulator.add(newInteractable);
-                setSelected(newInteractable);
+                doLogicGateKey('xnor', xy);
             } else if (e.key === "i") {
                 const newInteractable = new Model.Input({
                     kind: 'input',
