@@ -195,11 +195,6 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         }
     }
 
-    function handleMouseLeave(): void {
-        tooltip.clearTimer();
-    }
-
-
     const groupContent: Array<JSX.Element> = [];
     groupContent.push(
         <Rect key='surround' height={64} width={64} strokeWidth={5} stroke={props.isSelected ? 'green' : '#ffb341'} fill={isOn ? '#26D0F9' : '#283a40'} />
@@ -218,7 +213,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     return <Group onClick={handleClick}
                   onMouseUp={handleOnMouseUp}
                   onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
+                  onMouseLeave={() => tooltip.clearTimer()}
+                  onMouseDown={() => tooltip.clearTimer()}
                   ref={groupRef}
                   draggable
                   x={x}

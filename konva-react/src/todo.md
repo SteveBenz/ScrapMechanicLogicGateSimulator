@@ -9,7 +9,7 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
 
   [x] Fix positioning of tooltips (not appearing to take relative positioning into account like it should.)
   [x] Tooltip Position doesn't update after component is moved
-  [ ] Tooltip should pop down on mouse click in interactable
+  [x] Tooltip should pop down on mouse click in interactable
   [x] Margin around tooltip is uneven.
   [x] Timer control in toolbar isn't hourglass
   [ ] Update the help with information on tooltips and saved button states

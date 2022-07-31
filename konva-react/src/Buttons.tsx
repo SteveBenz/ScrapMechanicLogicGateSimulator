@@ -29,12 +29,14 @@ export class ToolTip {
     {
     }
 
+    /**  Starts a timer that, if it expires and not cleared, will show the tooltip. */
     public startTimer(): void {
         if (!this.timeoutHandle && document.getElementById(this.toolTipId)) {
             this.timeoutHandle = setTimeout(this._handleTimeout, 1000);
         }        
     }
 
+    /** Hides the tooltip if it's shown and prevents it popping up if it hasn't. */
     public clearTimer(): void {
         if (this.timeoutHandle) {
             clearTimeout(this.timeoutHandle);
