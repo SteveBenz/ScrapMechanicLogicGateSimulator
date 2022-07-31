@@ -13,12 +13,13 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
   [x] Margin around tooltip is uneven.
   [x] Timer control in toolbar isn't hourglass
   [x] Enter closes the description editor - shift enter doesn't.
+  [ ] Maybe make a visible thing on a component with a description
+  [x] Have the on/off sequence for inputs show in the inputs tooltip
+  [x] Have the timer have a default tooltip that shows how many ticks it has
+
   [ ] Update the help with information on tooltips and saved button states
   [ ] Rewrite the main readme, maybe create a readme in the konva-react directory
 
-  [ ] Maybe make a visible thing on a component with a description
-  [ ] Have the on/off sequence for inputs show in the inputs tooltip
-  [ ] Have the timer have a default tooltip that shows how many ticks it has
   [ ] Pressing 'a', 'o' etc. while a logic gate is selected should convert it (?)
   [ ] Timer looks a bit awkward with small, odd numbers of ticks
   [ ] Data > 4k will jack up the cookie backup system.

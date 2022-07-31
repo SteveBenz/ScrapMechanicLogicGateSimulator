@@ -116,6 +116,8 @@ export class Interactable {
     public get description(): string | undefined { return this._description; }
     public set description(text: string | undefined) { this._description = text; }
 
+    public get generatedDescription(): string | undefined { return undefined; }
+
     public setPosition(x: number, y: number): void {
         this._x = x;
         this._y = y;
@@ -306,8 +308,6 @@ export class InteractableWithSingleBitSavedState extends Interactable {
 
 export type LogicGateTypes = 'and' | 'or' | 'xor' | 'nand' | 'nor' | 'xnor';
 
-const LogicGateKindSequence: Array<LogicGateTypes> = ['and', 'or', 'xor', 'nand', 'nor', 'xnor'];
-
 export type ISerializedLogicGate = ISerializedInteractableWithSingleBitSavedState
 
 function deserializeLogicGate(serialized: Record<string,unknown>, kind: LogicGateTypes): ISerializedLogicGate {
@@ -397,7 +397,20 @@ export class Input extends InteractableWithSingleBitSavedState {
         super(props);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public get generatedDescription(): string | undefined {
+        if (this._savedToggles.length === 0) {
+            return undefined;
+        }
+
+        let text = 'on at tick ' + this._savedToggles[0];
+        let toggle = 'off'
+        for (let i = 1; i < this._savedToggles.length; ++i) {
+            text += '; ' + toggle + ' at ' + this._savedToggles[i];
+            toggle = toggle === 'off' ? 'on' : 'off';
+        }
+        return text;
+    }
+
     toggle(): void {
         this.setCurrentState(!this.currentState);
         while (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] > this._tickCount) {
@@ -472,6 +485,10 @@ export class Timer extends Interactable {
     public constructor(serialized: Omit<ISerializedTimer, 'inputs'>) {
         super(serialized);
         this._tickStorage = [ ...serialized.tickStorage ];
+    }
+
+    public get generatedDescription(): string | undefined {
+        return this._tickStorage.length-1 + '-tick timer (' + this._tickStorage.length + ' ticks of actual saved state)';
     }
 
     public changeSize(delta: number): void {

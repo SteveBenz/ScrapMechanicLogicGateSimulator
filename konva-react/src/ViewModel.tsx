@@ -187,8 +187,16 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     const [tooltip] = React.useState(new ToolTip('interactableTip', props.model.x, props.model.y));
 
     function handleMouseEnter(): void {
-        if (props.model.description) {
-            document.getElementById('interactableTip')!.innerHTML = Marked.parse(props.model.description ?? '');
+        if (props.model.description || props.model.generatedDescription) {
+            let content = '';
+            if (props.model.description) {
+                content += Marked.parse(props.model.description ?? '');
+            }
+            const generatedContent = props.model.generatedDescription;
+            if (generatedContent) {
+                content += '<p class="generatedDescription">' + generatedContent + '</p>';
+            }
+            document.getElementById('interactableTip')!.innerHTML = content;
             tooltip.x = props.model.x;
             tooltip.y = props.model.y;
             tooltip.startTimer();

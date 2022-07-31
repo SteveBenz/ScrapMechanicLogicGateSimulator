@@ -101,6 +101,10 @@ body {
     display: visible
 }
 
+.generatedDescription {
+    font-style: italic;
+}
+
 /* lifted and modified from the contextMenu npm package
  */
 /* containers */
