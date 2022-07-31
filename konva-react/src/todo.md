@@ -19,8 +19,8 @@ and it'll stay running.  Recall that the 'start' verb is defined in ..\package.j
   [x] Ctrl+Click on input should toggle inputs
   [x] 'a' should create an 'and' gate and 'shift-a' should create a nand gate.  Similarly for 'o' and 'x'
   [x] Tooltips should show keyboard shortcuts
-  [ ] Inputs could remember their on/off state, pressing a "Reload" could cause them to play back
-  [ ] A context menu could be used to make the timer configurable?
+  [x] Inputs could remember their on/off state, pressing a "Reload" could cause them to play back
+  [x] A context menu could be used to make the timer configurable?
   [x] Save state to a cookie?
     [ ] Make the autosave feature work with graphs loaded with a query string
 

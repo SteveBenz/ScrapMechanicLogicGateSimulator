@@ -54,7 +54,7 @@ function deserializeInteractable(serialized: Record<string,unknown>, kind: Logic
 export class Interactable {
     private _x: number;
     private _y: number;
-    private readonly events: EventEmitter;
+    private readonly _events: EventEmitter;
     private _inputs: Array<Interactable>;
     private _description: string | undefined;
 
@@ -66,7 +66,7 @@ export class Interactable {
     static idCounter = 0;
 
     constructor(props: Omit<ISerializedInteractable, 'inputs'>) {
-        this.events = new EventEmitter();
+        this._events = new EventEmitter();
         this._prevState = false;
         this._currentState = false;
         this._inputs = [];
@@ -222,19 +222,19 @@ export class Interactable {
     public paint(): void {/* no action */}
 
     public onMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void): void {
-        this.events.on('moved', handler);
+        this._events.on('moved', handler);
     }
 
     public offMoved(handler: (eventArgs: IEventArgsInteractableMoved) => void): void {
-        this.events.off('moved', handler);
+        this._events.off('moved', handler);
     }
 
     public onStateChanged(handler: (eventArgs: IEventArgsInteractable) => void): void {
-        this.events.on('stateChanged', handler);
+        this._events.on('stateChanged', handler);
     }
 
     public offStateChanged(handler: (eventArgs: IEventArgsInteractable) => void): void {
-        this.events.off('stateChanged', handler);
+        this._events.off('stateChanged', handler);
     }
 
     protected get inputLimit(): 1 | 0 | 'unlimited' {
@@ -242,11 +242,11 @@ export class Interactable {
     }
 
     protected _emitMoved(x: number, y: number): void {
-        this.events.emit('moved', { source: this, x, y } as IEventArgsInteractableMoved);
+        this._events.emit('moved', { source: this, x, y } as IEventArgsInteractableMoved);
     }
 
     protected _emitStateChanged(): void {
-        this.events.emit('stateChanged', { source: this } as IEventArgsInteractable);
+        this._events.emit('stateChanged', { source: this } as IEventArgsInteractable);
     }
 }
 
@@ -487,6 +487,23 @@ export class Timer extends Interactable {
     public constructor(serialized: Omit<ISerializedTimer, 'inputs'>) {
         super(serialized);
         this._tickStorage = [ ...serialized.tickStorage ];
+    }
+
+    public changeSize(delta: number): void {
+        if (delta < 0) {
+            const actualDeletes = Math.min(-delta, this._tickStorage.length-1);
+            if (actualDeletes > 0) {
+                this._tickStorage.splice(this._tickStorage.length-actualDeletes, actualDeletes);
+            }
+        }
+        else {
+            let actualAdds = Math.min(delta, 30 - this._tickStorage.length);
+            while (actualAdds > 0) {
+                this._tickStorage.push(false);
+                actualAdds -= 1
+            }
+        }
+        this._emitStateChanged()
     }
 
     public get tickStorage(): Array<boolean> {

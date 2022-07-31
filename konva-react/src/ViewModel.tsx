@@ -122,6 +122,10 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         }, 100);
     }
 
+    function handleTicksChange(delta: number): void {
+        (props.model as Model.Timer)!.changeSize(delta);
+    }
+
     function handleContextMenu(eventArgs: KonvaEventObject<MouseEvent>): void {
         eventArgs.evt.preventDefault();
         const menu = document.getElementById('interactableMenu')!;
@@ -137,10 +141,10 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         document.getElementById('menuItemToXnor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'xnor') ? '' : 'none';
 
         // Not implemented yet:
-        document.getElementById('menuItemAddOneTick')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
-        document.getElementById('menuItemAddFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
-        document.getElementById('menuItemMinusOneTick')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
-        document.getElementById('menuItemMinusFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? 'none' : 'none';
+        document.getElementById('menuItemAddOneTick')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
+        document.getElementById('menuItemAddFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
+        document.getElementById('menuItemMinusOneTick')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
+        document.getElementById('menuItemMinusFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
         
         document.getElementById('menuItemToggle')!.style.display = (props.model instanceof Model.Input) ? '' : 'none';
         document.getElementById('menuItemPaint')!.style.display = (props.model instanceof Model.Timer) ? 'none' : '';
@@ -156,6 +160,11 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         document.getElementById('menuItemToggle')!.onclick = () => handleToggleValue();
         document.getElementById('menuItemDescribe')!.onclick = () => handleEditDescription();
         document.getElementById('menuItemPaint')!.onclick = () => props.model.paint();
+
+        document.getElementById('menuItemAddOneTick')!.onclick = () => handleTicksChange(1);
+        document.getElementById('menuItemMinusOneTick')!.onclick = () => handleTicksChange(-1);
+        document.getElementById('menuItemAddFiveTicks')!.onclick = () => handleTicksChange(5);
+        document.getElementById('menuItemMinusFiveTicks')!.onclick = () => handleTicksChange(-5);
     }
 
     useEffect(() => {
@@ -309,13 +318,25 @@ export function Timer(props: ITimerProps): JSX.Element {
     const horizontalOffset = 12;
     const verticalOffset = 6;
     const rectHeight = (drawingHeight - 2*verticalOffset) / tickStorage.length;
-    const hourglassDeltas = [0, 0, 2, 4, 6, 6, 4, 2, 0, 0];
+    function hourglassDelta(index: number): number {
+        const l = tickStorage.length;
+        const fromEnd = index <= tickStorage.length/2 ? index : tickStorage.length-1-index;
+        if (fromEnd < l * .2) {
+            return 0;
+        }
+        else if (fromEnd > l * .4) {
+            return 6;
+        }
+        else {
+            return 6*(fromEnd - l*.2)/(l*.2);
+        }
+    }
 
     return <Group>
             {tickStorage.map((tickValue, index) =>
                 <Rect key={index.toString()}
-                    x={horizontalOffset + hourglassDeltas[index] }
-                    width={drawingWidth - 2*horizontalOffset - 2*hourglassDeltas[index]}
+                    x={horizontalOffset + hourglassDelta(index) }
+                    width={drawingWidth - 2*horizontalOffset - 2*hourglassDelta(index)}
                     y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
                     height={rectHeight}
                     strokeWidth={1}
