@@ -189,6 +189,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
     function handleMouseEnter(): void {
         if (props.model.description) {
             document.getElementById('interactableTip')!.innerHTML = Marked.parse(props.model.description ?? '');
+            tooltip.x = props.model.x;
+            tooltip.y = props.model.y;
             tooltip.startTimer();
         }
     }
