@@ -20,8 +20,8 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
   [ ] Update the help with information on tooltips and saved button states
   [ ] Rewrite the main readme, maybe create a readme in the konva-react directory
 
-  [ ] Pressing 'a', 'o' etc. while a logic gate is selected should convert it (?)
-  [ ] Timer looks a bit awkward with small, odd numbers of ticks
+  [x] Pressing 'a', 'o' etc. while a logic gate is selected should convert it (?)
+  [x] Timer looks a bit awkward with small, odd numbers of ticks
   [ ] Data > 4k will jack up the cookie backup system.
 
 ## Code Cleanup

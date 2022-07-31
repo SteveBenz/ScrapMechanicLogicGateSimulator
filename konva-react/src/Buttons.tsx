@@ -257,7 +257,7 @@ export function LogicGateButton(props: ILogicGateButtonProps): JSX.Element {
     const tickStorage = [true, true, true, true, true, true, true, false, false, false];
     function hourglassDelta(index: number): number {
         const l = tickStorage.length;
-        const fromEnd = index <= tickStorage.length/2 ? index : tickStorage.length-1-index;
+        const fromEnd = index < tickStorage.length/2 ? index : tickStorage.length-1-index;
         if (fromEnd < l * .2) {
             return 0;
         }
