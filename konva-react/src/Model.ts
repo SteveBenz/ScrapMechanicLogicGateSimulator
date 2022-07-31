@@ -203,7 +203,7 @@ export class Interactable {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    twiddle(_direction: -1 | 1): void {
+    toggle(): void {
         // No action by default
     }
 
@@ -336,21 +336,6 @@ export class LogicGate extends InteractableWithSingleBitSavedState {
         this.paint();
     }
 
-    public twiddle(direction: -1 | 1): void {
-        let index = LogicGateKindSequence.indexOf(this._kind);
-        index = index + direction;
-        if (index < 0) {
-            index += LogicGateKindSequence.length;
-        }
-        else if (index >= LogicGateKindSequence.length) {
-            index -= LogicGateKindSequence.length;
-        }
-
-        this.kind = LogicGateKindSequence[index];
-        this.calculate();
-        this.paint();
-    }
-
     public calculate(): void {
         // This becomes the sum of all the inputs where the previous state is true
         const numActivatedInputs = this.inputs.reduce((a, b) => a + (b.prevState ? 1 : 0), 0);
@@ -413,7 +398,7 @@ export class Input extends InteractableWithSingleBitSavedState {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    twiddle(_direction: -1 | 1): void {
+    toggle(): void {
         this.setCurrentState(!this.currentState);
         while (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] > this._tickCount) {
             this._savedToggles.splice(this._savedToggles.length-1, 1);

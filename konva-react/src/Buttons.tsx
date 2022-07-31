@@ -221,7 +221,7 @@ export function LogicGateButton(props: ILogicGateButtonProps): JSX.Element {
         }
 
         if (props.kind === 'input' && props.selected instanceof Model.Input) {
-            props.selected.twiddle(1);
+            props.selected.toggle();
         } else if (props.kind === 'timer' && props.selected instanceof Model.Timer) {
             FloatingErrorMessage.show("Timers can't be changed like this.");
             // no action

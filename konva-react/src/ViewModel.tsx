@@ -102,10 +102,10 @@ export function Interactable(props: IInteractableProps): JSX.Element {
 
     function handleToggleValue(): void {
         if (props.model instanceof Model.Input) {
-            props.model.twiddle(1)
+            props.model.toggle()
         }
         else {
-            throw Error("Expected a logic gate")
+            throw Error("Expected an Input")
         }
     }
 

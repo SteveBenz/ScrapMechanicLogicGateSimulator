@@ -192,10 +192,8 @@ export function App(props: AppProps): JSX.Element {
                 });
                 props.simulator.add(newInteractable);
                 setSelected(newInteractable);
-            } else if (e.key === '[' && selected) {
-                selected.twiddle(-1);
-            } else if ((e.key === ']' || e.key === ' ') && selected) {
-                selected.twiddle(1);
+            } else if (selected && e.key === ' ') {
+                selected.toggle();
                 e.preventDefault();
             } else if (e.key === '4') {
                 props.simulator.gameReload();
@@ -255,7 +253,7 @@ export function App(props: AppProps): JSX.Element {
 
     function handleInteractableClicked(e: ViewModel.IEventArgsInteractable): void {
         if (e.evt.ctrlKey && e.model instanceof Model.Input) {
-            e.model.twiddle(1)
+            e.model.toggle();
         }
         setSelected( e.model );
     }
