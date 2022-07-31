@@ -465,7 +465,7 @@ function toggleHelp(): void {
 
 function autoSave(simulator: Simulator): void {
     simulator.storeInCookie();
-    setTimeout(autoSave, 3, simulator);
+    setTimeout(autoSave, 3000, simulator);
 }
 
 export function makeItSo(): void {
@@ -474,29 +474,14 @@ export function makeItSo(): void {
     helpButton.onclick = toggleHelp;
 
     // TODO - get rid of this.  One way to go would be to find a way to convert all the PNG's to SVG's.
-    const queryString: string | undefined = window.location.search;
-    let serialized: unknown | undefined = undefined;
-    if (queryString) {
-        try
-        {
-            serialized = Simulator.decompressQueryStringFragment(queryString);
-        }
-        catch {
-            alert("The query string doesn't seem to be something created by this app - was it perhaps truncated?");
-        }
-    }
 
     ViewModel.loadAssets(() => {
-        let simulator: Simulator | undefined;
+        const simulator= new Simulator();
         try {
-            simulator = new Simulator(serialized);
-            if (!serialized) {
-                simulator.loadFromCookie();
-            }
+            simulator.loadFromQsAndCookie();
         }
         catch (err) {
             alert(err);
-            simulator = new Simulator();
         }
         setTimeout(autoSave, 3, simulator);
         render(<App simulator={simulator} />, document.getElementById("root"));

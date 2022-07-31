@@ -22,7 +22,8 @@ and it'll stay running.  Recall that the 'start' verb is defined in ..\package.j
   [x] Inputs could remember their on/off state, pressing a "Reload" could cause them to play back
   [x] A context menu could be used to make the timer configurable?
   [x] Save state to a cookie?
-    [ ] Make the autosave feature work with graphs loaded with a query string
+    [x] Make the autosave feature work with graphs loaded with a query string
+  [ ] Timer looks a bit awkward with small, odd numbers of ticks
 
 ## Code Cleanup
 

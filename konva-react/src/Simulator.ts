@@ -43,16 +43,13 @@ export class Simulator {
     public isRunning: boolean; // TODO: make it readonly to outside callers
     public interactables: Array<Interactable>;
 
-    constructor(serialized?: unknown | undefined) {
+    constructor() {
         this._events = new EventEmitter();
         this.currentTick = 0;
         this.isRunning = false;
         this._nextTickTimeoutId = undefined;
         this._pauseInterval = 250;
         this.interactables = [];
-        if (serialized !== undefined && serialized !== null) {
-            this.load(serialized);
-        }
     }
 
     public serialize(): ISerializedSimulator {
@@ -107,26 +104,60 @@ export class Simulator {
         this.stopRunning();
     }
 
-    public loadFromCookie(): void {
+    private static _hashCode(s: string): number {
+        return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
+    }
+
+    public loadFromQsAndCookie(): void {
+        const queryString: string | undefined = window.location.search;
+
         const ca = document.cookie.split(';');
-        let state = '';
+        let cookieState: string | undefined;
+        let cookieIsForThisQueryString = false;
         for(let i = 0; i < ca.length; i++) {
             const c = ca[i].trimStart();
             if (c.startsWith("state=")) {
-                state = c.substring(6, c.length);
+                cookieState = c.substring(6, c.length);
+            }
+            if (c.startsWith("hash=") && queryString !== '') {
+                cookieIsForThisQueryString = Simulator._hashCode(queryString).toString() === c.substring(5, c.length);
             }
         }
-    
-        if (state !== '') {
-            this.load(Simulator.decompressQueryStringFragment(state))
+
+        let loadFrom: string | undefined;
+        if ((cookieIsForThisQueryString && cookieState !== undefined) || queryString === '') {
+            loadFrom = cookieState;
         }
+        else if (queryString !== '') {
+            loadFrom = queryString;
+        }
+
+        let serialized: unknown | undefined = [];
+        if (loadFrom) {
+            try
+            {
+                serialized = Simulator.decompressQueryStringFragment(loadFrom);
+            }
+            catch {
+                throw Error("The query string doesn't seem to be something created by this app - was it perhaps truncated?");
+            }
+        }
+        this.load(serialized);
     }
 
     public storeInCookie(): void {
+        // ISSUE - once you get over 4k, this will certainly fail.  As far as I can see, it'd be possible
+        //   to break this into multiple strings.  See:
+        //  https://www.thoughtco.com/cookie-limit-per-domain-3466809#:~:text=Chrome%20and%20Safari%20appear%20to,50%20maximum%20cookies%20per%20domain.
+        //   Although it appears that some browsers will not support more than a total of 4k in cookie data total.
         const d = new Date();
         d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
-        const expires = "expires="+d.toUTCString();
-        document.cookie = "state=" + this.serializeToCompressedQueryStringFragment() + ";" + expires + ";path=/";
+        const extraSlag = ";expires="+d.toUTCString()+";path=/";
+        document.cookie = "state=" + this.serializeToCompressedQueryStringFragment() + extraSlag;
+        const queryString: string | undefined = window.location.search;
+        if (queryString) {
+            document.cookie = "hash=" + Simulator._hashCode(queryString) + extraSlag;
+        }
     }
 
     public fitToSize(width: number, height: number, padX: number, padY: number): void {
