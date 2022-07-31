@@ -252,6 +252,20 @@ export function LogicGateButton(props: ILogicGateButtonProps): JSX.Element {
     }
 
     let content: JSX.Element | Array<JSX.Element> | undefined;
+    const tickStorage = [true, true, true, true, true, true, true, false, false, false];
+    function hourglassDelta(index: number): number {
+        const l = tickStorage.length;
+        const fromEnd = index <= tickStorage.length/2 ? index : tickStorage.length-1-index;
+        if (fromEnd < l * .2) {
+            return 0;
+        }
+        else if (fromEnd > l * .4) {
+            return 6;
+        }
+        else {
+            return 6*(fromEnd - l*.2)/(l*.2);
+        }
+    }
     switch(props.kind) {
         case 'input':
             content = <Circle radius={22} x={32} y={32} strokeWidth={8} stroke='black'/>;
@@ -261,19 +275,17 @@ export function LogicGateButton(props: ILogicGateButtonProps): JSX.Element {
             const drawingWidth = 64;
             const horizontalOffset = 12;
             const verticalOffset = 6;
-            const tickStorage = [true, true, true, true, true, false, false, false, false, false];
             const rectHeight = (drawingHeight - 2*verticalOffset) / tickStorage.length;
-
+        
             content = tickStorage.map((value: boolean, index: number) =>
-            <Rect key={index}
-                    x={horizontalOffset}
-                    width={drawingWidth - 2*horizontalOffset}
-                    y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
-                    height={rectHeight}
-                    strokeWidth={1}
-                    stroke='darkgrey'
-                    fill={value ? 'blue' : 'white'}
-                    />);
+            <Rect key={index.toString()}
+                            x={horizontalOffset + hourglassDelta(index) }
+                            width={drawingWidth - 2*horizontalOffset - 2*hourglassDelta(index)}
+                            y={drawingHeight - verticalOffset - rectHeight - index*(drawingHeight-2*verticalOffset)/tickStorage.length}
+                            height={rectHeight}
+                            strokeWidth={1}
+                            stroke='darkgrey'
+                            fill={value ? 'blue' : 'white'}/>);
             break;
         default:
             content = <Image x={0} y={0} image={ViewModel._assets[props.kind].image()} />;
