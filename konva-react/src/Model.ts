@@ -536,6 +536,15 @@ export class Timer extends Interactable {
         // it has to come from its input, which hasn't finished its apply cycle yet.
     }
 
+    public putOnLift(): void {
+        for (let i = 0; i < this._tickStorage.length; ++i) {
+            this._tickStorage[i] = false;
+        }
+        this.setCurrentState(false);
+        this.setPrevState(false);
+        this.paint();
+    }
+
     protected get inputLimit(): 1 | 0 | 'unlimited' {
         return 1;
     }

@@ -7,6 +7,8 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
 
 ## Bugs
 
+  [ ] Timers are not redrawn by putting it on a lift.
+  [ ] Timers are not drawn properly when only the first bit is true.
   [x] Fix positioning of tooltips (not appearing to take relative positioning into account like it should.)
   [x] Tooltip Position doesn't update after component is moved
   [x] Tooltip should pop down on mouse click in interactable
