@@ -521,19 +521,15 @@ export class Timer extends Interactable {
     }
 
     public calculate(): void {
-        this.setCurrentState(this._tickStorage[this._tickStorage.length-1]);
-        this._tickStorage[0] = this.inputs.length > 0 && this.inputs[0].prevState;
-    }
-
-    public apply(): void {
-        this.setPrevState(this.currentState);
         // Advance everything in the array
         for (let i = 0; i < this._tickStorage.length-1; ++i) {
             this._tickStorage[this._tickStorage.length-1-i] = this._tickStorage[this._tickStorage.length-2-i];
         }
-        this.setCurrentState(this._tickStorage[this._tickStorage.length]);
-        // tickStorage[0] will be set by calculate - it's not possible to set it here because
-        // it has to come from its input, which hasn't finished its apply cycle yet.
+        this._tickStorage[0] = this.inputs.length > 0 && this.inputs[0].prevState;
+        this.setCurrentState(this._tickStorage[this._tickStorage.length-1]);
+
+        // Might be nice to compare the old array with the new one and only do this if it actually changed.
+        this._emitStateChanged();
     }
 
     public putOnLift(): void {
@@ -542,7 +538,7 @@ export class Timer extends Interactable {
         }
         this.setCurrentState(false);
         this.setPrevState(false);
-        this.paint();
+        this._emitStateChanged();
     }
 
     protected get inputLimit(): 1 | 0 | 'unlimited' {
