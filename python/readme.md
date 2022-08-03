@@ -1,6 +1,13 @@
 # Scrap Mechanic Logic Gate Simulator/Debugger
 
-> This thing was originally written as a python app, but has since been rewritten as a web app, which makes it a whole lot more practical to use.  To use it, go to the [GitHub Pages](https://stevebenz.github.io/ScrapMechanicLogicGateSimulator/) for this project.  There's a quick-start guide there which should get you well on your way.  (Which is good because this page needs a rewrite now!)  What's mainly left of value here are tutorials on how to prove to yourself how these save-load semantics actually work in the game.
+## Introduction/Disclaimer
+
+This thing was originally written as a python app, but has since been rewritten as a web app, which makes it a whole lot more practical to use.  To use it, go to the [GitHub Pages](https://stevebenz.github.io/ScrapMechanicLogicGateSimulator/) for this project.
+
+There's no intention to maintain the python version, but it seemed
+a shame to just delete it, so here it is...
+
+## If you really wanna proceed...
 
 This is a python app that will allow you to debug your Scrap Mechanic circuits.  It doesn't reach into the game at all - you have to duplicate your prototype here in the game and all that, but this gives you a chance to see what your circuit will do tick-by-tick.  It's particularly pointed at helping get over the pain induced by the tick-by-tick nature of how Scrap Mechanic works and the wonkiness that can happen when you load in.
 
@@ -114,13 +121,13 @@ With that background, we can understand how scrap mechanic processes circuits, b
 
 Why doesn't it?  Well, pretty much all the really interesting circuits in scrap mechanic involve feedback loops and the scrap mechanic devs knew that was going to be a thing.  With loops, there is no single answer to compute because the whole circuit cycles between states over time.  So it's not like on each frame the whole chain gets computed instantly - it just can't work like that.
 
-I'm not privy to the SM code, but I've run quite a few experiments to prove that this is an effective way to understand the algorithm:
+I'm not privvy to the SM code, but I've run quite a few experiments to prove that this is an effective way to understand the algorithm:
 
 First off, you have to think of each connection as having a state, either On or Off.  It then goes through each logic gate and calculates what the gate's state should be, based on the state of the "wires".  After it's done that calculation for **all** the gates, it sets the state of the wires based on the current state.  Now, I kinda doubt they actually attach state to the wires like I said.  More than likely they do it like in the simulator, where there's a "previous" state and they read that "previous" state.
 
 In the simulator, that old, recorded state is reflected in the color of the connection lines.  Light Blue means that, prior to the next tick, the input was True.
 
-To illustrate this, run the simulator, set the input object to "On" and let the signal percolate through the network, then pause it (with `F6`).  Here we see all the gates are white (meaning they are True) and all the connections are likewise true.  If you select the Input button at the left and change it to false (with, an arrow key), you'll see the gate itself turns gray, but the input signal is still light blue (reflecting how it was at the start of the tick).  If you press F10 to single step, you'll see the line and the subsequent gate go dark.
+To illustrate this, run the simulator, set the input object to "On" and let the signal percalate through the network, then pause it (with `F6`).  Here we see all the gates are white (meaning they are True) and all the connections are likewise true.  If you select the Input button at the left and change it to false (with, an arrow key), you'll see the gate itself turns gray, but the input signal is still light blue (reflecting how it was at the start of the tick).  If you press F10 to single step, you'll see the line and the subsequent gate go dark.
 
 The way you want to think about it is this:  _The color of the inputs will always explain the current state of the gate_.  The state of a gate will flow down the wire to the next gate, _but on the next tick_.  You might think "Wait!  That's now how Scrap Mechanic Works!" and there's some truth to that, but if the circuit is in a stable state, there's no difference between what's "in the wire" and the gate itself.  The simulator is meant to help you with _unstable_ circuits, and so it takes the time to show you this nuance.
 
