@@ -115,19 +115,14 @@ export function App(props: AppProps): JSX.Element {
             }
 
             function doLogicGateKey(kind: Model.LogicGateTypes, xy: Vector2d): void {
-                if (selected instanceof Model.LogicGate) {
-                    selected.kind = kind;
-                }
-                else {
-                    const newInteractable = new Model.LogicGate({
-                        kind: kind,
-                        x: xy.x,
-                        y: xy.y,
-                        savedState: false
-                    });
-                    props.simulator.add(newInteractable);
-                    setSelected(newInteractable);
-                }
+                const newInteractable = new Model.LogicGate({
+                    kind: kind,
+                    x: xy.x,
+                    y: xy.y,
+                    savedState: false
+                });
+                props.simulator.add(newInteractable);
+                setSelected(newInteractable);
             }
     
             if (e.key === "g") {
