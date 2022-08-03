@@ -126,6 +126,10 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         (props.model as Model.Timer)!.changeSize(delta);
     }
 
+    function handleRecord(isOn: boolean): void {
+        (props.model as Model.Input)!.isRecording = isOn;
+    }
+
     function handleContextMenu(eventArgs: KonvaEventObject<MouseEvent>): void {
         eventArgs.evt.preventDefault();
         const menu = document.getElementById('interactableMenu')!;
@@ -140,17 +144,19 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         document.getElementById('menuItemToXor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'xor') ? '' : 'none';
         document.getElementById('menuItemToXnor')!.style.display = (props.model instanceof Model.LogicGate && props.model.kind !== 'xnor') ? '' : 'none';
 
-        // Not implemented yet:
         document.getElementById('menuItemAddOneTick')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
         document.getElementById('menuItemAddFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
         document.getElementById('menuItemMinusOneTick')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
         document.getElementById('menuItemMinusFiveTicks')!.style.display = (props.model instanceof Model.Timer) ? '' : 'none';
         
         document.getElementById('menuItemToggle')!.style.display = (props.model instanceof Model.Input) ? '' : 'none';
+        document.getElementById('menuItemRecordOn')!.style.display = (props.model instanceof Model.Input && !props.model.isRecording) ? '' : 'none';
+        document.getElementById('menuItemRecordOff')!.style.display = (props.model instanceof Model.Input && props.model.isRecording) ? '' : 'none';
         document.getElementById('menuItemPaint')!.style.display = (props.model instanceof Model.Timer) ? 'none' : '';
         if (props.model instanceof Model.Input) {
             document.getElementById('menuItemToggle')!.innerText = props.model.currentState ? 'Toggle off' : 'Toggle on';
         }
+
         document.getElementById('menuItemToAnd')!.onclick = () => handleChangeType('and');
         document.getElementById('menuItemToNand')!.onclick = () => handleChangeType('nand');
         document.getElementById('menuItemToOr')!.onclick = () => handleChangeType('or');
@@ -165,6 +171,8 @@ export function Interactable(props: IInteractableProps): JSX.Element {
         document.getElementById('menuItemMinusOneTick')!.onclick = () => handleTicksChange(-1);
         document.getElementById('menuItemAddFiveTicks')!.onclick = () => handleTicksChange(5);
         document.getElementById('menuItemMinusFiveTicks')!.onclick = () => handleTicksChange(-5);
+        document.getElementById('menuItemRecordOn')!.onclick = () => handleRecord(true);
+        document.getElementById('menuItemRecordOff')!.onclick = () => handleRecord(false);
     }
 
     useEffect(() => {

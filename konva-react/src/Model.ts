@@ -388,7 +388,7 @@ function validateAndNormalizeInput(serialized: Record<string,unknown>, kind: 'in
 }
 
 export class Input extends InteractableWithSingleBitSavedState {
-    _savedToggles: number[] = [];
+    _savedToggles: number[] | undefined = undefined;
     _tickCount = 0;
 
     public constructor(props: Omit<ISerializedInteractableWithSingleBitSavedState, 'inputs'>) {
@@ -397,8 +397,16 @@ export class Input extends InteractableWithSingleBitSavedState {
         super(props);
     }
 
+    public get isRecording(): boolean {
+        return this._savedToggles !== undefined;
+    }
+
+    public set isRecording(isRecording: boolean) {
+        this._savedToggles = (this._savedToggles === undefined) ? [] : undefined;
+    }
+
     public get generatedDescription(): string | undefined {
-        if (this._savedToggles.length === 0) {
+        if (this._savedToggles === undefined || this._savedToggles.length === 0) {
             return undefined;
         }
 
@@ -413,15 +421,17 @@ export class Input extends InteractableWithSingleBitSavedState {
 
     toggle(): void {
         this.setCurrentState(!this.currentState);
-        while (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] > this._tickCount) {
-            this._savedToggles.splice(this._savedToggles.length-1, 1);
-        }
+        if (this._savedToggles !== undefined) {
+            while (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] > this._tickCount) {
+                this._savedToggles.splice(this._savedToggles.length-1, 1);
+            }
 
-        if (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] === this._tickCount) {
-            this._savedToggles.splice(this._savedToggles.length-1, 1);
-        }
-        else {
-            this._savedToggles.push(this._tickCount);
+            if (this._savedToggles.length > 0 && this._savedToggles[this._savedToggles.length-1] === this._tickCount) {
+                this._savedToggles.splice(this._savedToggles.length-1, 1);
+            }
+            else {
+                this._savedToggles.push(this._tickCount);
+            }
         }
     }
 
@@ -441,7 +451,7 @@ export class Input extends InteractableWithSingleBitSavedState {
     }
 
     public calculate(): void {
-        if (this._savedToggles.indexOf(this._tickCount) >= 0) {
+        if (this._savedToggles !== undefined && this._savedToggles.indexOf(this._tickCount) >= 0) {
             this.setCurrentState(!this.currentState);
         }
     }
@@ -449,7 +459,7 @@ export class Input extends InteractableWithSingleBitSavedState {
     public reload(): void {
         this._tickCount = 0;
         super.reload();
-        if (this._savedToggles.length > 0 && this._savedToggles[0] === 0) {
+        if (this._savedToggles !== undefined && this._savedToggles.length > 0 && this._savedToggles[0] === 0) {
             this.setCurrentState(!this.currentState);
         }
     }
