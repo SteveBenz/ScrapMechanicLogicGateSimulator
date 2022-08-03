@@ -213,7 +213,7 @@ export function Interactable(props: IInteractableProps): JSX.Element {
 
     const groupContent: Array<JSX.Element> = [];
     groupContent.push(
-        <Rect key='surround' height={64} width={64} strokeWidth={5} stroke={props.isSelected ? 'green' : '#ffb341'} fill={isOn ? '#26D0F9' : '#283a40'} />
+        <Rect key='surround' height={64} width={64} strokeWidth={5} stroke={props.isSelected ? 'green' : '#ffb341'} fill={isOn ? '#26D0F9' : '#384a50'} />
     )
     if (props.model instanceof Model.InteractableWithSingleBitSavedState) {
         groupContent.push(<SavedStateIndicator key='savedStateIndicator' model={props.model}/>)

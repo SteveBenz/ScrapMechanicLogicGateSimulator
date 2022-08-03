@@ -242,10 +242,11 @@ export class Simulator {
 
     public advanceOne(): void {
         if (this.isRunning) {
-            return;
+            this.stopRunning();
         }
-
-        this._advanceOne();
+        else {
+            this._advanceOne();
+        }
     }
 
     public add(interactable: Interactable): void {

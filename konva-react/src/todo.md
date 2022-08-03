@@ -9,6 +9,7 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
 
   [x] Having 'a','o', and 'x' change logic gate types is bad - works differently than timers and inputs.  Dropdown is better.
   [x] Need a way to toggle recording on/off and clear recording
+  [x] Advancing a tick should pause the simulator if it's running
   [ ] Maybe make a visible thing on a component with a description
   [ ] Rewrite the main readme, maybe create a readme in the konva-react directory
   [ ] Consider adding a context menu for the background that has options for creating gates, etc.
