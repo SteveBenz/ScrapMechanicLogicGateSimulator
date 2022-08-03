@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.ab3c6c2c.chunk.css",
-    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.1312a514.chunk.js",
-    "main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.1312a514.chunk.js.map",
+    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.e5327106.chunk.js",
+    "main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.e5327106.chunk.js.map",
     "runtime-main.js": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.d3e3d5e2.js",
     "runtime-main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.d3e3d5e2.js.map",
     "static/js/2.202c472a.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/2.202c472a.chunk.js",
@@ -17,6 +17,6 @@
     "static/js/runtime-main.d3e3d5e2.js",
     "static/js/2.202c472a.chunk.js",
     "static/css/main.ab3c6c2c.chunk.css",
-    "static/js/main.1312a514.chunk.js"
+    "static/js/main.e5327106.chunk.js"
   ]
 }
