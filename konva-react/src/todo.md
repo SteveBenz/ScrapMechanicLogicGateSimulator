@@ -7,10 +7,11 @@ and it'll start running.  Recall that the 'start' verb is defined in ..\package.
 
 ## Bugs
 
-  [ ] Having 'a','o', and 'x' change logic gate types is bad - works differently than timers and inputs.  Dropdown is better.
-  [ ] Need a way to toggle recording on/off and clear recording
+  [x] Having 'a','o', and 'x' change logic gate types is bad - works differently than timers and inputs.  Dropdown is better.
+  [x] Need a way to toggle recording on/off and clear recording
   [ ] Maybe make a visible thing on a component with a description
   [ ] Rewrite the main readme, maybe create a readme in the konva-react directory
+  [ ] Consider adding a context menu for the background that has options for creating gates, etc.
   [x] Timers are not redrawn by putting it on a lift.
   [x] Timers are not drawn properly when only the first bit is true.
   [x] Fix positioning of tooltips (not appearing to take relative positioning into account like it should.)
