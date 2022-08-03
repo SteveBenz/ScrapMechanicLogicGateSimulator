@@ -1,13 +1,14 @@
 # Scrap Mechanic Logic Gate Simulator/Debugger
 
-## Introduction/Disclaimer
+## Prologue
 
 This thing was originally written as a python app, but has since been rewritten as a web app, which makes it a whole lot more practical to use.  To use it, go to the [GitHub Pages](https://stevebenz.github.io/ScrapMechanicLogicGateSimulator/) for this project.
 
 There's no intention to maintain the python version, but it seemed
-a shame to just delete it, so here it is...
+a shame to just delete it, so here it is.  What follows is the readme I wrote for that version of the app
+when the readme seemed like the best place to put a the help and so forth.
 
-## If you really wanna proceed...
+## Introduction
 
 This is a python app that will allow you to debug your Scrap Mechanic circuits.  It doesn't reach into the game at all - you have to duplicate your prototype here in the game and all that, but this gives you a chance to see what your circuit will do tick-by-tick.  It's particularly pointed at helping get over the pain induced by the tick-by-tick nature of how Scrap Mechanic works and the wonkiness that can happen when you load in.
 
