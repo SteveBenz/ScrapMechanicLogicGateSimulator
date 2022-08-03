@@ -15,6 +15,23 @@ object-assign
 
 /*! pako 2.0.2 https://github.com/nodeca/pako @license (MIT AND Zlib) */
 
+/**
+ * @license
+ *
+ * Copyright (c) 2011-2014, Christopher Jeffrey. (MIT Licensed)
+ * https://github.com/chjj/marked
+ *
+ * Copyright (c) 2018-2021, Костя Третяк. (MIT Licensed)
+ * https://github.com/ts-stack/markdown
+ */
+
+/**
+ * @license
+ *
+ * Copyright (c) 2018-2021, Костя Третяк. (MIT Licensed)
+ * https://github.com/ts-stack/markdown
+ */
+
 /** @license React v0.20.1
  * scheduler.production.min.js
  *

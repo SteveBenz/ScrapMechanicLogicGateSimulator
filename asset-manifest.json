@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.ab3c6c2c.chunk.css",
-    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.e5327106.chunk.js",
-    "main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.e5327106.chunk.js.map",
-    "runtime-main.js": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.d3e3d5e2.js",
-    "runtime-main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.d3e3d5e2.js.map",
-    "static/js/2.202c472a.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/2.202c472a.chunk.js",
-    "static/js/2.202c472a.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/2.202c472a.chunk.js.map",
-    "static/js/3.fa20802f.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/3.fa20802f.chunk.js",
-    "static/js/3.fa20802f.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/3.fa20802f.chunk.js.map",
+    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.ab0c2302.chunk.css",
+    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.6e17f978.chunk.js",
+    "main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.6e17f978.chunk.js.map",
+    "runtime-main.js": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.131e2c89.js",
+    "runtime-main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.131e2c89.js.map",
+    "static/js/2.61a56d41.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js",
+    "static/js/2.61a56d41.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js.map",
+    "static/js/3.5e20320f.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/3.5e20320f.chunk.js",
+    "static/js/3.5e20320f.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/3.5e20320f.chunk.js.map",
     "index.html": "/ScrapMechanicLogicGateSimulator/index.html",
-    "static/css/main.ab3c6c2c.chunk.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.ab3c6c2c.chunk.css.map",
-    "static/js/2.202c472a.chunk.js.LICENSE.txt": "/ScrapMechanicLogicGateSimulator/static/js/2.202c472a.chunk.js.LICENSE.txt"
+    "static/css/main.ab0c2302.chunk.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.ab0c2302.chunk.css.map",
+    "static/js/2.61a56d41.chunk.js.LICENSE.txt": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.d3e3d5e2.js",
-    "static/js/2.202c472a.chunk.js",
-    "static/css/main.ab3c6c2c.chunk.css",
-    "static/js/main.e5327106.chunk.js"
+    "static/js/runtime-main.131e2c89.js",
+    "static/js/2.61a56d41.chunk.js",
+    "static/css/main.ab0c2302.chunk.css",
+    "static/js/main.6e17f978.chunk.js"
   ]
 }
