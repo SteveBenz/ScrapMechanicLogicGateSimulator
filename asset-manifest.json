@@ -1,22 +1,15 @@
 {
   "files": {
-    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.ab0c2302.chunk.css",
-    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.6e17f978.chunk.js",
-    "main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.6e17f978.chunk.js.map",
-    "runtime-main.js": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.131e2c89.js",
-    "runtime-main.js.map": "/ScrapMechanicLogicGateSimulator/static/js/runtime-main.131e2c89.js.map",
-    "static/js/2.61a56d41.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js",
-    "static/js/2.61a56d41.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js.map",
-    "static/js/3.5e20320f.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/3.5e20320f.chunk.js",
-    "static/js/3.5e20320f.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/3.5e20320f.chunk.js.map",
+    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css",
+    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.bb5f0c24.js",
+    "static/js/377.6ca25165.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/377.6ca25165.chunk.js",
     "index.html": "/ScrapMechanicLogicGateSimulator/index.html",
-    "static/css/main.ab0c2302.chunk.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.ab0c2302.chunk.css.map",
-    "static/js/2.61a56d41.chunk.js.LICENSE.txt": "/ScrapMechanicLogicGateSimulator/static/js/2.61a56d41.chunk.js.LICENSE.txt"
+    "main.565ec08e.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css.map",
+    "main.bb5f0c24.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.bb5f0c24.js.map",
+    "377.6ca25165.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/377.6ca25165.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/runtime-main.131e2c89.js",
-    "static/js/2.61a56d41.chunk.js",
-    "static/css/main.ab0c2302.chunk.css",
-    "static/js/main.6e17f978.chunk.js"
+    "static/css/main.565ec08e.css",
+    "static/js/main.bb5f0c24.js"
   ]
 }
