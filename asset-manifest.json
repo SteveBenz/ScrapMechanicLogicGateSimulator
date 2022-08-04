@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css",
-    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.bb5f0c24.js",
+    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.9e1aa6c5.js",
     "static/js/377.6ca25165.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/377.6ca25165.chunk.js",
     "index.html": "/ScrapMechanicLogicGateSimulator/index.html",
     "main.565ec08e.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css.map",
-    "main.bb5f0c24.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.bb5f0c24.js.map",
+    "main.9e1aa6c5.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.9e1aa6c5.js.map",
     "377.6ca25165.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/377.6ca25165.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.565ec08e.css",
-    "static/js/main.bb5f0c24.js"
+    "static/js/main.9e1aa6c5.js"
   ]
 }
