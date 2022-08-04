@@ -13,6 +13,12 @@
       }
     },
     "extends": [
+      // Commented this line out because of this error:
+      // [eslint] Plugin "react" was conflicted between ".eslintrc.json » plugin:react/recommended" and "BaseConfig » E:\repos\LogicGates\konva-react\node_modules\eslint-config-react-app\base.js".
+      // That's probably the wrong thing to do.  I suspect that there's been a change somewhere in the web of dependencies.
+      // Perhaps a way to fix this would be to create a new react app and see what the boilerplate .eslintrc file looks like.
+      //
+      // "plugin:react/recommended",
       "plugin:@typescript-eslint/recommended",
       "plugin:react-hooks/recommended"
     ],
