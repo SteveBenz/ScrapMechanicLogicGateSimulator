@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Konva from 'konva';
-import { KonvaEventObject } from 'konva/types/Node';
 import React, { useEffect, useState } from 'react';
 import { Image, Group, Rect, Circle, Line, Arrow} from 'react-konva';
 import * as Model from './Model';
 import { ToolTip } from './Buttons';
 import { Marked } from '@ts-stack/markdown';
+import { KonvaEventObject } from 'konva/lib/Node';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const _assets: any = {};

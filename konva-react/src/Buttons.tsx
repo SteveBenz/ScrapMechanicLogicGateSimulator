@@ -4,9 +4,9 @@ import { Simulator } from "./Simulator";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
 import { Interactable } from "./Model";
-import { KonvaEventObject } from "konva/types/Node";
 import FileSaver from 'file-saver';
 import * as FloatingErrorMessage from "./FloatingErrorMessage";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface IToolBarButtonProps {
     x: number;

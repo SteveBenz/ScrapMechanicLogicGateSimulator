@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from "react";
 import { render } from "react-dom";
@@ -7,10 +8,10 @@ import * as TC from "./TickCounter";
 import * as ViewModel from "./ViewModel";
 import * as Model from "./Model";
 import Konva from 'konva';
-import { Vector2d } from "konva/types/types";
 import { Interactable } from "./Model";
 import { CopyLinkButton, DeleteButton, IDragNewInteractableDragEventArgs, LoadFromFileButton, LogicGateButton, PaintButton, PutOnLiftButton, ReloadButton, SaveToFileButton, SingleStepButton, StartStopButton, TakeOffLiftButton } from "./Buttons";
-import { KonvaEventObject } from "konva/types/Node";
+import { Vector2d } from "konva/lib/types";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface AppProps {
     simulator: Simulator;
