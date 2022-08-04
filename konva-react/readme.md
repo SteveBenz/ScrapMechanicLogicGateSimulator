@@ -26,3 +26,8 @@ Once you get that done, you need to run this in a dedicated console window or vs
 
 Then, assuming all the right typescript stuff is installed, you should be able to
 just F5 from VSCode to debug.
+
+To deploy:
+
+    npm build
+    npm deploy
