@@ -349,8 +349,7 @@ export class Simulator {
 }
 
 const EventNames = {
-    // This is emitted whenever the clock is actually advanced.  State calculated in
-    // 'pretick' should now become the current state.
+    // This is emitted whenever the clock is actually advanced.
     tick: 'tick',
 
     // A new component has been added to the model (argument is the new item)
