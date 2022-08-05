@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css",
-    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.c826abe8.js",
+    "main.css": "/ScrapMechanicLogicGateSimulator/static/css/main.e10bcf6f.css",
+    "main.js": "/ScrapMechanicLogicGateSimulator/static/js/main.1bbf29f6.js",
     "static/js/787.5b49dfe2.chunk.js": "/ScrapMechanicLogicGateSimulator/static/js/787.5b49dfe2.chunk.js",
     "index.html": "/ScrapMechanicLogicGateSimulator/index.html",
-    "main.565ec08e.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.565ec08e.css.map",
-    "main.c826abe8.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.c826abe8.js.map",
+    "main.e10bcf6f.css.map": "/ScrapMechanicLogicGateSimulator/static/css/main.e10bcf6f.css.map",
+    "main.1bbf29f6.js.map": "/ScrapMechanicLogicGateSimulator/static/js/main.1bbf29f6.js.map",
     "787.5b49dfe2.chunk.js.map": "/ScrapMechanicLogicGateSimulator/static/js/787.5b49dfe2.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.565ec08e.css",
-    "static/js/main.c826abe8.js"
+    "static/css/main.e10bcf6f.css",
+    "static/js/main.1bbf29f6.js"
   ]
 }
