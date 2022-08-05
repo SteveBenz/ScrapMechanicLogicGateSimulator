@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import pako from 'pako';
 import { hasOwnProperty, Interactable, ISerializedInteractable } from './Model';
+import { Buffer } from 'buffer';
 
 
 export interface IEventArgsSimulator {
