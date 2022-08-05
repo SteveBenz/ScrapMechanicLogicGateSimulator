@@ -59,6 +59,10 @@ div:focus {
     transition: opacity .25s, visibility .25s;
 }
 
+.braveHidden {
+    visibility: collapse;
+    height: 0px;
+}
 
 body {
     padding-left: 20px;

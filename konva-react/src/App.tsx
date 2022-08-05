@@ -431,12 +431,55 @@ function toggleHelp(): void {
     }
 }
 
+function closeBraveBrowserWarning(): void {
+    const braveWarning = document.getElementById('braveWarning')!;
+    braveWarning.style.visibility = 'collapsed';
+
+    const d = new Date();
+    d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000)); // 90 days
+    braveWarning.classList.add('braveHidden');
+    document.cookie = "gotBraveWarning=1;expires="+d.toUTCString()+";path=/"
+}
+
+interface BraveChecker {
+    isBrave(): Promise<boolean>;
+}
+
+interface BraveNavigator {
+    brave?: BraveChecker;
+}
+
+async function checkIfShouldShowBraveBrowserWarning(): Promise<void> {
+    const bn = (navigator as BraveNavigator);
+    const isBrave = bn.brave && await bn.brave.isBrave() || false;
+
+    if (!isBrave) {
+        return;
+    }
+
+    const ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        const c = ca[i].trimStart();
+        if (c.startsWith("gotBraveWarning=")) {
+            return;
+        }
+    }
+
+    const braveWarning = document.getElementById('braveWarning')!;
+    const gotBraveMessageButton = document.getElementById('gotBraveMessageButton')!;
+    
+    braveWarning.classList.remove('braveHidden');
+    gotBraveMessageButton.onclick = closeBraveBrowserWarning;
+}
+
+
 function autoSave(simulator: Simulator): void {
     simulator.storeInCookie();
     setTimeout(autoSave, 3000, simulator);
 }
 
 export function makeItSo(): void {
+    checkIfShouldShowBraveBrowserWarning();
     window.addEventListener('click', onWindowClick);
     const helpButton = document.getElementById('helpButton')!;
     helpButton.onclick = toggleHelp;
