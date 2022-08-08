@@ -143,6 +143,7 @@
           <li><a href="#helpDebugger">Debugger Controls</a></li>
           <li><a href="#helpSaving">Saving and Sharing Your Work</a></li>
           <li><a href="#helpCommenting">Describing Your Circuit</a></li>
+          <li><a href="#helpExporting">Bringing your Creation into the Game</a></li>
           <li><a href="#helpKeyboard">Keyboard Shortcuts</a></li>
           <li><a href="#helpSampleMemoryBit">Sample - Memory Bit</a></li>
           <li><a href="#helpSampleDebounced">Sample - Debounced Memory Bit</a></li>
@@ -292,6 +293,42 @@
           button.  This allows you to write a markdown comment for the control that shows up when you
           hover over the thing.
         </p>
+
+      <h4 id="helpExporting">Bringing your Creation into the Game</h4>
+        <p>It's possible (although a little wonky) to create a build in the simulator and then pull it
+          into the game.  It uses Scrap Mechanic's "Blueprint" mechanism to do this so, alas, it's a
+          creative-mode only thing.  Here's what you'll do:
+        </p>
+
+        <ol>
+          <li>Enter the game in creative mode.</li>
+          <li>Create a new build on the lift - just one block will do, whatever, it's going to get deleted.</li>
+          <li>Give it a very unique name (to make it easier to find later) and save it.</li>
+          <li>Delete the build off of your lift</li>
+          <li>Switch to a a file explorer window and open: <code>%appdata%\Axolot Games\Scrap Mechanic\User</code></li>
+          <li>Under that, you should see a folder that starts with <code>User_</code> -- open that.</li>
+          <li>Under that, you should see a folder called <code>Blueprints</code> -- open that.</li>
+          <li>Click on "Date Modified" so that you see the most recently changed directory first.</li>
+          <li>Double-click on the top (most recent) folder (which is going to be something like '88eca389-bd90-47d1-914e-d81998df84c9').</li>
+          <li>Ensure that the file <code>blueprint.json</code> is really, really small (&lt;=1kb) - open <code>description.json</code> in a text editor to be sure you're in the right place.</li>
+          <li>Go back to the scrap mechanic simulator and click the Export button.</li>
+          <li>Open a file explorer window on your "Downloads" directory.</li>
+          <li>Look for the <code>"blueprint*.json"</code> file that just got created.</li>
+          <li>Move(or copy) the blueprint.json file from the downloads folder to the scrap mechanic blueprint folder - it needs to replace the
+            <code>blueprint.json</code> file that's already there, so you might need to delete and rename to make that happen.</li>
+          <li>Go back to the game, find the build by the name you set up above and select it.</li>
+        </ol>
+
+        <p>Notes and limitation of warranty:</p>
+        <ul>
+          <li>The resulting build is a flat grid of logic gates built to resemble the layout you chose in the simulator.</li>
+          <li>Mayhem can ensue if you have overlapping logic gates or otherwise cluster them together too closely.</li>
+          <li>Inputs are constructed as logic gates that are painted white and have a button on the top.  The thinking
+            is that you're likely to have a need to hook this up to sensors or maybe a control panel, and you'd wire the
+            control panel up to the circuit board in one spot rather than hooking those external things up to perhaps
+            several gates in the middle of the circuit.
+          </li>
+        </ul>
 
       <h4 id="helpKeyboard">Keyboard Shortcuts</h4>
         <p><em>a</em>, <em>o</em>, <em>x</em> - If a logic gate is selected, these will convert

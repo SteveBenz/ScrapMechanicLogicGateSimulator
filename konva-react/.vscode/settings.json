@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
+        "childs",
         "Interactable",
         "interactables",
         "logicgatesim",
         "Nand",
         "pako",
         "viewmodel",
-        "Xnor"
+        "xaxis",
+        "Xnor",
+        "zaxis"
     ]
 }

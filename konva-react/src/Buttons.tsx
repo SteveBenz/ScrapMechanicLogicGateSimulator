@@ -7,6 +7,7 @@ import { Interactable } from "./Model";
 import FileSaver from 'file-saver';
 import * as FloatingErrorMessage from "./FloatingErrorMessage";
 import { KonvaEventObject } from "konva/lib/Node";
+import { exportModel } from "./importexport";
 
 interface IToolBarButtonProps {
     x: number;
@@ -420,6 +421,29 @@ export function SaveToFileButton(props: ISaveToFileButtonProps): JSX.Element {
 
     return <ToolBarButton x={props.x} y={props.y} toolTipId='saveTip' isEnabled={true} onClicked={handleClick}>
         <Text text="&#128190;" x={6} y={14} fontSize={42} fill='black'/>
+    </ToolBarButton>
+}
+
+
+interface ISaveToFileButtonProps {
+    x: number;
+    y: number;
+    simulator: Simulator;
+}
+
+export function ExportBlueprintButton(props: ISaveToFileButtonProps): JSX.Element {
+    function handleClick(): void {
+        try {
+            const file = new File([exportModel(props.simulator.interactables)], "blueprint.json", {type: "text/plain;charset=utf-8"});
+            FileSaver.saveAs(file);
+        }
+        catch(err) {
+            alert(err);
+        }
+    }
+
+    return <ToolBarButton x={props.x} y={props.y} toolTipId='saveTip' isEnabled={true} onClicked={handleClick}>
+        <Text text="&#8659;" x={6} y={14} fontSize={42} fill='black'/>
     </ToolBarButton>
 }
 

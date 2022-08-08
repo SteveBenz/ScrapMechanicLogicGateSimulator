@@ -522,6 +522,11 @@ export class Timer extends Interactable {
         return [...this._tickStorage];
     }
 
+    /** Gets the duration of the timer in Scrap Mechanic's parlance - which is 1 minus the actual delay. **/
+    public get scrapMechanicTickCount(): number {
+        return this._tickStorage.length-1;
+    }
+
     public export(): ISerializedTimer {
         return {
             ...super.export(),
