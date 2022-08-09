@@ -167,7 +167,7 @@ function makeGameData(entry: PositionInfo, z: number, outputs: PositionInfo[]): 
                 controllers: outputIds,
                 id: entry.itemId,
                 joints: null,
-                mode: 1 // 'Or' to allow hooking to a variety of sources
+                mode: GameData.OrGateMode // 'Or' to allow hooking to a variety of sources
             },
             pos: {
                 x: entry.x,
@@ -207,7 +207,7 @@ function getLayoutInfo(allInteractables: Array<Interactable>): LayoutInfo {
         minY: Math.min(...allInteractables.map(i => i.y)),
         maxX: Math.max(...allInteractables.map(i => i.x)),
         maxY: Math.max(...allInteractables.map(i => i.y)),
-        layoutSize: 10
+        layoutSize: 6
     };
 }
 
@@ -225,25 +225,38 @@ function getPositionInfo(layoutInfo: LayoutInfo, i: Interactable, itemId: number
 
 export function exportModel(allInteractables: Array<Interactable>): string {
     const layoutInfo = getLayoutInfo(allInteractables);
-    const layout: Array<Array<Array<PositionInfo>>> = [];
-    for (let i = 0; i < layoutInfo.layoutSize; ++i) {
-        const contents = [];
-        for (let j = 0; j < layoutInfo.layoutSize; ++j) {
-            contents.push([]);
+    let layout: Array<Array<Array<PositionInfo>>> = [];
+    let hasOverlaps = true;
+    while (hasOverlaps) {
+        layoutInfo.layoutSize += Math.min(1, allInteractables.length >> 3);
+
+        layout = [];
+        for (let i = 0; i < layoutInfo.layoutSize; ++i) {
+            const contents = [];
+            for (let j = 0; j < layoutInfo.layoutSize; ++j) {
+                contents.push([]);
+            }
+            layout.push(contents);
         }
-        layout.push(contents);
-    }
 
-    for (const i in allInteractables) {
-        const li = getPositionInfo(layoutInfo, allInteractables[i], Number.parseInt(i)); // TODO: i should be an int, but...?
-        layout[li.y][li.x].push(li);
-    }
+        for (const i in allInteractables) {
+            const li = getPositionInfo(layoutInfo, allInteractables[i], Number.parseInt(i)); // TODO: i should be an int, but...?
+            layout[li.y][li.x].push(li);
+        }
 
-    // TODO: Try to unstack cases where they're piled up more than one deep.
-    for (let y = 0; y < layout.length; ++y) {
-        for (let x = 0; x < layout.length; ++x) {
-            if (layout[y][x].length > 1) {
-                throw Error("Blocks packed too deep");
+        // TODO: Try to unstack cases where they're piled up more than one deep.
+        hasOverlaps = false;
+        for (let y = 0; !hasOverlaps && y < layout.length; ++y) {
+            for (let x = 0; !hasOverlaps && x < layout.length; ++x) {
+                if (layout[y][x].length > 1) {
+                    hasOverlaps = true;
+                    if (layoutInfo.layoutSize >= 20 && allInteractables.length < 100) {
+                        // Probably a case of user error.  If the map is huge, we're going to trust the user knows what they're doing.
+                        // It'd be nice to actually return the offending thing, but seems like too much fancy.  You'd have to create a
+                        // class that extends Error and all that jazz.
+                        throw Error("Two components are too close to each other or are overlapping.  Spread them out a bit so a sensible layout can be made.");
+                    }
+                }
             }
         }
     }
