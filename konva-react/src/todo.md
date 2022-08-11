@@ -20,9 +20,12 @@
   [x] Pressing 'a', 'o' etc. while a logic gate is selected should convert it (?)
   [x] Timer looks a bit awkward with small, odd numbers of ticks
   [ ] Data > 4k will jack up the cookie backup system.
+  [x] Import/Export buttons are ugly.
 
 ## Maybe nice to have
 
+  [ ] Video for import/export
+  [ ] Do a better job of getting the positions right on import.
   [ ] Maybe make a visible thing on a component with a description
   [ ] Consider adding a button to clear the whole screen
   [ ] Consider adding a context menu for the background that has options for creating gates, etc.

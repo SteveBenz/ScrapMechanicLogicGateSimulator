@@ -32,7 +32,7 @@ function getScreenLayout(): IScreenLayout {
     const vSpaceBetweenButtons = 8;
     const buttonWidth = 64;
     const buttonHeight = 64;
-    const maximumButtonsPerRow = 9;
+    const maximumButtonsPerRow = 10;
     const content = document.getElementById('content');
     const canvasHeight = window.innerHeight*.9;
     const canvasWidth = content!.clientWidth; // Would love to know where the 57 comes from, but with the current styles, it seems to work.
@@ -393,10 +393,10 @@ export function App(props: AppProps): JSX.Element {
                 <LogicGateButton x={screenLayout.buttonRowX(6)} y={screenLayout.buttonRowY(6)} selected={selected} kind='input' onBeginDrag={handleNewInteractableDrag}/>
                 <LogicGateButton x={screenLayout.buttonRowX(7)} y={screenLayout.buttonRowY(7)} selected={selected} kind='timer' onBeginDrag={handleNewInteractableDrag}/>
                 <DeleteButton x={screenLayout.buttonRowX(8)} y={screenLayout.buttonRowY(8)} simulator={props.simulator} selected={selected}/>
-                <StartStopButton x={screenLayout.buttonRowX(9)} y={screenLayout.buttonRowY(9)} model={props.simulator}/>
-                <SingleStepButton x={screenLayout.buttonRowX(10)} y={screenLayout.buttonRowY(10)} model={props.simulator}/>
-                <ReloadButton x={screenLayout.buttonRowX(11)} y={screenLayout.buttonRowY(11)} simulator={props.simulator}/>
-                <PaintButton x={screenLayout.buttonRowX(12)} y={screenLayout.buttonRowY(12)} selected={selected}/>
+                <PaintButton x={screenLayout.buttonRowX(9)} y={screenLayout.buttonRowY(9)} selected={selected}/>
+                <StartStopButton x={screenLayout.buttonRowX(10)} y={screenLayout.buttonRowY(10)} model={props.simulator}/>
+                <SingleStepButton x={screenLayout.buttonRowX(11)} y={screenLayout.buttonRowY(11)} model={props.simulator}/>
+                <ReloadButton x={screenLayout.buttonRowX(12)} y={screenLayout.buttonRowY(12)} simulator={props.simulator}/>
                 <PutOnLiftButton x={screenLayout.buttonRowX(13)} y={screenLayout.buttonRowY(13)} simulator={props.simulator}/>
                 <TakeOffLiftButton x={screenLayout.buttonRowX(14)} y={screenLayout.buttonRowY(14)} simulator={props.simulator}/>
                 <CopyLinkButton x={screenLayout.buttonRowX(15)} y={screenLayout.buttonRowY(15)} simulator={props.simulator}/>

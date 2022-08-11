@@ -118,7 +118,7 @@ function ToolBarButton(props: IToolBarButtonProps) {
                       onMouseDown={handleMouseDown}
                       onMouseUp={handleMouseUp}
                       scaleX={isPressed ? pressedScalingFactor : 1}
-                      scaleY={isPressed ? pressedScalingFactor : 1}>
+                      scaleY={isPressed ? pressedScalingFactor : 1} >
                 {props.children}
                 <Rect x={0} y={0} height={64} width={64}
                       strokeWidth={2} stroke={isHovering ? 'black' : 'grey'}
@@ -436,7 +436,7 @@ export function ExportBlueprintButton(props: ISaveToFileButtonProps): JSX.Elemen
     }
 
     return <ToolBarButton x={props.x} y={props.y} toolTipId='exportTip' isEnabled={true} onClicked={handleClick}>
-        <Text text="&#8659;" x={6} y={14} fontSize={42} fill='black'/>
+        <Text text="&#8659;" x={19} y={14} fontSize={42} fill='black'/>
     </ToolBarButton>
 }
 
@@ -556,7 +556,7 @@ export function ImportBlueprintButton(props: ILoadFromFileButtonProps): JSX.Elem
     }
 
     return <ToolBarButton x={props.x} y={props.y} toolTipId='importTip' isEnabled={true} onClicked={handleClick}>
-        <Text text="&#8657;" x={6} y={14} fontSize={42} fill='black'/>
+        <Text text="&#8657;" x={19} y={14} fontSize={42} fill='black'/>
     </ToolBarButton>
 }
 
