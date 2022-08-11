@@ -28,7 +28,8 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <input type="file" id="fileElem" style="display:none" change="handleFileGiven">
+    <input type="file" id="loadFileInput" style="display:none" accept=".json">
+    <input type="file" id="importFileInput" style="display:none" accept="blueprint.json">
     <div id="interactableMenu" class='menu'>
       <div id="menuItemDescribe" class="menuItem">Edit Description</div>
       <div id="menuItemToAnd" class='menuItem'>Change to AND</div>
@@ -118,6 +119,12 @@
       </div>
       <div id="saveTip" class='tooltip'>
         <p>Save a JSON copy of a design to a file on your machine.</p>
+      </div>
+      <div id="importTip" class='tooltip'>
+        <p>Load a blueprint from the game into the session.  <em><b>This will wipe your current design!</b></em></p>
+      </div>
+      <div id="exportTip" class='tooltip'>
+        <p>Saves the design as a blueprint that can be read by Scrap Mechanic.</p>
       </div>
   
       <div class="content" id="content">

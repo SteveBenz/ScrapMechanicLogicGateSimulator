@@ -98,8 +98,12 @@ export class Simulator {
             }
         }
 
+        this.setInteractables(interactables);
+    }
+
+    public setInteractables(newInteractables: Interactable[]): void {
         const oldInteractables = this.interactables;
-        this.interactables = interactables;
+        this.interactables = newInteractables;
         this._emitInteractablesReset( { simulator: this, oldInteractables: oldInteractables });
 
         this.stopRunning();

@@ -7,7 +7,7 @@ import { Interactable } from "./Model";
 import FileSaver from 'file-saver';
 import * as FloatingErrorMessage from "./FloatingErrorMessage";
 import { KonvaEventObject } from "konva/lib/Node";
-import { exportModel } from "./importexport";
+import { exportModel, importModel } from "./importexport";
 
 interface IToolBarButtonProps {
     x: number;
@@ -424,13 +424,6 @@ export function SaveToFileButton(props: ISaveToFileButtonProps): JSX.Element {
     </ToolBarButton>
 }
 
-
-interface ISaveToFileButtonProps {
-    x: number;
-    y: number;
-    simulator: Simulator;
-}
-
 export function ExportBlueprintButton(props: ISaveToFileButtonProps): JSX.Element {
     function handleClick(): void {
         try {
@@ -442,7 +435,7 @@ export function ExportBlueprintButton(props: ISaveToFileButtonProps): JSX.Elemen
         }
     }
 
-    return <ToolBarButton x={props.x} y={props.y} toolTipId='saveTip' isEnabled={true} onClicked={handleClick}>
+    return <ToolBarButton x={props.x} y={props.y} toolTipId='exportTip' isEnabled={true} onClicked={handleClick}>
         <Text text="&#8659;" x={6} y={14} fontSize={42} fill='black'/>
     </ToolBarButton>
 }
@@ -455,14 +448,14 @@ interface ILoadFromFileButtonProps {
 }
 
 export function LoadFromFileButton(props: ILoadFromFileButtonProps): JSX.Element {
-    const fileElem = document.getElementById("fileElem") as HTMLInputElement;
-    if (!fileElem) {
-        throw new Error("index.html is busted - fileElem <input> is missing");
+    const fileInput = document.getElementById("loadFileInput") as HTMLInputElement;
+    if (!fileInput) {
+        throw new Error("index.html is busted - loadFileInput <input> is missing");
     }
 
     React.useEffect(() => {
         function handleFileGiven(): void {
-            if (!fileElem.files || fileElem.files.length === 0) {
+            if (!fileInput.files || fileInput.files.length === 0) {
                 return;
             }
     
@@ -470,6 +463,7 @@ export function LoadFromFileButton(props: ILoadFromFileButtonProps): JSX.Element
             const reader = new FileReader();
             reader.onload = () => {
                 const fileContents: string = reader.result as string;
+                fileInput.value = '';
                 let jsonContent: unknown;
                 try
                 {
@@ -488,16 +482,16 @@ export function LoadFromFileButton(props: ILoadFromFileButtonProps): JSX.Element
                     alert(err);
                 }
             };
-            reader.readAsText(fileElem.files[0]);
+            reader.readAsText(fileInput.files[0]);
         }
     
-        fileElem.addEventListener('change', handleFileGiven, false);
+        fileInput.addEventListener('change', handleFileGiven, false);
 
-        return () => fileElem.removeEventListener('change', handleFileGiven);
-    }, [props.simulator, fileElem]);
+        return () => fileInput.removeEventListener('change', handleFileGiven);
+    }, [props.simulator, fileInput]);
 
     function handleClick(): void {
-        fileElem.click();
+        fileInput.click();
     }
 
     return <ToolBarButton x={props.x} y={props.y} toolTipId='loadTip' isEnabled={true} onClicked={handleClick}>
@@ -505,6 +499,66 @@ export function LoadFromFileButton(props: ILoadFromFileButtonProps): JSX.Element
     </ToolBarButton>
 }
 
+export function ImportBlueprintButton(props: ILoadFromFileButtonProps): JSX.Element {
+    const fileInput = document.getElementById("importFileInput") as HTMLInputElement;
+    if (!fileInput) {
+        throw new Error("index.html is busted - importFileInput <input> is missing");
+    }
+
+    React.useEffect(() => {
+        function handleFileGiven(): void {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                return;
+            }
+    
+            // hacky - no message when file load fails.
+            const reader = new FileReader();
+            reader.onload = () => {
+                const fileContents: string = reader.result as string;
+                fileInput.value = '';
+                let jsonContent: unknown;
+                try
+                {
+                    jsonContent = JSON.parse(fileContents);
+                }
+                catch(err) {
+                    alert("Failed to load the file - are you sure this is a file generated from this app?  " + err);
+                    return;
+                }
+    
+                let imported: Model.Interactable[] | undefined;
+                try
+                {
+                    imported = importModel(1000, 1000, jsonContent);
+                }
+                catch(err) {
+                    alert(err);
+                    return;
+                }
+
+                if (imported.length === 0) {
+                    alert("The blueprint doesn't appear to contain any non-trivial logic circuits - are you sure you have the right blueprint?");
+                    return;
+                }
+
+                props.simulator.setInteractables(imported);
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+    
+        fileInput.addEventListener('change', handleFileGiven, false);
+
+        return () => fileInput.removeEventListener('change', handleFileGiven);
+    }, [props.simulator, fileInput]);
+
+    function handleClick(): void {
+        fileInput.click();
+    }
+
+    return <ToolBarButton x={props.x} y={props.y} toolTipId='importTip' isEnabled={true} onClicked={handleClick}>
+        <Text text="&#8657;" x={6} y={14} fontSize={42} fill='black'/>
+    </ToolBarButton>
+}
 
 interface IReloadButtonProps {
     x: number;
