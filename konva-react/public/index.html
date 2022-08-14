@@ -176,6 +176,7 @@
           <li><a href="https://www.youtube.com/watch?v=JJ9p2_T_p0o" target="_None">Tutorial on using the tool.</a></li>
           <li><a href="https://www.youtube.com/watch?v=agkGVMS2K3c" target="_None">A demonstration of how ticks and saved state work in-game.</a></li>
           <li><a href="https://www.youtube.com/watch?v=agkGVMS2K3c&t=186s" target="_None">Same as the above, skipping the part about ticks that many will already know.</a></li>
+          <li><a href="https://www.youtube.com/watch?v=P6nKlXrpI9U" target="_None">A demonstration of the import/export blueprints feature.</a></li>
         </ol>
 
         <p>There's a context menu that allows you to tweak each control and change the number of ticks in a timer.</p>
@@ -302,9 +303,10 @@
         </p>
 
       <h4 id="helpExporting">Bringing your Creation into the Game</h4>
-        <p>It's possible (although a little wonky) to create a build in the simulator and then pull it
-          into the game.  It uses Scrap Mechanic's "Blueprint" mechanism to do this so, alas, it's a
-          creative-mode only thing.  Here's what you'll do:
+        <p>It's possible to create a build in the simulator and then pull it into the game and to import
+          the logic from an in-game blueprint into the simulator.  It uses Scrap Mechanic's "Blueprint" mechanism to do this so, alas, it's a
+          creative-mode only thing until that blessed day when blueprints are available in survival.
+          Here's what you'll do to export a diagram you've set up in the simulator:
         </p>
 
         <ol>
@@ -337,6 +339,31 @@
           </li>
         </ul>
 
+        <p>Importing a build from the game is similar but in reverse:</p>
+
+        <ol>
+          <li>In the game, find the build you want to import into scrap mechanic.</li>
+          <li>Save it on the lift (for safety, better to save it with a throwaway name.)</li>
+          <li>In the Logic Gate simulator, press the "Import" button (arrow pointed up).</li>
+          <li>In the ensuing dialog (which should be asking you to give it a file to read), do this:
+            <ol>
+              <li>Type in <code>%appdata%\Axolot Games\Scrap Mechanic\User</code></li>
+              <li>Under that, you should see a folder that starts with <code>User_</code> -- open that.</li>
+              <li>Under that, you should see a folder called <code>Blueprints</code> -- open that.</li>
+              <li>Click on "Date Modified" so that you see the most recently changed directory first.</li>
+              <li>Double-click on the top (most recent) folder (which is going to be something like '88eca389-bd90-47d1-914e-d81998df84c9').</li>
+            </ol>
+          </li>
+          <li>Click on the 'blueprint.json' file in that folder.</li>
+        </ol>
+
+        <p>The resulting import will almost certainly need some re-arrangement (shift-click to drag).
+          The layout is fully driven by the x-y position in the build, so if you have logic gates and such
+          stacked on top of each other, they'll be a mess in the final layout too.  It also doesn't have
+          any representations for motors or other target devices, and it will filter out trivial logic
+          gate systems.  For example, a pair of buttons leading to an xor gate leading to a controller
+          will not be imported.
+        </p>
       <h4 id="helpKeyboard">Keyboard Shortcuts</h4>
         <p><em>a</em>, <em>o</em>, <em>x</em> - If a logic gate is selected, these will convert
           it to an 'and', 'or', or 'xor' gate.  If no logic gate is selected, a new logic gate
